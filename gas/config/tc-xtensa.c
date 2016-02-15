@@ -11049,30 +11049,13 @@ xtensa_move_seg_list_to_beginning (seg_list *head)
 
 static void mark_literal_frags (seg_list *);
 
+/* Assign addresses (rough estimates) to the potential literal pool locations
+   and create new ones if the gaps are too large.  */
+
 static void
-xtensa_move_literals (void)
+xg_estimate_litpool_locations (void)
 {
-  seg_list *segment;
-  frchainS *frchain_from, *frchain_to;
-  fragS *search_frag, *next_frag, *literal_pool, *insert_after;
-  fragS **frag_splice;
-  emit_state state;
-  segT dest_seg;
-  fixS *fix, *next_fix, **fix_splice;
-  sym_list *lit;
   struct litpool_seg *lps;
-  const char *init_name = INIT_SECTION_NAME;
-  const char *fini_name = FINI_SECTION_NAME;
-  int init_name_len = strlen(init_name);
-  int fini_name_len = strlen(fini_name);
-
-  mark_literal_frags (literal_head->next);
-
-  if (use_literal_section)
-    return;
-
-  /* Assign addresses (rough estimates) to the potential literal pool locations
-     and create new ones if the gaps are too large.  */
 
   for (lps = litpool_seg_list.next; lps; lps = lps->next)
     {
@@ -11172,6 +11155,31 @@ xtensa_move_literals (void)
 	    }
 	}
     }
+}
+
+static void
+xtensa_move_literals (void)
+{
+  seg_list *segment;
+  frchainS *frchain_from, *frchain_to;
+  fragS *search_frag, *next_frag, *literal_pool, *insert_after;
+  fragS **frag_splice;
+  emit_state state;
+  segT dest_seg;
+  fixS *fix, *next_fix, **fix_splice;
+  sym_list *lit;
+  const char *init_name = INIT_SECTION_NAME;
+  const char *fini_name = FINI_SECTION_NAME;
+  int init_name_len = strlen(init_name);
+  int fini_name_len = strlen(fini_name);
+
+  mark_literal_frags (literal_head->next);
+
+  if (use_literal_section)
+    return;
+
+  if (auto_litpools)
+    xg_estimate_litpool_locations ();
 
   for (segment = literal_head->next; segment; segment = segment->next)
     {
@@ -11190,6 +11198,8 @@ xtensa_move_literals (void)
       frchain_to = NULL;
       frag_splice = &(frchain_from->frch_root);
 
+      /* Find first reference from literal section to .literal_position frag
+         in the corresponding code section.  */
       while (search_frag && !search_frag->tc_frag_data.literal_frag)
 	{
 	  gas_assert (search_frag->fr_fix == 0
@@ -11218,6 +11228,9 @@ xtensa_move_literals (void)
       frag_variant (rs_fill, 0, 0, 0, NULL, 0, NULL);
       xtensa_set_frag_assembly_state (frag_now);
 
+      /* Traverse remaining frags in the literal section and move them to the
+	 current literal pool in the code section.  Change literal pool as new
+	 .literal_position references are encountered.  */
       while (search_frag != frag_now)
 	{
 	  next_frag = search_frag->fr_next;
