@@ -7296,6 +7296,34 @@ static void xtensa_fix_short_loop_frags (void);
 static void xtensa_sanity_check (void);
 static void xtensa_add_config_info (void);
 
+static void dump_litpools (void) __attribute__ ((unused));
+static void xg_dump_frags (void) __attribute__ ((unused));
+
+static void
+xg_dump_frags (void)
+{
+  frchainS *frchP;
+  asection *s;
+
+  for (s = stdoutput->sections; s; s = s->next)
+    {
+      fprintf(stderr, "%s: section: %s\n", __func__, s->name);
+      for (frchP = seg_info (s)->frchainP; frchP; frchP = frchP->frch_next)
+	{
+	  fragS *fragP;
+	  /* Walk over all of the fragments in a subsection.  */
+	  for (fragP = frchP->frch_root; fragP; fragP = fragP->fr_next)
+	    {
+	      fprintf(stderr, "%s: fragP: %p, fr_type = %2d, fr_subtype = %2d, fr_fix = %3ld, state_set: %d, is_literal: %d, literal_frag: %p\n",
+		      __func__, fragP, fragP->fr_type, fragP->fr_subtype,
+		      fragP->fr_fix, fragP->tc_frag_data.is_assembly_state_set,
+		      fragP->tc_frag_data.is_literal, fragP->tc_frag_data.literal_frag);
+	    }
+	  fprintf(stderr, "\n");
+	}
+    }
+}
+
 void
 xtensa_end (void)
 {
@@ -7513,10 +7541,9 @@ dump_litpools (void)
 		count++;
 	      litfrag = litfrag->fr_next;
 	    }
-	  printf("   %ld <%d:%d> (%d) [%d]: ",
+	  printf("addr = 0x%lx, priority = %d, original_priority = %d, fr_line = %d, count = %d\n",
 		 lpf->addr, lpf->priority, lpf->original_priority,
 		 lpf->fragP->fr_line, count);
-	  //dump_frag(lpf->fragP);
 	}
     }
 }
