@@ -7332,6 +7332,7 @@ xtensa_end (void)
 
   past_xtensa_end = TRUE;
 
+  xg_dump_frags ();
   xtensa_move_literals ();
 
   xtensa_reorder_segments ();
@@ -7614,6 +7615,8 @@ xtensa_maybe_create_literal_pool_frag (bfd_boolean create,
   if (needed)
     {
       int size = (only_if_needed) ? 3 : 0; /* Space for a "j" insn.  */
+      fprintf(stderr, "%s: before auto litpool creation <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", __func__);
+      xg_dump_frags ();
       /* Create a potential site for a literal pool.  */
       frag_wane (frag_now);
       frag_new (0);
@@ -7630,6 +7633,9 @@ xtensa_maybe_create_literal_pool_frag (bfd_boolean create,
       frag_variant (rs_machine_dependent, 0, 0,
 		    RELAX_LITERAL_POOL_END, NULL, 0, NULL);
       xtensa_set_frag_assembly_state (frag_now);
+      fprintf(stderr, "%s: after auto litpool creation >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", __func__);
+      xg_dump_frags ();
+      fprintf(stderr, "%s: ==============================\n", __func__);
     }
   else
     {
@@ -11203,6 +11209,10 @@ xtensa_move_literals (void)
 	}
     }
 
+  fprintf(stderr, "%s: after litpool address assignment >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", __func__);
+  xg_dump_frags ();
+  fprintf(stderr, "%s: after litpool address assignment <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", __func__);
+
   for (segment = literal_head->next; segment; segment = segment->next)
     {
       const char *seg_name = segment_name (segment->seg);
@@ -11222,6 +11232,9 @@ xtensa_move_literals (void)
 
       while (search_frag && !search_frag->tc_frag_data.literal_frag)
 	{
+	  //if (!(search_frag->fr_fix == 0
+	//	|| search_frag->fr_type == rs_align))
+	    fprintf(stderr, "%s: search_frag: %p\n", __func__, search_frag);
 	  gas_assert (search_frag->fr_fix == 0
 		  || search_frag->fr_type == rs_align);
 	  search_frag = search_frag->fr_next;
@@ -11235,6 +11248,7 @@ xtensa_move_literals (void)
 	  continue;
 	}
 
+      fprintf(stderr, "%s: literal_frag = %p\n", __func__, search_frag->tc_frag_data.literal_frag);
       gas_assert (search_frag->tc_frag_data.literal_frag->fr_subtype
 	      == RELAX_LITERAL_POOL_BEGIN);
       xtensa_switch_section_emit_state (&state, segment->seg, 0);
