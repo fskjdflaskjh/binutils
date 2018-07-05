@@ -10,7 +10,9 @@ addons:
         dejagnu
 
 script:
-  - ./ci-build-binutils.sh
+  - mkdir build && cd build
+    ../configure --prefix=`pwd`/root --target=${TARGET_TRIPLET} --disable-gdb
+    make -j && make check
 
 matrix:
   include:
