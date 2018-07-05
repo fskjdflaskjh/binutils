@@ -6177,12 +6177,11 @@ ppc64_elf_merge_private_bfd_data (bfd *ibfd, struct bfd_link_info *info)
       return FALSE;
     }
 
-  _bfd_elf_ppc_merge_fp_attributes (ibfd, info);
+  if (!_bfd_elf_ppc_merge_fp_attributes (ibfd, info))
+    return FALSE;
 
   /* Merge Tag_compatibility attributes and any common GNU ones.  */
-  _bfd_elf_merge_object_attributes (ibfd, info);
-
-  return TRUE;
+  return _bfd_elf_merge_object_attributes (ibfd, info);
 }
 
 static bfd_boolean
