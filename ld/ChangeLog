@@ -1,3 +1,24 @@
+2018-07-11  Maciej W. Rozycki  <macro@mips.com>
+
+	* testsuite/ld-mips-elf/tlsdyn-o32.d: Update test for dynamic
+	relocation removal.
+	* testsuite/ld-mips-elf/tlsdyn-o32.got: Likewise.
+	* testsuite/ld-mips-elf/tlsdyn-o32-1.d: Likewise.
+	* testsuite/ld-mips-elf/tlsdyn-o32-1.got: Likewise.
+	* testsuite/ld-mips-elf/tlsdyn-o32-2.d: Likewise.
+	* testsuite/ld-mips-elf/tlsdyn-o32-2.got: Likewise.
+	* testsuite/ld-mips-elf/tlsdyn-o32-3.d: Likewise.
+	* testsuite/ld-mips-elf/tlsdyn-o32-3.got: Likewise.
+
+2018-07-11  Maciej W. Rozycki  <macro@mips.com>
+
+	PR ld/22570
+	* testsuite/ld-mips-elf/tlsbin-pie-o32.d: New test.
+	* testsuite/ld-mips-elf/tlsbin-pie-o32.got: New test.
+	* testsuite/ld-mips-elf/tlsdyn-pie-o32.d: New test.
+	* testsuite/ld-mips-elf/tlsdyn-pie-o32.got: New test.
+	* testsuite/ld-mips-elf/mips-elf.exp: Run the new tests.
+
 2018-07-11  Alan Modra  <amodra@gmail.com>
 
 	* testsuite/ld-elf/hash.d: Comment on mips xfail.

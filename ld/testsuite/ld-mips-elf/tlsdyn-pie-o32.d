@@ -1,11 +1,10 @@
-
 .*:     file format elf32-tradbigmips
 
-Disassembly of section .text:
+Disassembly of section \.text:
 
 .* <__start>:
   .*:	3c1c0fc0 	lui	gp,0xfc0
-  .*:	279c7c00 	addiu	gp,gp,31744
+  .*:	279c7bd0 	addiu	gp,gp,31696
   .*:	0399e021 	addu	gp,gp,t9
   .*:	27bdfff0 	addiu	sp,sp,-16
   .*:	afbe0008 	sw	s8,8\(sp\)
@@ -51,4 +50,4 @@ Disassembly of section .text:
 .* <__tls_get_addr>:
   .*:	03e00008 	jr	ra
   .*:	00000000 	nop
-	...
+	\.\.\.
