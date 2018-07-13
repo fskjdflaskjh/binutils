@@ -1255,7 +1255,7 @@ handle_detach (char *own_buf)
 
   fprintf (stderr, "Detaching from process %d\n", process->pid);
   stop_tracing ();
-  if (detach_inferior (process->pid) != 0)
+  if (detach_inferior (process) != 0)
     write_enn (own_buf);
   else
     {
@@ -1281,7 +1281,7 @@ handle_detach (char *own_buf)
 	  /* If we are attached, then we can exit.  Otherwise, we
 	     need to hang around doing nothing, until the child is
 	     gone.  */
-	  join_inferior (process->pid);
+	  join_inferior (process);
 	  exit (0);
 	}
     }
@@ -3080,7 +3080,10 @@ handle_v_kill (char *own_buf)
     pid = strtol (p, NULL, 16);
   else
     pid = signal_pid;
-  if (pid != 0 && kill_inferior (pid) == 0)
+
+  process_info *proc = find_process_pid (pid);
+
+  if (proc != nullptr && kill_inferior (proc) == 0)
     {
       cs.last_status.kind = TARGET_WAITKIND_SIGNALLED;
       cs.last_status.value.sig = GDB_SIGNAL_KILL;
@@ -3481,10 +3484,8 @@ gdbserver_show_disableable (FILE *stream)
 static void
 kill_inferior_callback (process_info *process)
 {
-  int pid = process->pid;
-
-  kill_inferior (pid);
-  discard_queued_stop_replies (ptid_t (pid));
+  kill_inferior (process);
+  discard_queued_stop_replies (ptid_t (process->pid));
 }
 
 /* Call this when exiting gdbserver with possible inferiors that need
@@ -3526,9 +3527,9 @@ detach_or_kill_for_exit (void)
     int pid = process->pid;
 
     if (process->attached)
-      detach_inferior (pid);
+      detach_inferior (process);
     else
-      kill_inferior (pid);
+      kill_inferior (process);
 
     discard_queued_stop_replies (ptid_t (pid));
   });
