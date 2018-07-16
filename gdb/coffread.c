@@ -383,6 +383,7 @@ coff_alloc_type (int index)
 static void
 coff_start_symtab (struct objfile *objfile, const char *name)
 {
+  within_function = 0;
   start_symtab (objfile,
   /* We fill in the filename later.  start_symtab puts this pointer
      into last_source_file and we put it in subfiles->name, which
@@ -390,8 +391,8 @@ coff_start_symtab (struct objfile *objfile, const char *name)
 		 xstrdup (name),
   /* We never know the directory name for COFF.  */
 		 NULL,
-  /* The start address is irrelevant, since we set
-     last_source_start_addr in coff_end_symtab.  */
+  /* The start address is irrelevant, since we call
+     set_last_source_start_addr in coff_end_symtab.  */
 		 0,
   /* Let buildsym.c deduce the language for this symtab.  */
 		 language_unknown);
@@ -420,7 +421,7 @@ complete_symtab (const char *name, CORE_ADDR start_addr, unsigned int size)
 static void
 coff_end_symtab (struct objfile *objfile)
 {
-  last_source_start_addr = current_source_start_addr;
+  set_last_source_start_addr (current_source_start_addr);
 
   end_symtab (current_source_end_addr, SECT_OFF_TEXT (objfile));
 
@@ -1087,7 +1088,7 @@ coff_symtab_read (minimal_symbol_reader &reader,
 	      /* { main_aux.x_sym.x_misc.x_lnsz.x_lnno
 	         contains number of lines to '}' */
 
-	      if (context_stack_depth <= 0)
+	      if (outermost_context_p ())
 		{	/* We attempted to pop an empty context stack.  */
 		  complaint (_("`.ef' symbol without matching `.bf' "
 			       "symbol ignored starting at symnum %d"),
@@ -1098,7 +1099,7 @@ coff_symtab_read (minimal_symbol_reader &reader,
 
 	      newobj = pop_context ();
 	      /* Stack must be empty now.  */
-	      if (context_stack_depth > 0 || newobj == NULL)
+	      if (!outermost_context_p () || newobj == NULL)
 		{
 		  complaint (_("Unmatched .ef symbol(s) ignored "
 			       "starting at symnum %d"),
@@ -1151,7 +1152,7 @@ coff_symtab_read (minimal_symbol_reader &reader,
 	    }
 	  else if (strcmp (cs->c_name, ".eb") == 0)
 	    {
-	      if (context_stack_depth <= 0)
+	      if (outermost_context_p ())
 		{	/* We attempted to pop an empty context stack.  */
 		  complaint (_("`.eb' symbol without matching `.bb' "
 			       "symbol ignored starting at symnum %d"),
@@ -1167,7 +1168,7 @@ coff_symtab_read (minimal_symbol_reader &reader,
 			     symnum);
 		  break;
 		}
-	      if (local_symbols && context_stack_depth > 0)
+	      if (local_symbols && !outermost_context_p ())
 		{
 		  tmpaddr =
 		    cs->c_value + ANOFFSET (objfile->section_offsets,

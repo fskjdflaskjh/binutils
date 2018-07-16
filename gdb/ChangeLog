@@ -1,3 +1,178 @@
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* xcoffread.c (read_xcoff_symtab): Use outermost_context_p.
+	* dwarf2read.c (using_directives, new_symbol): Use
+	outermost_context_p.
+	* dbxread.c (process_one_symbol): Use outermost_context_p.
+	* coffread.c (coff_symtab_read): Use outermost_context_p.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* dwarf2read.c (using_directives, read_func_scope)
+	(read_lexical_block_scope): Update.
+	* cp-namespace.c (cp_scan_for_anonymous_namespaces): Update.
+	* buildsym.h (local_using_directives, global_using_directives):
+	Don't declare.
+	(get_local_using_directives, set_local_using_directives)
+	(get_global_using_directives): Declare.
+	* buildsym.c (struct buildsym_compunit) <m_local_using_directives,
+	m_global_using_directives>: New members.
+	(finish_block_internal, prepare_for_building)
+	(reset_symtab_globals, end_symtab_get_static_block)
+	(push_context): Update.
+	(get_local_using_directives, set_local_using_directives)
+	(get_global_using_directives): New functions.
+	(buildsym_init): Update.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* xcoffread.c (xcoff_initial_scan): Don't call
+	free_pending_blocks.
+	* dbxread.c (dbx_symfile_read): Don't call free_pending_blocks.
+	* buildsym.h (class scoped_free_pendings): Add constructor.
+	(free_pending_blocks): Don't declare.
+	* buildsym.c (scoped_free_pendings::scoped_free_pendings): New.
+	(free_pending_blocks): Now static.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.h (push_subfile, pop_subfile): Update declarations.
+	* buildsym.c (struct buildsym_compunit) <m_subfile_stack>: New
+	member.
+	(struct subfile_stack): Remove.
+	(subfile_stack): Remove.
+	(push_subfile, pop_subfile, buildsym_init): Update.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (push_subfile): Use gdb_assert.
+	(pop_subfile): Use gdb_assert.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.h (merge_symbol_lists): Remove.
+	* buildsym.c (merge_symbol_lists): Remove.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* stabsread.c (scan_file_globals): Update comment.
+	* stabsread.h (scan_file_globals): Move from buildsym.h.
+	* buildsym.h (scan_file_globals): Move to stabsread.h.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* xcoffread.c (xcoff_new_init): Update.
+	* mipsread.c (mipscoff_new_init): Update.
+	* mdebugread.c (mdebug_build_psymtabs): Update.
+	* elfread.c (elf_new_init): Update.
+	* dbxread.c (dbx_new_init, coffstab_build_psymtabs)
+	(elfstab_build_psymtabs, stabsect_build_psymtabs): Update.
+	* buildsym.h (buildsym_new_init): Don't declare.
+	* buildsym.c (buildsym_new_init): Remove.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* stabsread.h (within_function): Move from buildsym.h.
+	* stabsread.c (start_stabs): Clear within_function.
+	* coffread.c (coff_start_symtab): Clear within_function.
+	* buildsym.h (within_function): Move to stabsread.h.
+	* buildsym.c (prepare_for_building): Update.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* stabsread.h (processing_gcc_compilation): Move from buildsym.h.
+	* dwarf2read.c (dwarf2_start_symtab): Don't set
+	processing_gcc_compilation.
+	* buildsym.h (processing_gcc_compilation): Move to stabsread.h.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* stabsread.h (HASHSIZE, hashname, symnum, next_symbol_text)
+	(next_symbol_text_func): Move from buildsym.h.
+	* stabsread.c (hashname): Move from buildsym.c.
+	* buildsym.h (HASHSIZE, symnum, next_symbol_text)
+	(next_symbol_text_func, hashname): Move to stabsread.h.
+	* buildsym.c: Don't include bcache.h
+	(hashname): Move to stasbread.c.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.h (context_stack_size): Don't declare.
+	* buildsym.c (context_stack_size): New global.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* dbxread.c (processing_acc_compilation): New global.
+	* buildsym.h (processing_acc_compilation): Don't declare.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* xcoffread.c (aix_process_linenos, complete_symtab): Update.
+	* dbxread.c (read_ofile_symtab): Update.
+	* coffread.c (coff_start_symtab, coff_end_symtab): Update.
+	* buildsym.h (last_source_start_addr): Remove.
+	(set_last_source_start_addr, get_last_source_start_addr):
+	Declare.
+	* buildsym.c (buildsym_compunit::buildsym_compunit): Add last_addr
+	parameter.
+	(struct buildsym_compunit) <m_last_source_start_addr>: New
+	member.
+	(prepare_for_building): Remove start_addr parameter.
+	(start_symtab, restart_symtab, end_symtab_get_static_block)
+	(end_symtab_with_blockvector): Update.
+	(set_last_source_start_addr, get_last_source_start_addr): New
+	functions.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (struct buildsym_compunit) <m_have_line_numbers>: New
+	member.
+	(have_line_numbers): Remove.
+	(record_line, prepare_for_building, end_symtab_get_static_block)
+	(augment_type_symtab): Update.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (~buildsym_compunit): Free the macro table.
+	(struct buildsym_compunit) <get_macro_table, release_macros>: New
+	methods.
+	<m_pending_macros>: New member.
+	(pending_macros): Remove.
+	(~scoped_free_pendings, get_macro_table, prepare_for_building)
+	(reset_symtab_globals, end_symtab_get_static_block)
+	(end_symtab_with_blockvector, augment_type_symtab)
+	(buildsym_init): Update.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (buildsym_compunit::buildsym_compunit): Add name
+	parameter.
+	(buildsym_compunit::set_last_source_file): New method.
+	<m_last_source_file>: New member.
+	(prepare_for_building): Remove "name" parameter.
+	(start_symtab, restart_symtab, reset_symtab_globals): Update.
+	(last_source_file): Remove.
+	(set_last_source_file, get_last_source_file): Update.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (prepare_for_building): Add assert.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (~buildsym_compunit): Update.
+	(struct buildsym_compunit) <comp_unit>: Now a unique_xmalloc_ptr.
+	(start_subfile, patch_subfile_names)
+	(end_symtab_with_blockvector): Update.
+
+2018-07-16  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (struct buildsym_compunit): Add constructor,
+	destructor, initializers.
+	(start_buildsym_compunit): Remove.
+	(free_buildsym_compunit): Use "delete".
+	(start_symtab, restart_symtab): Use "new".
+
 2018-07-13  Simon Marchi  <simon.marchi@polymtl.ca>
 
 	* symfile.c (set_objfile_default_section_offset): Remove struct
