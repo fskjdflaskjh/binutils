@@ -362,7 +362,8 @@ extern void gdbscm_print_exception_with_stack (SCM port, SCM stack,
 
 extern void gdbscm_print_gdb_exception (SCM port, SCM exception);
 
-extern char *gdbscm_exception_message_to_string (SCM exception);
+extern gdb::unique_xmalloc_ptr<char> gdbscm_exception_message_to_string
+    (SCM exception);
 
 extern excp_matcher_func gdbscm_memory_error_p;
 
@@ -401,7 +402,8 @@ extern SCM gdbscm_safe_apply_1 (SCM proc, SCM arg0, SCM args,
 
 extern SCM gdbscm_unsafe_call_1 (SCM proc, SCM arg0);
 
-extern char *gdbscm_safe_eval_string (const char *string, int display_result);
+extern gdb::unique_xmalloc_ptr<char> gdbscm_safe_eval_string
+  (const char *string, int display_result);
 
 extern char *gdbscm_safe_source_script (const char *filename);
 
@@ -524,14 +526,14 @@ extern SCM gdbscm_scm_from_c_string (const char *string);
 extern SCM gdbscm_scm_from_printf (const char *format, ...)
     ATTRIBUTE_PRINTF (1, 2);
 
-extern char *gdbscm_scm_to_string (SCM string, size_t *lenp,
-				   const char *charset,
-				   int strict, SCM *except_scmp);
+extern gdb::unique_xmalloc_ptr<char> gdbscm_scm_to_string
+  (SCM string, size_t *lenp, const char *charset, int strict, SCM *except_scmp);
 
 extern SCM gdbscm_scm_from_string (const char *string, size_t len,
 				   const char *charset, int strict);
 
-extern char *gdbscm_scm_to_host_string (SCM string, size_t *lenp, SCM *except);
+extern gdb::unique_xmalloc_ptr<char> gdbscm_scm_to_host_string
+  (SCM string, size_t *lenp, SCM *except);
 
 extern SCM gdbscm_scm_from_host_string (const char *string, size_t len);
 

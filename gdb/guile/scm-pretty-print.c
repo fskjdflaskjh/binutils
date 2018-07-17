@@ -327,16 +327,10 @@ gdbscm_pretty_printer_worker_p (SCM scm)
 static SCM
 ppscm_make_pp_type_error_exception (const char *message, SCM object)
 {
-  char *msg = xstrprintf ("%s: ~S", message);
-  struct cleanup *cleanup = make_cleanup (xfree, msg);
-  SCM exception
-    = gdbscm_make_error (pp_type_error_symbol,
-			 NULL /* func */, msg,
-			 scm_list_1 (object), scm_list_1 (object));
-
-  do_cleanups (cleanup);
-
-  return exception;
+  std::string msg = string_printf ("%s: ~S", message);
+  return gdbscm_make_error (pp_type_error_symbol,
+			    NULL /* func */, msg.c_str (),
+			    scm_list_1 (object), scm_list_1 (object));
 }
 
 /* Print MESSAGE as an exception (meaning it is controlled by
@@ -620,25 +614,24 @@ ppscm_print_exception_unless_memory_error (SCM exception,
 {
   if (gdbscm_memory_error_p (gdbscm_exception_key (exception)))
     {
-      char *msg = gdbscm_exception_message_to_string (exception);
-      struct cleanup *cleanup = make_cleanup (xfree, msg);
+      gdb::unique_xmalloc_ptr<char> msg
+	= gdbscm_exception_message_to_string (exception);
 
       /* This "shouldn't happen", but play it safe.  */
-      if (msg == NULL || *msg == '\0')
+      if (msg == NULL || msg.get ()[0] == '\0')
 	fprintf_filtered (stream, _("<error reading variable>"));
       else
 	{
 	  /* Remove the trailing newline.  We could instead call a special
 	     routine for printing memory error messages, but this is easy
 	     enough for now.  */
-	  size_t len = strlen (msg);
+	  char *msg_text = msg.get ();
+	  size_t len = strlen (msg_text);
 
-	  if (msg[len - 1] == '\n')
-	    msg[len - 1] = '\0';
-	  fprintf_filtered (stream, _("<error reading variable: %s>"), msg);
+	  if (msg_text[len - 1] == '\n')
+	    msg_text[len - 1] = '\0';
+	  fprintf_filtered (stream, _("<error reading variable: %s>"), msg_text);
 	}
-
-      do_cleanups (cleanup);
     }
   else
     gdbscm_print_gdb_exception (SCM_BOOL_F, exception);
@@ -675,18 +668,16 @@ ppscm_print_string_repr (SCM printer, enum display_hint hint,
     }
   else if (scm_is_string (str_scm))
     {
-      struct cleanup *cleanup;
       size_t length;
-      char *string
+      gdb::unique_xmalloc_ptr<char> string
 	= gdbscm_scm_to_string (str_scm, &length,
 				target_charset (gdbarch), 0 /*!strict*/, NULL);
 
-      cleanup = make_cleanup (xfree, string);
       if (hint == HINT_STRING)
 	{
 	  struct type *type = builtin_type (gdbarch)->builtin_char;
 	  
-	  LA_PRINT_STRING (stream, type, (gdb_byte *) string,
+	  LA_PRINT_STRING (stream, type, (gdb_byte *) string.get (),
 			   length, NULL, 0, options);
 	}
       else
@@ -697,14 +688,13 @@ ppscm_print_string_repr (SCM printer, enum display_hint hint,
 
 	  for (i = 0; i < length; ++i)
 	    {
-	      if (string[i] == '\0')
+	      if (string.get ()[i] == '\0')
 		fputs_filtered ("\\000", stream);
 	      else
-		fputc_filtered (string[i], stream);
+		fputc_filtered (string.get ()[i], stream);
 	    }
 	}
       result = STRING_REPR_OK;
-      do_cleanups (cleanup);
     }
   else if (lsscm_is_lazy_string (str_scm))
     {
