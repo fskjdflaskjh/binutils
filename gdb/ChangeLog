@@ -1,3 +1,294 @@
+2018-07-20  Keith Seitz  <keiths@redhat.com>
+
+	* buildsym.h (struct buildsym_compunit) <m_objfile, m_subfiles,
+	m_main_subfile, m_comp_dir, m_producer, m_debugformat,
+	m_compunit_symtab, m_language>: Add "m_" prefix.
+	Update all uses.
+	* buildsym.c: Update all uses.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym-legacy.h (record_line): Don't use record_line_ftype.
+	* buildsym.h (record_line_ftype): Remove typedef.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym-legacy.h (augment_type_symtab): Don't declare.
+	(end_expandable_symtab): Likewise.
+	(end_symtab_get_static_block): Likewise.
+	(end_symtab_from_static_block): Likewise.
+	* buildsym-legacy.c (augment_type_symtab): Remove.
+	(end_expandable_symtab): Remove.
+	(end_symtab_get_static_block): Remove.
+	(end_symtab_from_static_block): Remove.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* dwarf2read.c: Include buildsym.h.
+	(struct dwarf2_cu) <builder>: New method.
+	(fixup_go_packaging): Update.
+	(process_full_comp_unit, process_full_type_unit): Update.  Don't
+	use scoped_free_pendings.
+	(using_directives): Add "cu" parameter, remove "language".
+	(read_import_statement, setup_type_unit_groups, )
+	(read_func_scope, read_lexical_block_scope)
+	(dwarf2_record_block_ranges, read_namespace): Update.
+	(lnp_state_machine::lnp_state_machine): Add cu parameter.
+	(lnp_state_machine::handle_end_sequence): Update.
+	(class lnp_state_machine) <m_cu>: New member.
+	<m_record_line_callback>: Remove.
+	<m_currently_recording_lines>: New member.
+	(lnp_state_machine::handle_set_file): Update.
+	(noop_record_line): Remove.
+	(dwarf_record_line_p): Add cu parameter.
+	(dwarf_record_line_1, dwarf_finish_line): Likewise.
+	(lnp_state_machine::record_line)
+	(lnp_state_machine::lnp_state_machine)
+	(lnp_state_machine::check_line_address, dwarf_decode_lines_1)
+	(dwarf_decode_lines): Update.
+	(dwarf2_start_subfile): Add cu parameter.
+	(dwarf2_start_symtab, new_symbol): Update.
+	(macro_start_file, dwarf_decode_macro_bytes): Add cu parameter.
+	Remove dwarf2_per_objfile parameter.
+	(dwarf_decode_macros): Update.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* stabsread.c (define_symbol): Update.
+	* buildsym-legacy.h (get_buildsym_compunit): Declare.
+	* dwarf2read.c (new_symbol): Update.
+	* cp-support.h (cp_scan_for_anonymous_namespaces): Update.
+	* cp-namespace.c: Include buildsym.h.
+	(cp_scan_for_anonymous_namespaces): Add "compunit" parameter.
+	* buildsym-legacy.c (get_buildsym_compunit): New function.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* xcoffread.c: Include buildsym-legacy.h.
+	* windows-nat.c: Include buildsym-legacy.h.
+	* stabsread.c: Include buildsym-legacy.h.
+	* mdebugread.c: Include buildsym-legacy.h.
+	* buildsym-legacy.h: New file.
+	* buildsym-legacy.c: New file, from buildsym.c.
+	* go32-nat.c: Include buildsym-legacy.h.
+	* dwarf2read.c: Include buildsym-legacy.h.
+	* dbxread.c: Include buildsym-legacy.h.
+	* cp-namespace.c: Include buildsym-legacy.h.
+	* coffread.c: Include buildsym-legacy.h.
+	* buildsym.h: Move some contents to buildsym-legacy.h.
+	* buildsym.c: Include buildsym-legacy.h.  Move many functions to
+	buildsym-legacy.c.
+	* Makefile.in (HFILES_NO_SRCDIR): Add buildsym-legacy.h.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.h (struct buildsym_compunit): Move from buildsym.c.
+	* buildsym.c (struct buildsym_compunit): Move to buildsym.h.
+	(buildsym_compunit::buildsym_compunit)
+	(buildsym_compunit::~buildsym_compunit)
+	(buildsym_compunit::get_macro_table): Define.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (reset_symtab_globals): Remove.
+	(buildsym_compunit::end_symtab_from_static_block): Update.
+	(buildsym_compunit::augment_type_symtab): Update.
+	(end_symtab_from_static_block): Call free_buildsym_compunit.
+	(augment_type_symtab, end_symtab, end_expandable_symtab):
+	Likewise.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* arch-utils.c: Do not include buildsym.h.
+	* mipsread.c: Do not include buildsym.h.
+	* machoread.c: Do not include buildsym.h.
+	* elfread.c: Do not include buildsym.h.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (buildsym_compunit::buildsym_compunit): Do more
+	initialization.
+	(buildsym_compunit): Add new constructor.
+	(struct buildsym_compunit) <get_last_source_file, finish_block,
+	record_block_range, start_subfile, patch_subfile_names,
+	push_subfile, pop_subfile, record_line, get_compunit_symtab,
+	set_last_source_start_addr, get_last_source_start_addr,
+	get_local_using_directives, set_local_using_directives,
+	get_global_using_directives, outermost_context_p,
+	get_current_context_stack, get_context_stack_depth,
+	get_current_subfile, get_local_symbols, get_file_symbols,
+	get_global_symbols, record_debugformat, record_producer,
+	push_context, pop_context, end_symtab_get_static_block,
+	end_symtab_from_static_block, end_symtab, end_expandable_symtab>:
+	New public methods.
+	<record_pending_block, finish_block_internal, make_blockvector,
+	watch_main_source_file_lossage, end_symtab_with_blockvector>: New
+	private methods.
+	Update all users.
+
+2018-05-22  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (record_pending_block): Move earlier.  Remove objfile
+	parameter.
+	(finish_block_internal): Update.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (record_pending_block): Move earlier.  Remove objfile
+	parameter.
+	(finish_block_internal): Update.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.h (EXTERN): Don't define or undef.
+	* buildsym.c (EXTERN): Don't define.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c: Remove TODO comment.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* coffread.c (coff_symtab_read): Update.
+	* xcoffread.c (xcoff_psymtab_to_symtab_1): Update.
+	(xcoff_new_init): Update.
+	* mipsread.c (mipscoff_new_init): Update.
+	* mdebugread.c (mdebug_build_psymtabs): Update.
+	* elfread.c (elf_new_init): Update.
+	* dwarf2read.c (process_full_comp_unit, process_full_type_unit):
+	Update.
+	* dbxread.c (dbx_new_init, dbx_psymtab_to_symtab_1)
+	(coffstab_build_psymtabs, elfstab_build_psymtabs)
+	(stabsect_build_psymtabs): Update.
+	* buildsym.h (buildsym_init): Don't declare.
+	* buildsym.c: Update comment.
+	(prepare_for_building): Remove.
+	(start_symtab, restart_symtab): Update.
+	(reset_symtab_globals): Update comment.
+	(buildsym_init): Remove.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* xcoffread.c (read_xcoff_symtab, process_xcoff_symbol): Update.
+	* stabsread.c (patch_block_stabs, define_symbol, read_type)
+	(read_enum_type, common_block_start, common_block_end)
+	(cleanup_undefined_types_1, finish_global_stabs): Update.
+	* mdebugread.c (psymtab_to_symtab_1): Update.
+	* dwarf2read.c (fixup_go_packaging, read_func_scope)
+	(read_lexical_block_scope, new_symbol): Update.
+	* dbxread.c (process_one_symbol): Update.
+	* coffread.c (coff_symtab_read, process_coff_symbol)
+	(coff_read_enum_type): Update.
+	* buildsym.h (file_symbols, global_symbols, local_symbols): Don't
+	declare.
+	(get_local_symbols, get_file_symbols, get_global_symbols): New
+	functions.
+	* buildsym.c (~buildsym_compunit): Clean up m_file_symbols and
+	m_global_symbols.
+	<m_file_symbols, m_local_symbols, m_global_symbols>: New members.
+	(~scoped_free_pendings): Update.
+	(finish_block, prepare_for_building, reset_symtab_globals)
+	(end_symtab_get_static_block, end_symtab_with_blockvector)
+	(augment_type_symtab, push_context): Update.
+	(get_local_symbols, get_file_symbols, get_global_symbols): New
+	functions.
+	(buildsym_init): Update.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* dwarf2read.c (process_full_comp_unit): Do not set list_in_scope.
+	(process_full_type_unit): Likewise.
+	(dwarf2_start_symtab): Set list_in_scope.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* dwarf2read.c (process_psymtab_comp_unit_reader)
+	(build_type_psymtabs_reader): Do not set list_in_scope.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (free_pendings): Remove.
+	(add_symbol_to_list, scoped_free_pendings)
+	(finish_block_internal, buildsym_init): Update.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* xcoffread.c (read_xcoff_symtab): Update.
+	* dwarf2read.c (read_func_scope, read_lexical_block_scope):
+	Update.
+	* dbxread.c (process_one_symbol): Update.
+	* coffread.c (coff_symtab_read): Update.
+	* buildsym.h (finish_block): Update.
+	* buildsym.c (finish_block): Remove "listhead" argument.
+	(end_symtab_get_static_block): Update.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.h (class scoped_free_pendings): Remove constructor.
+	* buildsym.c (struct buildsym_compunit) <free_pending_blocks>: New
+	method.
+	<m_pending_block_obstack, m_pending_blocks>: New members.
+	(pending_block_obstack, pending_blocks): Remove.
+	(scoped_free_pendings::scoped_free_pendings): Default.
+	(~scoped_free_pendings): Update.
+	(free_pending_blocks): Remove.
+	(finish_block_internal, record_pending_block, make_blockvector)
+	(end_symtab_get_static_block, augment_type_symtab, push_context)
+	(buildsym_init): Update.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* buildsym.c (struct buildsym_compunit) <m_pending_addrmap,
+	m_pending_addrmap_obstack, m_pending_addrmap_interesting>: New
+	members.
+	(pending_addrmap, pending_addrmap_obstack)
+	(pending_addrmap_interesting): Remove.
+	(scoped_free_pendings, record_block_range, make_blockvector)
+	(prepare_for_building, reset_symtab_globals, buildsym_init):
+	Update.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* xcoffread.c (process_linenos): Update.
+	* stabsread.c (define_symbol, read_type, read_enum_type): Update.
+	* mdebugread.c (psymtab_to_symtab_1): Update.
+	* dwarf2read.c (setup_type_unit_groups)
+	(lnp_state_machine::handle_set_file, dwarf_record_line_p)
+	(lnp_state_machine::record_line, dwarf_decode_lines): Update.
+	* dbxread.c (process_one_symbol): Update.
+	* coffread.c (coff_symtab_read, enter_linenos)
+	(process_coff_symbol): Update.
+	* buildsym.h (current_subfile): Don't declare.
+	(get_current_subfile): Declare.
+	* buildsym.c (struct buildsym_compunit) <m_current_subfile>: New
+	member.
+	(start_subfile, free_buildsym_compunit, push_subfile)
+	(prepare_for_building, start_symtab): Update.
+	(get_current_subfile): New function.
+
+2018-07-20  Tom Tromey  <tom@tromey.com>
+
+	* coffread.c (coff_symtab_read): Update.
+	* xcoffread.c (read_xcoff_symtab): Update.
+	* dwarf2read.c (new_symbol): Update.
+	(read_func_scope, read_lexical_block_scope): Update.
+	* dbxread.c (process_one_symbol): Update.
+	* buildsym.h (context_stack, context_stack_depth): Don't declare.
+	(outermost_context_p): Remove macro.
+	(outermost_context_p, get_current_context_stack)
+	(get_context_stack_depth): Declare.
+	(pop_context): Return struct context_stack.
+	* buildsym.c (struct buildsym_compunit) <m_context_stack: New
+	member.
+	(context_stack_size): Remove.
+	(INITIAL_CONTEXT_STACK_SIZE): Remove.
+	(prepare_for_building, end_symtab_get_static_block)
+	(augment_type_symtab, push_context): Update.
+	(pop_context): Return struct context_stack.
+	(outermost_context_p, get_current_context_stack)
+	(get_context_stack_depth): New functions.
+	(buildsym_init): Update.
+
 2018-07-20  Tom Tromey  <tom@tromey.com>
 
 	* rust-exp.y: Now a pure parser.  Update all rules.
