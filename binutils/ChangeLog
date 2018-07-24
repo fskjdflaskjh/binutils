@@ -1,3 +1,21 @@
+2018-07-24  Alan Modra  <amodra@gmail.com>
+
+	PR 23431
+	* dwarf.c (display_formatted_table): Replace "what" parameter
+	with "is_dir".  Expand messages.  Fix capitalisation.
+	* testsuite/binutils-all/dw5.W: Update expected output.
+
+2018-07-24  Alan Modra  <amodra@gmail.com>
+
+	PR 23430
+	* elfcomm.h (struct archive_info): Rename uses_64bit_indicies
+	to uses_64bit_indices.
+	* elfcomm.c (setup_archive): Update uses of above.
+	* readelf.c (process_archive): Likewise.
+	(get_section_type_name): Rename indicies to indices.
+	(get_32bit_elf_symbols, get_64bit_elf_symbols): Likewise.
+	(process_section_groups): Likewise.
+
 2018-07-20  Maciej W. Rozycki  <macro@mips.com>
 
 	* MAINTAINERS: Update my e-mail address, downgrade to MIPS I-IV
