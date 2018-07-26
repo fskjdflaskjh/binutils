@@ -1,3 +1,121 @@
+2018-07-26  Tom Tromey  <tom@tromey.com>
+
+	* dwarf-index-write.c (add_address_entry): Don't add objfile
+	offsets.
+	* dbxread.c (find_stab_function): Rename from
+	find_stab_function_addr.  Return a bound_minimal_symbol.
+	(read_dbx_symtab): Use raw_text_low, raw_text_high.
+	Don't add objfile offsets.
+	(end_psymtab): Use raw_text_low, raw_text_high,
+	MSYMBOL_VALUE_RAW_ADDRESS.
+	(read_ofile_symtab): Update.
+	(process_one_symbol): Update.
+	* dwarf2read.c (create_addrmap_from_index): Don't add objfile
+	offsets.
+	(dw2_relocate): Remove.
+	(dw2_find_pc_sect_symtab): Bias PC by the text offset before
+	searching addrmap.
+	(dwarf2_gdb_index_functions, dwarf2_debug_names_functions):
+	Update.
+	(process_psymtab_comp_unit_reader, add_partial_symbol)
+	(add_partial_subprogram, dwarf2_ranges_read): Update.
+	(load_partial_dies): Update.
+	(add_address_entry): Don't add objfile offsets.
+	(dwarf2_build_include_psymtabs): Update.
+	(create_addrmap_from_aranges): Don't add objfile offsets.
+	(dw2_find_pc_sect_compunit_symtab): Update.
+	* mdebugread.c (parse_symbol): Don't add objfile offsets.
+	(parse_lines): Remove 'pst' parameter, replace with 'textlow'.
+	Update.
+	(parse_partial_symbols): Don't add objfile offsets.  Use
+	raw_text_low, raw_text_high.  Update.
+	(handle_psymbol_enumerators, psymtab_to_symtab_1): Update.
+	* objfiles.c (objfile_relocate1): Don't relocate psymtabs_addrmap
+	or call 'relocate' quick function.  Clear psymbol_map.
+	* psympriv.h (struct partial_symbol) <address>: Add section
+	offset.
+	<set_unrelocated_address>: Rename from set_address.
+	<raw_text_low, raw_text_high>: New methods.
+	<text_low, text_high>: Add objfile parameter.
+	(add_psymbol_to_bcache): Add 'section' parameter.  Call
+	set_unrelocated_address.
+	* psymtab.c (find_pc_sect_psymtab_closer, find_pc_sect_psymtab)
+	(find_pc_psymbol): Update.
+	(fixup_psymbol_section, relocate_psymtabs): Remove.
+	(dump_psymtab, psym_functions): Update.
+	(add_psymbol_to_bcache, add_psymbol_to_list): Add 'section'
+	parameter.
+	(maintenance_info_psymtabs, maintenance_check_psymtabs): Update.
+	(start_psymtab_common): Update.
+	* symfile-debug.c (debug_qf_relocate): Remove.
+	(debug_sym_quick_functions): Update.
+	* symfile.h (struct quick_symbol_functions) <relocate>: Remove.
+	* xcoffread.c (scan_xcoff_symtab): Don't add objfile offsets.
+	Update.
+
+2018-07-26  Tom Tromey  <tromey@redhat.com>
+
+	* dbxread.c (end_psymtab): Use text_high_valid and
+	text_low_valid.
+	* mdebugread.c (parse_partial_symbols): Use text_low_valid.
+	(psymtab_to_symtab_1): Use text_high_valid and text_low_valid.
+	* psympriv.h (struct partial_symtab) <m_text_low, m_text_high>:
+	Update comment.
+	<text_low_valid, text_high_valid>: New fields.
+	<set_text_low, set_text_high>: Update.
+	* xcoffread.c (scan_xcoff_symtab): Use text_low_valid.
+
+2018-07-26  Tom Tromey  <tom@tromey.com>
+
+	* dbxread.c (read_dbx_symtab, end_psymtab, read_ofile_symtab):
+	Update.
+	* dwarf2read.c (dwarf2_create_include_psymtab): Don't initialize
+	textlow and texthigh fields.
+	(process_psymtab_comp_unit_reader, dwarf2_build_include_psymtabs):
+	Update.
+	* mdebugread.c (parse_lines, parse_partial_symbols)
+	(psymtab_to_symtab_1): Update.
+	* psympriv.h (struct partial_symtab) <m_text_low, m_text_high>:
+	Rename fields.  Update comment.  Now private.
+	<text_low, text_high, set_text_low, set_text_high>: New methods.
+	* psymtab.c (find_pc_sect_psymtab_closer, find_pc_sect_psymtab)
+	(find_pc_sect_psymbol, relocate_psymtabs, dump_psymtab)
+	(start_psymtab_common, maintenance_info_psymtabs)
+	(maintenance_check_psymtabs): Update.
+	* xcoffread.c (xcoff_end_psymtab): Don't initialize textlow and
+	texthigh fields.
+	(scan_xcoff_symtab): Update.
+
+2018-07-26  Tom Tromey  <tromey@redhat.com>
+
+	* psympriv.h (struct partial_symbol) <unrelocated_address,
+	address, set_address>: New methods.
+	* psymtab.c (find_pc_sect_psymtab_closer, find_pc_sect_psymbol)
+	(fixup_psymbol_section, relocate_psymtabs): Update.
+	(print_partial_symbols): Add 'objfile' parameter.  Update.
+	(dump_psymtab, add_psymbol_to_bcache, psym_fill_psymbol_map):
+	Update.
+
+2018-07-26  Tom Tromey  <tom@tromey.com>
+
+	* dwarf-index-write.c (write_psymbols, debug_names::insert)
+	(debug_names::write_psymbols): Update.
+	* psympriv.h (struct partial_symbol): Derive from
+	general_symbol_info.
+	<obj_section>: New method.
+	(PSYMBOL_DOMAIN, PSYMBOL_CLASS): Remove.n
+	* psymtab.c (find_pc_sect_psymtab_closer, find_pc_sect_psymtab)
+	(find_pc_sect_psymbol, fixup_psymbol_section)
+	(match_partial_symbol, lookup_partial_symbol, relocate_psymtabs)
+	(print_partial_symbols, recursively_search_psymtabs)
+	(compare_psymbols, psymbol_hash, psymbol_compare)
+	(add_psymbol_to_bcache, maintenance_check_psymtabs)
+	(psymbol_name_matches, psym_fill_psymbol_map): Update.
+
+2018-07-26  Tom Tromey  <tromey@redhat.com>
+
+	* dbxread.c (end_psymtab): Remove dead code.
+
 2018-07-26  Andrew Burgess  <andrew.burgess@embecosm.com>
 
 	* dwarf2-frame-tailcall.c (tailcall_frame_sniffer): Exit early if
