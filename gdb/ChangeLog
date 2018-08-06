@@ -1,3 +1,65 @@
+2018-08-06  Pedro Franco de Carvalho  <pedromfc@linux.ibm.com>
+
+	* tracefile.c: Include common/byte-vector.h.
+	(trace_save): Change type of buf to gdb::byte_vector.  Initialize
+	with trace_regblock_size if needed.  Update uses of buf.
+
+2018-08-06  Pedro Franco de Carvalho  <pedromfc@linux.ibm.com>
+
+	* tracepoint.h (collection_list) <m_regs_mask>: Change type to
+	std::vector<unsigned char>.
+	* tracepoint.c (collection_list::collection_list): Remove
+	m_regs_mask initializer from initializer list.  Resize
+	m_regs_mask using the largest remote register number.
+	(collection_list::add_remote_register): Remove size check on
+	m_regs_mask.  Use at to access element.
+	(collection_list::stringify): Change type of temp_buf to
+	gdb::char_vector.  Update uses of temp_buf.  Resize if needed to
+	stringify the register mask.  Use pack_hex_byte for the register
+	mask.
+
+2018-08-06  Pedro Franco de Carvalho  <pedromfc@linux.ibm.com>
+
+	* tracepoint.h (class collection_list) <add_register>: Remove.
+	<add_remote_register, add_ax_registers, add_local_register>:
+	Declare.
+	<add_memrange>: Add scope parameter.
+	* tracepoint.c (encode_actions_1): Likewise.
+	(collection_list::add_register): Rename to ...
+	(collection_list::add_remote_register): ... this.  Update
+	comment.
+	(collection_list::add_ax_registers, add_local_register): New
+	methods.
+	(collection_list::add_memrange): Add scope parameter.  Call
+	add_local_register instead of add_register.
+	(finalize_tracepoint_aexpr): New function.
+	(collection_list::collect_symbol): Update calls to add_memrange.
+	Call add_local_register instead of add_register.  Call
+	add_ax_registers.  Call finalize_tracepoint_aexpr.
+	(encode_actions_1): Get remote regnos for $reg action.  Call
+	add_remote_register, add_ax_registers, and add_local_register.
+	Update call to add_memrange.  Call finalize_tracepoint_aexpr.
+	(validate_actionline): Call finalize_tracepoint_aexpr.
+
+2018-08-06  Pedro Franco de Carvalho  <pedromfc@linux.ibm.com>
+
+	* remote.c (remote_target::download_tracepoint): Remove BUF_SIZE.
+	Replace array buf with gdb::char_vector buf, of size
+	get_remote_packet_size ().  Replace references to buf and
+	BUF_SIZE to buf.data () and buf.size ().  Replace strcpy, strcat
+	and xsnprintf with snprintf.  Raise errors if the buffer is too
+	small.
+
+2018-08-06  Pedro Franco de Carvalho  <pedromfc@linux.ibm.com>
+
+	* remote.c (remote_target::download_tracepoint): Fix the has_more
+	predicate in the QTDP action list iteration.
+
+2018-08-06  Pedro Franco de Carvalho  <pedromfc@linux.ibm.com>
+
+	* remote.c (remote_target::download_tracepoint): Fix indentation
+	in for block.
+
 2018-08-06  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
 
 	* proc-api.c (_initialize_proc_api): Remove c, unused.
