@@ -1,3 +1,21 @@
+2018-08-07  Alan Modra  <amodra@gmail.com>
+
+	* elf64-ppc.c (ppc64_elf_relocate_section): Don't skip first
+	instruction of __tls_get_addr_opt stub.
+	(plt_stub_size): Omit ALWAYS_EMIT_R2SAVE condition when
+	dealing with __tls_get_addr_opt stub.
+	(build_tls_get_addr_stub, ppc_size_one_stub): Likewise.
+
+2018-08-01  Alan Modra  <amodra@gmail.com>
+
+	* elf64-ppc.c (plt_stub_pad): Delay plt_stub_size call until needed.
+	(ppc_build_one_stub): Don't set stub_offset, instead assert that
+	it is sane.  Don't adjust stub_offset for alignment.  Adjust size
+	calculation.  Use "targ" temp when calculating offsets.
+	(ppc_size_one_stub): Set stub_offset here.  Use "targ" temp when
+	calculating offsets.  Adjust for alignment before setting
+	tls_get_addr_opt_bctrl.
+
 2018-07-23  H.J. Lu  <hongjiu.lu@intel.com>
 
 	PR ld/23428
