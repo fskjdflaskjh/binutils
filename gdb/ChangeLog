@@ -1,5 +1,72 @@
 2018-08-07  Simon Marchi  <simon.marchi@ericsson.com>
 
+	* NEWS: Mention the index cache.
+
+2018-08-07  Simon Marchi  <simon.marchi@ericsson.com>
+
+	* common/pathstuff.h (get_standard_cache_dir): New.
+	* common/pathstuff.c (get_standard_cache_dir): New.
+	* build-id.h (build_id_to_string): New.
+	* dwarf-index-common.h (INDEX4_SUFFIX, INDEX5_SUFFIX,
+	DEBUG_STR_SUFFIX): Move to here.
+	* dwarf-index-write.c (INDEX4_SUFFIX, INDEX5_SUFFIX,
+	DEBUG_STR_SUFFIX): Move from there.
+	(write_psymtabs_to_index): Make non-static, add basename
+	parameter.  Write to temporary files, rename when done.
+	(save_gdb_index_command): Adjust call to
+	write_psymtabs_to_index.
+	* dwarf2read.h (dwarf2_per_objfile) <index_cache_res>: New
+	field.
+	* dwarf2read.c (dwz_file) <index_cache_res>: New field.
+	(get_gdb_index_contents_from_cache): New.
+	(get_gdb_index_contents_from_cache_dwz): New.
+	(dwarf2_initialize_objfile): Read index from cache.
+	(dwarf2_build_psymtabs): Save to index.
+	* dwarf-index-cache.h: New file.
+	* dwarf-index-cache.c: New file.
+	* dwarf-index-write.h: New file.
+
+2018-08-07  Simon Marchi  <simon.marchi@ericsson.com>
+
+	* gnulib/aclocal.m4: Re-generate.
+	* gnulib/config.in: Re-generate.
+	* gnulib/configure: Re-generate.
+	* gnulib/import/Makefile.am: Re-generate.
+	* gnulib/import/Makefile.in: Re-generate.
+	* gnulib/import/m4/gnulib-cache.m4: Re-generate.
+	* gnulib/import/m4/gnulib-comp.m4: Re-generate.
+	* gnulib/import/m4/mkdir.m4: New file.
+	* gnulib/import/mkdir.c: New file.
+	* gnulib/update-gnulib.sh (IMPORTED_GNULIB_MODULES): Add mkdir
+	module.
+
+2018-08-07  Simon Marchi  <simon.marchi@ericsson.com>
+
+	* Makefile.in (COMMON_SFILES): Add common/scoped_mmap.c.
+	* common/scoped_mmap.c: New file.
+	* common/scoped_mmap.h (destroy): New method.
+	(~scoped_mmap, reset): Use destroy.
+	(scoped_mmap): New move constructor.
+	(mmap_file): New declaration.
+	* unittests/scoped_mmap-selftests.c (test_normal,
+	test_invalid_filename, run_tests): New functions.
+	(_initialize_scoped_mmap_selftests): Register selftest.
+
+2018-08-07  Simon Marchi  <simon.marchi@ericsson.com>
+
+	* dwarf2read.c (read_gdb_index_from_section): Rename to...
+	(read_gdb_index_from_buffer): ... this.  Remove section
+	parameter, add buffer parameter.
+	(get_gdb_index_contents_ftype,
+	get_gdb_index_contents_dwz_ftype): New typedefs.
+	(dwarf2_read_gdb_index): Add callback parameters to get the
+	index contents.
+	(get_gdb_index_contents_from_section): New.
+	(dwarf2_initialize_objfile): Update call to
+	dwarf2_read_gdb_index.
+
+2018-08-07  Simon Marchi  <simon.marchi@ericsson.com>
+
 	* common/filestuff.h (gdb_fopen_cloexec): New overload.
 	(gdb_open_cloexec): Likewise.
 	* nat/linux-osdata.c (command_from_pid): Use string_printf.
