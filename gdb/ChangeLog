@@ -1,3 +1,42 @@
+2018-09-08  Joel Brobecker  <brobecker@adacore.com>
+
+	* ada-lang.c (resolve_subexp): Pass correct OPLEN in call to
+	replace_operator_with_call.
+
+2018-09-08  Joel Brobecker  <brobecker@adacore.com>
+
+	* ada-lang.c (ada_value_cast): Remove unnecessary parentheses.
+
+2018-09-08  Joel Brobecker  <brobecker@adacore.com>
+
+	* ada-typeprint.c (print_range): Print the bounds using TYPE
+	rather than its TYPE_TARGET_TYPE.
+
+2018-09-08  Joel Brobecker  <brobecker@adacore.com>
+
+	* ada-lang.c (ada_to_fixed_value): Minor reformatting in
+	call to ada_to_fixed_value_create.
+
+2018-09-08  Jerome Guitton  <guitton@adacore.com>
+
+	* ada-lang.c (ada_decode): strip dot prefix in symbol name.
+
+2018-09-08  Joel Brobecker  <brobecker@adacore.com>
+
+	* ada-lang.c (ada_exception_sal): Replace gdb_assert calls
+	by calls to error.
+
+2018-09-08  Joel Brobecker  <brobecker@adacore.com>
+
+	* ada-lang.c (ada_unhandled_exception_name_addr_from_raise):
+	Move update of loop variable "fi".
+
+2018-09-08  Joel Brobecker  <brobecker@adacore.com>
+
+	* ada-lang.c (value_assign_to_component): In the case of
+	big-endian targets, extract the bits of the given VAL
+	using an src_offset of zero if container is not a scalar.
+
 2018-09-06  Simon Ser  <contact@emersion.fr>
 
 	PR gdb/23105

@@ -1164,6 +1164,11 @@ ada_decode (const char *encoded)
   static char *decoding_buffer = NULL;
   static size_t decoding_buffer_size = 0;
 
+  /* With function descriptors on PPC64, the value of a symbol named
+     ".FN", if it exists, is the entry point of the function "FN".  */
+  if (encoded[0] == '.')
+    encoded += 1;
+
   /* The name of the Ada main procedure starts with "_ada_".
      This prefix is not part of the decoded name, so skip this part
      if we see this prefix.  */
@@ -2809,11 +2814,18 @@ value_assign_to_component (struct value *container, struct value *component,
     bits = value_bitsize (component);
 
   if (gdbarch_bits_big_endian (get_type_arch (value_type (container))))
-    move_bits (value_contents_writeable (container) + offset_in_container,
-	       value_bitpos (container) + bit_offset_in_container,
-	       value_contents (val),
-	       TYPE_LENGTH (value_type (component)) * TARGET_CHAR_BIT - bits,
-	       bits, 1);
+    {
+      int src_offset;
+
+      if (is_scalar_type (check_typedef (value_type (component))))
+        src_offset
+	  = TYPE_LENGTH (value_type (component)) * TARGET_CHAR_BIT - bits;
+      else
+	src_offset = 0;
+      move_bits (value_contents_writeable (container) + offset_in_container,
+		 value_bitpos (container) + bit_offset_in_container,
+		 value_contents (val), src_offset, bits, 1);
+    }
   else
     move_bits (value_contents_writeable (container) + offset_in_container,
 	       value_bitpos (container) + bit_offset_in_container,
@@ -3503,7 +3515,7 @@ resolve_subexp (expression_up *expp, int *pos, int deprocedure_p,
           && (TYPE_CODE (SYMBOL_TYPE (exp->elts[pc + 2].symbol))
               == TYPE_CODE_FUNC))
         {
-          replace_operator_with_call (expp, pc, 0, 0,
+          replace_operator_with_call (expp, pc, 0, 4,
                                       exp->elts[pc + 2].symbol,
                                       exp->elts[pc + 1].block);
           exp = expp->get ();
@@ -9300,9 +9312,7 @@ struct value *
 ada_to_fixed_value (struct value *val)
 {
   val = unwrap_value (val);
-  val = ada_to_fixed_value_create (value_type (val),
-				      value_address (val),
-				      val);
+  val = ada_to_fixed_value_create (value_type (val), value_address (val), val);
   return val;
 }
 
@@ -10223,7 +10233,7 @@ ada_value_cast (struct type *type, struct value *arg2)
     return arg2;
 
   if (ada_is_fixed_point_type (type))
-    return (cast_to_fixed (type, arg2));
+    return cast_to_fixed (type, arg2);
 
   if (ada_is_fixed_point_type (value_type (arg2)))
     return cast_from_fixed (type, arg2);
@@ -12235,8 +12245,8 @@ ada_unhandled_exception_name_addr_from_raise (void)
           if (strcmp (func_name.get (),
 		      data->exception_info->catch_exception_sym) == 0)
 	    break; /* We found the frame we were looking for...  */
-	  fi = get_prev_frame (fi);
 	}
+      fi = get_prev_frame (fi);
     }
 
   if (fi == NULL)
@@ -13208,14 +13218,11 @@ ada_exception_sal (enum ada_exception_catchpoint_kind ex,
   sym_name = ada_exception_sym_name (ex);
   sym = standard_lookup (sym_name, NULL, VAR_DOMAIN);
 
-  /* We can assume that SYM is not NULL at this stage.  If the symbol
-     did not exist, ada_exception_support_info_sniffer would have
-     raised an exception.
+  if (sym == NULL)
+    error (_("Catchpoint symbol not found: %s"), sym_name);
 
-     Also, ada_exception_support_info_sniffer should have already
-     verified that SYM is a function symbol.  */
-  gdb_assert (sym != NULL);
-  gdb_assert (SYMBOL_CLASS (sym) == LOC_BLOCK);
+  if (SYMBOL_CLASS (sym) != LOC_BLOCK)
+    error (_("Unable to insert catchpoint. %s is not a function."), sym_name);
 
   /* Set ADDR_STRING.  */
   *addr_string = xstrdup (sym_name);
