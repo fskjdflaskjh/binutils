@@ -1,3 +1,39 @@
+2018-09-10  Jerome Guitton  <guitton@adacore.com>
+
+	* ada-lang.c (ada_value_struct_elt): Call ada_to_fixed_type
+	with check_tag to 1 if and only if the type is tagged and the
+	component being searched cannot been found in the current
+	view. Otherwise, always call ada_to_fixed_type with
+	check_tag to 0.
+
+2018-09-10  Xavier Roirand  <roirand@adacore.com>
+
+	* ada-lang.c (ada_is_access_to_unconstrained_array): Remove static
+	declaration.
+	* ada-lang.h: add ada_is_access_to_unconstrained_array prototype.
+	* ada-varobj.c (ada_varobj_get_number_of_children,
+	ada_varobj_describe_child, ada_value_is_changeable_p): Cleanup code.
+
+2018-09-10  Xavier Roirand  <roirand@adacore.com>
+
+	* ada-valprint.c (ada_value_print): Use type instead of
+	enclosing type.
+
+2018-09-10  Xavier Roirand  <roirand@adacore.com>
+
+	* ada-lang.c (ada_value_subscript): Handle case when parameter is
+	an array of access to unconstrained array.
+
+2018-09-10  Xavier Roirand  <roirand@adacore.com>
+
+	* ada-lang.c (ada_is_access_to_unconstrained_array): New function.
+	(ada_check_typedef): Use it.
+
+2018-09-10  Xavier Roirand  <roirand@adacore.com>
+
+	* ada-varobj.c (ada_varobj_describe_struct_child)
+	(ada_varobj_describe_child): Handle union case like struct one.
+
 2018-09-10  Tom Tromey  <tom@tromey.com>
 
 	PR python/18380:

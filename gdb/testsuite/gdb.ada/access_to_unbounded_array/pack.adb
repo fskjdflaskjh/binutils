@@ -1,4 +1,4 @@
---  Copyright 2017-2018 Free Software Foundation, Inc.
+--  Copyright 2018 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by
@@ -13,24 +13,11 @@
 --  You should have received a copy of the GNU General Public License
 --  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-with Pck;
-use Pck;
-use Pck.Middle;
-use Pck.Top;
-use Pck.Dyn_Middle;
-use Pck.Dyn_Top;
+package body Pack is
 
-procedure Foo is
-   B  : Bottom_T;
-   M  : Middle_T;
-   DM : Dyn_Middle_T (24);
-begin
-   Assign (Top_T (B), 12);
-   Assign (B, 10.0);
+   procedure Do_Nothing (A : System.Address) is
+   begin
+      null;
+   end Do_Nothing;
 
-   Assign (M, 'V');
-   Assign (B, 5.0);
-
-   Assign (Dyn_Top_T (DM), 12);
-   Assign (DM, 'V');
-end Foo;
+end Pack;

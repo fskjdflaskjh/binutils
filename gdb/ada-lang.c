@@ -2832,6 +2832,15 @@ value_assign_to_component (struct value *container, struct value *component,
 	       value_contents (val), 0, bits, 0);
 }
 
+/* Determine if TYPE is an access to an unconstrained array.  */
+
+bool
+ada_is_access_to_unconstrained_array (struct type *type)
+{
+  return (TYPE_CODE (type) == TYPE_CODE_TYPEDEF
+	  && is_thick_pntr (ada_typedef_target_type (type)));
+}
+
 /* The value of the element of array ARR at the ARITY indices given in IND.
    ARR may be either a simple array, GNAT array descriptor, or pointer
    thereto.  */
@@ -2852,10 +2861,34 @@ ada_value_subscript (struct value *arr, int arity, struct value **ind)
 
   for (k = 0; k < arity; k += 1)
     {
+      struct type *saved_elt_type = TYPE_TARGET_TYPE (elt_type);
+
       if (TYPE_CODE (elt_type) != TYPE_CODE_ARRAY)
         error (_("too many subscripts (%d expected)"), k);
+
       elt = value_subscript (elt, pos_atr (ind[k]));
+
+      if (ada_is_access_to_unconstrained_array (saved_elt_type)
+	  && TYPE_CODE (value_type (elt)) != TYPE_CODE_TYPEDEF)
+	{
+	  /* The element is a typedef to an unconstrained array,
+	     except that the value_subscript call stripped the
+	     typedef layer.  The typedef layer is GNAT's way to
+	     specify that the element is, at the source level, an
+	     access to the unconstrained array, rather than the
+	     unconstrained array.  So, we need to restore that
+	     typedef layer, which we can do by forcing the element's
+	     type back to its original type. Otherwise, the returned
+	     value is going to be printed as the array, rather
+	     than as an access.  Another symptom of the same issue
+	     would be that an expression trying to dereference the
+	     element would also be improperly rejected.  */
+	  deprecated_set_value_type (elt, saved_elt_type);
+	}
+
+      elt_type = ada_check_typedef (value_type (elt));
     }
+
   return elt;
 }
 
@@ -7521,6 +7554,7 @@ ada_value_struct_elt (struct value *arg, const char *name, int no_err)
 {
   struct type *t, *t1;
   struct value *v;
+  int check_tag;
 
   v = NULL;
   t1 = t = ada_check_typedef (value_type (arg));
@@ -7584,12 +7618,17 @@ ada_value_struct_elt (struct value *arg, const char *name, int no_err)
           if (!find_struct_field (name, t1, 0,
                                   &field_type, &byte_offset, &bit_offset,
                                   &bit_size, NULL))
-	    t1 = ada_to_fixed_type (ada_get_base_type (t1), NULL,
-                                    address, NULL, 1);
+	    check_tag = 1;
+	  else
+	    check_tag = 0;
         }
       else
-        t1 = ada_to_fixed_type (ada_get_base_type (t1), NULL,
-                                address, NULL, 1);
+	check_tag = 0;
+
+      /* Convert to fixed type in all cases, so that we have proper
+	 offsets to each field in unconstrained record types.  */
+      t1 = ada_to_fixed_type (ada_get_base_type (t1), NULL,
+			      address, NULL, check_tag);
 
       if (find_struct_field (name, t1, 0,
                              &field_type, &byte_offset, &bit_offset,
@@ -9245,13 +9284,13 @@ ada_check_typedef (struct type *type)
   if (type == NULL)
     return NULL;
 
-  /* If our type is a typedef type of a fat pointer, then we're done.
+  /* If our type is an access to an unconstrained array, which is encoded
+     as a TYPE_CODE_TYPEDEF of a fat pointer, then we're done.
      We don't want to strip the TYPE_CODE_TYPDEF layer, because this is
      what allows us to distinguish between fat pointers that represent
      array types, and fat pointers that represent array access types
      (in both cases, the compiler implements them as fat pointers).  */
-  if (TYPE_CODE (type) == TYPE_CODE_TYPEDEF
-      && is_thick_pntr (ada_typedef_target_type (type)))
+  if (ada_is_access_to_unconstrained_array (type))
     return type;
 
   type = check_typedef (type);

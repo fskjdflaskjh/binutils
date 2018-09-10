@@ -1,3 +1,29 @@
+2018-09-10  Jerome Guitton  <guitton@adacore.com>
+
+	* gdb.ada/same_component_name: Add test for case of tagged record
+	with variable-length fields.
+
+2018-09-10  Xavier Roirand  <roirand@adacore.com>
+
+	* gdb.ada/access_to_unbounded_array.exp: New testcase.
+	* gdb.ada/access_to_unbounded_array/foo.adb: New file.
+	* gdb.ada/access_to_unbounded_array/pack.adb: New file.
+	* gdb.ada/access_to_unbounded_array/pack.ads: New file.
+
+2018-09-10  Xavier Roirand  <roirand@adacore.com>
+
+	* gdb.ada/mi_string_access.exp: New testcase.
+	* gdb.ada/mi_string_access/bar.adb: New file.
+	* gdb.ada/mi_string_access/pck.adb: New file.
+	* gdb.ada/mi_string_access/pck.asd: New file.
+
+2018-09-10  Xavier Roirand  <roirand@adacore.com>
+
+	* gdb.ada/mi_var_union.exp: New testcase.
+	* gdb.ada/mi_var_union/bar.adb: New file.
+	* gdb.ada/mi_var_union/pck.adb: New file.
+	* gdb.ada/mi_var_union/pck.asd: New file.
+
 2018-09-08  Tom Tromey  <tom@tromey.com>
 
 	* gdb.python/py-prettyprint.exp: Use with_test_prefix.
