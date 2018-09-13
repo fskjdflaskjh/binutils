@@ -1,5 +1,53 @@
 2018-09-13  Jan Beulich  <jbeulich@suse.com>
 
+	* i386-opc.tbl: Drop IgnoreSize from GNFI insns.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from PCLMUL/VPCLMUL insns.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from AES/VAES insns.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from SSE4.2 insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from SSE4.1 insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from SSSE3 insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from SSE3 insns where meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from SSE2 insns where meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from SSE insns where meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
 	* i386-opc.tbl (crc32, incsspq, rdsspq): Drop Rex64.
 	(vpbroadcastw, rdpid): Drop NoRex64.
 	* i386-tbl.h: Re-generate.
