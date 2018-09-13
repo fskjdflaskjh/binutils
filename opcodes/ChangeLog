@@ -1,5 +1,72 @@
 2018-09-13  Jan Beulich  <jbeulich@suse.com>
 
+	* i386-opc.tbl (mov, movq, movdir64b): Drop IgnoreSize where
+	meaningless.
+	(invept, invvpid, vcvtph2ps, vcvtps2ph, bndmov, xrstors,
+	xrstors64, xsaves, xsaves64, xsavec, xsavec64, rdpid, incsspq,
+	rdsspq, saveprevssp, setssbsy, endbr32, endbr64): Drop IgnoreSize.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from AVX512_4FMAPS and
+	AVX512_4VNNIW insns.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from AVX512DQ insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from AVX512BW insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from AVX512VL insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from AVX512ER insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from AVX512F insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from SHA insns.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from XOP and SSE4a insns.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from AVX2 insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl: Drop IgnoreSize from AVX insns where
+	meaningless.
+	* i386-tbl.h: Re-generate.
+
+2018-09-13  Jan Beulich  <jbeulich@suse.com>
+
 	* i386-opc.tbl: Drop IgnoreSize from GNFI insns.
 	* i386-tbl.h: Re-generate.
 
