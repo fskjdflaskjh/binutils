@@ -27,14 +27,9 @@
    comes with the Python plugin for GCC.  See:
    https://gcc-python-plugin.readthedocs.org/en/latest/cpychecker.html
    The checker defines a WITH_ macro for each attribute it
-   exposes.  */
-
-#ifdef WITH_CPYCHECKER_RETURNS_BORROWED_REF_ATTRIBUTE
-#define CPYCHECKER_RETURNS_BORROWED_REF			\
-  __attribute__ ((cpychecker_returns_borrowed_ref))
-#else
-#define CPYCHECKER_RETURNS_BORROWED_REF
-#endif
+   exposes.  Note that we intentionally do not use
+   'cpychecker_returns_borrowed_ref' -- that idiom is forbidden in
+   gdb.  */
 
 #ifdef WITH_CPYCHECKER_TYPE_OBJECT_FOR_TYPEDEF_ATTRIBUTE
 #define CPYCHECKER_TYPE_OBJECT_FOR_TYPEDEF(ARG)		\
@@ -516,15 +511,13 @@ PyObject *value_to_value_object (struct value *v);
 PyObject *type_to_type_object (struct type *);
 PyObject *frame_info_to_frame_object (struct frame_info *frame);
 PyObject *symtab_to_linetable_object (PyObject *symtab);
-PyObject *pspace_to_pspace_object (struct program_space *)
-    CPYCHECKER_RETURNS_BORROWED_REF;
+gdbpy_ref<> pspace_to_pspace_object (struct program_space *);
 PyObject *pspy_get_printers (PyObject *, void *);
 PyObject *pspy_get_frame_filters (PyObject *, void *);
 PyObject *pspy_get_frame_unwinders (PyObject *, void *);
 PyObject *pspy_get_xmethods (PyObject *, void *);
 
-PyObject *objfile_to_objfile_object (struct objfile *)
-    CPYCHECKER_RETURNS_BORROWED_REF;
+gdbpy_ref<> objfile_to_objfile_object (struct objfile *);
 PyObject *objfpy_get_printers (PyObject *, void *);
 PyObject *objfpy_get_frame_filters (PyObject *, void *);
 PyObject *objfpy_get_frame_unwinders (PyObject *, void *);
@@ -534,8 +527,7 @@ PyObject *gdbpy_lookup_objfile (PyObject *self, PyObject *args, PyObject *kw);
 PyObject *gdbarch_to_arch_object (struct gdbarch *gdbarch);
 
 thread_object *create_thread_object (struct thread_info *tp);
-thread_object *thread_to_thread_object (thread_info *thr)
-  CPYCHECKER_RETURNS_BORROWED_REF;
+gdbpy_ref<> thread_to_thread_object (thread_info *thr);;
 inferior_object *inferior_to_inferior_object (inferior *inf);
 
 const struct block *block_object_to_block (PyObject *obj);

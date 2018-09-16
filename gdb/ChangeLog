@@ -1,5 +1,61 @@
 2018-09-16  Tom Tromey  <tom@tromey.com>
 
+	* python/python-internal.h (CPYCHECKER_RETURNS_BORROWED_REF):
+	Remove.
+
+2018-09-16  Tom Tromey  <tom@tromey.com>
+
+	* python/python-internal.h (thread_to_thread_object): Change
+	return type.
+	* python/py-inferior.c (thread_to_thread_object): Return a new
+	reference.
+	(infpy_thread_from_thread_handle): Update.
+	* python/py-infthread.c (gdbpy_selected_thread): Update.
+	* python/py-stopevent.c (create_stop_event_object): Update.
+	* python/py-threadevent.c (py_get_event_thread): Return a new
+	reference.
+	(py_get_event_thread): Update.
+	* python/py-event.h (py_get_event_thread): Change return type.
+	* python/py-continueevent.c (create_continue_event_object):
+	Update.
+
+2018-09-16  Tom Tromey  <tom@tromey.com>
+
+	* python/py-progspace.c (pspy_get_objfiles): Update.
+	* python/python-internal.h (objfile_to_objfile_object): Change
+	return type.
+	* python/py-newobjfileevent.c (create_new_objfile_event_object):
+	Update.
+	* python/py-xmethods.c (gdbpy_get_matching_xmethod_workers):
+	Update.
+	* python/python.c (gdbpy_get_current_objfile): Update.
+	(gdbpy_objfiles): Update.
+	* python/py-objfile.c (objfpy_get_owner, gdbpy_lookup_objfile):
+	Update.
+	(objfile_to_objfile_object): Return a new reference.
+	* python/py-symtab.c (stpy_get_objfile): Update.
+	* python/py-prettyprint.c (find_pretty_printer_from_objfiles):
+	Update.
+
+2018-09-16  Tom Tromey  <tom@tromey.com>
+
+	* python/py-inferior.c (infpy_get_progspace): Update.
+	* python/python-internal.h (pspace_to_pspace_object): Change
+	return type.
+	* python/py-newobjfileevent.c
+	(create_clear_objfiles_event_object): Update.
+	* python/py-xmethods.c (gdbpy_get_matching_xmethod_workers):
+	Update.
+	* python/python.c (gdbpy_get_current_progspace): Update.
+	(gdbpy_progspaces): Update.
+	* python/py-progspace.c (pspace_to_pspace_object): Return a new
+	reference.
+	* python/py-objfile.c (objfpy_get_progspace): Update.
+	* python/py-prettyprint.c (find_pretty_printer_from_progspace):
+	Update.
+
+2018-09-16  Tom Tromey  <tom@tromey.com>
+
 	* python/lib/gdb/__init__.py (current_progspace, objfiles)
 	(solib_name, block_for_pc, find_pc_line): New functions.
 	(execute_unwinders): Update.
