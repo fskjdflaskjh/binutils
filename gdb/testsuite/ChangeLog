@@ -1,3 +1,18 @@
+2018-09-18  Sergio Durigan Junior  <sergiodj@redhat.com>
+
+	* gdb.arch/amd64-invalid-stack-top.exp: Expect optional
+	"arch=" keyword when executing "-stack-list-frames".
+
+2018-09-18  Sergio Durigan Junior  <sergiodj@redhat.com>
+
+	* gdb.arch/amd64-invalid-stack-middle.exp: Expect optional
+	"arch=" keyword when executing "-stack-list-frames".
+
+2018-09-18  Sergio Durigan Junior  <sergiodj@redhat.com>
+
+	* gdb.ada/complete.exp: Expect for "@" when doing "complete
+	break ada".
+
 2018-09-17  Simon Marchi  <simon.marchi@polymtl.ca>
 
 	PR python/23669
