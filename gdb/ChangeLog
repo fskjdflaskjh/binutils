@@ -1,3 +1,34 @@
+2018-10-01  Gary Benson <gbenson@redhat.com>
+
+	* gdb_proc_service.h (gdb_prfpregset_t): Remove typedef.
+	* proc-service.c (ps_lgetfpregs, ps_lsetfpregs): Use
+	prfpregset_t instead of gdb_prfpregset_t.
+	* configure.ac (PRFPREGSET_T_BROKEN): Remove check.
+	* configure, config.in: Rebuild.
+
+2018-10-01  Gary Benson <gbenson@redhat.com>
+
+	* common/gdb_proc_service.h: New file, factored out from...
+	* gdb_proc_service.h: Moved common code to the above file.
+	* Makefile.in (HFILES_NO_SRCDIR): Add the above new file.
+
+2018-10-01  Gary Benson <gbenson@redhat.com>
+
+	* gdb_proc_service.h: Use elf_gregset_t if prgregset_t is
+	undefined.  Use elf_fpregset_t if prfpregset_t is undefined.
+
+2018-10-01  Gary Benson <gbenson@redhat.com>
+
+	* configure.ac: Check if sys/procfs.h defines elf_fpregset_t.
+	(AC_CHECK_HEADERS): Check for linux/elf.h.
+	* configure, config.in: Rebuild.
+	* gdb_proc_service.h: Include linux/elf.h if sys/procfs.h
+	doesn't define elf_fpregset_t.
+
+2018-10-01  Gary Benson <gbenson@redhat.com>
+
+	* gdb_proc_service.h: Whitespace change.
+
 2018-10-01  Tom Tromey  <tom@tromey.com>
 
 	* unittests/scoped_mmap-selftests.c: Don't check HAVE_UNISTD_H.
