@@ -17709,7 +17709,7 @@ read_subrange_type (struct die_info *die, struct dwarf2_cu *cu)
   int low_default_is_valid;
   int high_bound_is_count = 0;
   const char *name;
-  LONGEST negative_mask;
+  ULONGEST negative_mask;
 
   orig_base_type = die_type (die, cu);
   /* If ORIG_BASE_TYPE is a typedef, it will not be TYPE_UNSIGNED,
@@ -17842,7 +17842,7 @@ read_subrange_type (struct die_info *die, struct dwarf2_cu *cu)
      the bounds as signed, and thus sign-extend their values, when
      the base type is signed.  */
   negative_mask =
-    -((LONGEST) 1 << (TYPE_LENGTH (base_type) * TARGET_CHAR_BIT - 1));
+    -((ULONGEST) 1 << (TYPE_LENGTH (base_type) * TARGET_CHAR_BIT - 1));
   if (low.kind == PROP_CONST
       && !TYPE_UNSIGNED (base_type) && (low.data.const_val & negative_mask))
     low.data.const_val |= negative_mask;
@@ -19627,7 +19627,7 @@ static LONGEST
 read_signed_leb128 (bfd *abfd, const gdb_byte *buf,
 		    unsigned int *bytes_read_ptr)
 {
-  LONGEST result;
+  ULONGEST result;
   int shift, num_read;
   unsigned char byte;
 
@@ -19639,7 +19639,7 @@ read_signed_leb128 (bfd *abfd, const gdb_byte *buf,
       byte = bfd_get_8 (abfd, buf);
       buf++;
       num_read++;
-      result |= ((LONGEST) (byte & 127) << shift);
+      result |= ((ULONGEST) (byte & 127) << shift);
       shift += 7;
       if ((byte & 128) == 0)
 	{
@@ -19647,7 +19647,7 @@ read_signed_leb128 (bfd *abfd, const gdb_byte *buf,
 	}
     }
   if ((shift < 8 * sizeof (result)) && (byte & 0x40))
-    result |= -(((LONGEST) 1) << shift);
+    result |= -(((ULONGEST) 1) << shift);
   *bytes_read_ptr = num_read;
   return result;
 }
