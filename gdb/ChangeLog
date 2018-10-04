@@ -1,3 +1,49 @@
+2018-10-04  Tom Tromey  <tom@tromey.com>
+
+	* symfile.c (syms_from_objfile_1, finish_new_objfile)
+	(reread_symbols): Update.
+	* complaints.h (clear_complaints): Remove argument.
+	* complaints.c (enum complaint_series): Remove.
+	(series): Remove global.
+	(complaint_internal): Update.
+	(clear_complaints): Remove argument.
+
+2018-10-04  Tom Tromey  <tom@tromey.com>
+
+	* symfile.c (symbol_file_add_with_addrs): Do not print "no
+	debugging symbols" message if there is a separate debug objfile.
+
+2018-10-04  Tom Tromey  <tom@tromey.com>
+
+	PR cli/19551:
+	* symfile.c (symbol_file_add_with_addrs): Update output.
+	* psymtab.c (require_partial_symbols): Update output.
+
+2018-10-04  Tom Tromey  <tom@tromey.com>
+
+	PR cli/22234:
+	* complaints.c: Emit \n.
+
+2018-10-04  Tom Tromey  <tom@tromey.com>
+
+	* symfile.c (symbol_file_add_with_addrs, symbol_file_clear)
+	(separate_debug_file_exists, find_separate_debug_file)
+	(add_symbol_file_command, reread_symbols, allocate_symtab)
+	(allocate_compunit_symtab): Use filtered printing, not
+	unfiltered.
+	* psymtab.c (require_partial_symbols, dump_psymtab)
+	(allocate_psymtab): Use filtered printing, not unfiltered.
+
+2018-10-04  Tom Tromey  <tom@tromey.com>
+
+	* complaints.c (complaint_internal): Correctly check complaint
+	count.
+
+2018-10-04  Tom Tromey  <tom@tromey.com>
+
+	* complaints.h (struct complaints): Remove declaration.
+	* complaints.c (clear_complaints): Remove an unused variable.
+
 2018-10-04  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
 
 	* MAINTAINERS (Write After Approval): Add self.
