@@ -93,12 +93,14 @@ thread apply [all | COUNT | -COUNT] [FLAG]... COMMAND
 * New native configurations
 
 GNU/Linux/RISC-V		riscv*-*-linux*
+FreeBSD/riscv			riscv*-*-freebsd*
 
 * New targets
 
 GNU/Linux/RISC-V		riscv*-*-linux*
 CSKY ELF			csky*-*-elf
 CSKY GNU/LINUX			csky*-*-linux
+FreeBSD/riscv			riscv*-*-freebsd*
 
 * Python API
 
