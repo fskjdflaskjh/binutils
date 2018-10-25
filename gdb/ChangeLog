@@ -1,5 +1,17 @@
 2018-10-25  Andrew Burgess  <andrew.burgess@embecosm.com>
 
+	* python/py-function.c (convert_values_to_python): Return
+	gdbpy_ref<>.  Add header comment.
+	(fnpy_call): Adjust.
+
+2018-10-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* python/py-cmd.c (cmdpy_completer_helper): Return gdbpy_ref<>.
+	(cmdpy_completer_handle_brkchars): Adjust.
+	(cmdpy_completer): Adjust.
+
+2018-10-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
 	* riscv-linux-nat.c (riscv_linux_nat_target::fetch_registers):
 	Pass correct regnum to raw_supply_zeroed.
 
