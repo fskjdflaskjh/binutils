@@ -1,3 +1,206 @@
+2018-11-21  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* Makefile.in (ALL_TARGET_OBS): Add arch/riscv.o.
+	(HFILES_NO_SRCDIR): Add arch/riscv.h.
+	* arch/riscv.c: New file.
+	* arch/riscv.h: New file.
+	* configure.tgt: Add cpu_obs list of riscv, move riscv-tdep.o into
+	this list, and add arch/riscv.o.
+	* features/Makefile: Add riscv features.
+	* features/riscv/32bit-cpu.c: New file.
+	* features/riscv/32bit-cpu.xml: New file.
+	* features/riscv/32bit-csr.c: New file.
+	* features/riscv/32bit-csr.xml: New file.
+	* features/riscv/32bit-fpu.c: New file.
+	* features/riscv/32bit-fpu.xml: New file.
+	* features/riscv/64bit-cpu.c: New file.
+	* features/riscv/64bit-cpu.xml: New file.
+	* features/riscv/64bit-csr.c: New file.
+	* features/riscv/64bit-csr.xml: New file.
+	* features/riscv/64bit-fpu.c: New file.
+	* features/riscv/64bit-fpu.xml: New file.
+	* features/riscv/rebuild-csr-xml.sh: New file.
+	* riscv-tdep.c: Add 'arch/riscv.h' include.
+	(riscv_gdb_reg_names): Delete.
+	(csr_reggroup): New global.
+	(struct riscv_register_alias): Delete.
+	(struct riscv_register_feature): New structure.
+	(riscv_register_aliases): Delete.
+	(riscv_xreg_feature): New global.
+	(riscv_freg_feature): New global.
+	(riscv_virtual_feature): New global.
+	(riscv_csr_feature): New global.
+	(riscv_create_csr_aliases): New function.
+	(riscv_read_misa_reg): Delete.
+	(riscv_has_feature): Delete.
+	(riscv_isa_xlen): Simplify, just return cached xlen.
+	(riscv_isa_flen): Simplify, just return cached flen.
+	(riscv_has_fp_abi): Update for changes in struct gdbarch_tdep.
+	(riscv_register_name): Update to make use of tdesc_register_name.
+	Look up xreg and freg names in the new globals riscv_xreg_feature
+	and riscv_freg_feature.  Don't supply csr aliases here.
+	(riscv_fpreg_q_type): Delete.
+	(riscv_register_type): Use tdesc_register_type in almost all
+	cases, override the returned type in a few specific cases only.
+	(riscv_print_one_register_info): Handle errors reading registers.
+	(riscv_register_reggroup_p): Use tdesc_register_in_reggroup_p for
+	registers that are otherwise unknown to GDB.  Also check the
+	csr_reggroup.
+	(riscv_print_registers_info): Remove assert about upper register
+	number, and use gdbarch_register_reggroup_p instead of
+	short-cutting.
+	(riscv_find_default_target_description): New function.
+	(riscv_check_tdesc_feature): New function.
+	(riscv_add_reggroups): New function.
+	(riscv_setup_register_aliases): New function.
+	(riscv_init_reggroups): New function.
+	(_initialize_riscv_tdep): Add calls to setup CSR aliases, and
+	setup register groups.  Register new riscv debug variable.
+	* riscv-tdep.h: Add 'arch/riscv.h' include.
+	(struct gdbarch_tdep): Remove abi union, and add
+	riscv_gdbarch_features field.  Remove cached quad floating point
+	type, and provide initialisation for double type field.
+	* target-descriptions.c (maint_print_c_tdesc_cmd): Add riscv to
+	the list of targets using the feature based target descriptions.
+	* NEWS: Mention target description support.
+
+2018-11-21  Pedro Alves  <palves@redhat.com>
+
+	* valops.c (find_method_list, value_find_oload_method_list)
+	(find_overload_match, find_oload_champ): Rename parameters and
+	locals.
+
+2018-11-21  Pedro Alves  <palves@redhat.com>
+
+	* valops.c (find_method_list): Replace pointer and length
+	parameters with an gdb::array_view.  Adjust.
+	(value_find_oload_method_list): Likewise.
+	(find_overload_match): Use gdb::array_view for methods list.
+	Adjust to find_oload_champ interface change.
+	(find_oload_champ): 'xm_worker_vec' parameter now a pointer/array.
+	'num_fns' parameter now a size_t.  Eliminate 'fn_count' local.
+
+2018-11-21  Pedro Alves  <palves@redhat.com>
+
+	* gdbtypes.c (compare_badness): Change type of parameters to const
+	reference.  Adjust to badness_vector being a std::vector now.
+	(rank_function): Adjust to badness_vector being a std::vector now.
+	* gdbtypes.h (badness_vector): Now a typedef to std::vector.
+	(LENGTH_MATCH): Delete.
+	(compare_badness): Change type of parameters to const reference.
+	(rank_function): Return a badness_vector by value now.
+	(find_overload_match): Adjust to badness_vector being a
+	std::vector now.  Remove cleanups.
+	(find_oload_champ_namespace): 'oload_champ_bv' parameter now a
+	badness_vector pointer.
+	(find_oload_champ_namespace_loop): 'oload_champ_bv' parameter now
+	a badness_vector pointer.  Adjust to badness_vector being a
+	std::vector now.  Remove cleanups.
+	(find_oload_champ): 'oload_champ_bv' parameter now
+	a badness_vector pointer.  Adjust to badness_vector being a
+	std::vector now.  Remove cleanups.
+
+2018-11-21  Pedro Alves  <palves@redhat.com>
+
+	* cp-support.c (sym_return_val_size, sym_return_val_index)
+	(sym_return_val): Delete.
+	(overload_list_add_symbol): Add std::vector parameter.  Adjust to
+	add to the vector.
+	(make_symbol_overload_list): Adjust to return a std::vector
+	instead of maintaining a global open coded vector.
+	(make_symbol_overload_list_block): Add std::vector parameter.
+	(make_symbol_overload_list_block): Rename to ...
+	(add_symbol_overload_list_block): ... this and add std::vector
+	parameter.
+	(make_symbol_overload_list_namespace): Rename to ...
+	(add_symbol_overload_list_namespace): ... this and add std::vector
+	parameter.
+	(make_symbol_overload_list_adl_namespace): Rename to ...
+	(add_symbol_overload_list_adl_namespace): ... this and add
+	std::vector parameter.
+	(make_symbol_overload_list_adl): Delete.
+	(add_symbol_overload_list_adl): New.
+	(make_symbol_overload_list_using): Rename to ...
+	(add_symbol_overload_list_using): ... this and add std::vector
+	parameter.
+	(make_symbol_overload_list_qualified): Rename to ...
+	(add_symbol_overload_list_qualified): ... this and add std::vector
+	parameter.
+	* cp-support.h: Include "common/array-view.h" and <vector>.
+	(make_symbol_overload_list): Change return type to std::vector.
+	(make_symbol_overload_list_adl): Delete declaration.
+	(add_symbol_overload_list_adl): New declaration.
+	* valops.c (find_overload_match): Local 'oload_syms' now a
+	std::vector.
+	(find_oload_champ_namespace): 'oload_syms' parameter now a
+	std::vector pointer.
+	(find_oload_champ_namespace_loop): 'oload_syms' parameter now a
+	std::vector pointer.  Adjust to new make_symbol_overload_list
+	interface.
+
+2018-11-21  Pedro Alves  <palves@redhat.com>
+
+	* common/array-view.h (array_view::splice(size_type, size_t)): New.
+	(array_view::splice(size_type)): New.
+	* eval.c (eval_call, evaluate_funcall): Adjust to use array_view.
+	* extension.c (xmethod_worker::get_arg_types): Adjust to return an
+	std::vector.
+	(xmethod_worker::get_result_type): Adjust to use gdb::array_view.
+	* extension.h: Include "common/array-view.h".
+	(xmethod_worker::invoke): Adjust to use gdb::array_view.
+	(xmethod_worker::get_arg_types): Adjust to return an std::vector.
+	(xmethod_worker::get_result_type): Adjust to use gdb::array_view.
+	(xmethod_worker::do_get_arg_types): Adjust to use std::vector.
+	(xmethod_worker::do_get_result_type): Adjust to use
+	gdb::array_view.
+	* gdbtypes.c (rank_function): Adjust to use gdb::array_view.
+	* gdbtypes.h: Include "common/array-view.h".
+	(rank_function): Adjust to use gdb::array_view.
+	* python/py-xmethods.c (python_xmethod_worker::invoke)
+	(python_xmethod_worker::do_get_arg_types)
+	(python_xmethod_worker::do_get_result_type)
+	(python_xmethod_worker::invoke): Adjust to new interfaces.
+	* valarith.c (value_user_defined_cpp_op, value_user_defined_op)
+	(value_x_binop, value_x_unop): Adjust to use gdb::array_view.
+	* valops.c (find_overload_match, find_oload_champ_namespace)
+	(find_oload_champ_namespace_loop, find_oload_champ): Adjust to use
+	gdb:array_view and the new xmethod_worker interfaces.
+	* value.c (result_type_of_xmethod, call_xmethod): Adjust to use
+	gdb::array_view.
+	* value.h (find_overload_match, result_type_of_xmethod)
+	(call_xmethod): Adjust to use gdb::array_view.
+	* unittests/array-view-selftests.c: Add slicing tests.
+
+2018-11-21  Pedro Alves  <palves@redhat.com>
+
+	* ada-lang.c (ada_evaluate_subexp): Adjust to pass an array_view.
+	* common/array-view.h (make_array_view): New.
+	* compile/compile-object-run.c (compile_object_run): Adjust to
+	pass an array_view.
+	* elfread.c (elf_gnu_ifunc_resolve_addr): Adjust.
+	* eval.c (eval_call): Adjust to pass an array_view.
+	(evaluate_subexp_standard): Adjust to pass an array_view.
+	* gcore.c (call_target_sbrk): Adjust to pass an array_view.
+	* guile/scm-value.c (gdbscm_value_call): Likewise.
+	* infcall.c (push_dummy_code): Replace pointer + size parameters
+	with an array_view parameter.
+	(call_function_by_hand, call_function_by_hand_dummy): Likewise and
+	adjust.
+	* infcall.h: Include "common/array-view.h".
+	(call_function_by_hand, call_function_by_hand_dummy): Replace
+	pointer + size parameters with an array_view parameter.
+	* linux-fork.c (inferior_call_waitpid): Adjust to use array_view.
+	* linux-tdep.c (linux_infcall_mmap): Likewise.
+	* objc-lang.c (lookup_objc_class, lookup_child_selector)
+	(value_nsstring, print_object_command): Likewise.
+	* python/py-value.c (valpy_call): Likewise.
+	* rust-lang.c (rust_evaluate_funcall): Likewise.
+	* spu-tdep.c (flush_ea_cache): Likewise.
+	* valarith.c (value_x_binop, value_x_unop): Likewise.
+	* valops.c (value_allocate_space_in_inferior): Likewise.
+	* unittests/array-view-selftests.c (run_tests): Add
+	gdb::make_array_view test.
+
 2018-11-20  Andrew Burgess  <andrew.burgess@embecosm.com>
 
 	* cli-out.c (cli_ui_out::do_field_int): Use string_printf rather
