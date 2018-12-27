@@ -1,5 +1,29 @@
 2018-12-27  Tom Tromey  <tom@tromey.com>
 
+	* python/py-utils.c (gdbpy_handle_exception): Translate
+	PyExc_KeyboardInterrupt to quit.
+
+2018-12-27  Tom Tromey  <tom@tromey.com>
+
+	* python/python-internal.h (gdbpy_print_stack_or_quit): Declare.
+	* python/py-unwind.c (pyuw_sniffer): Use
+	gdbpy_print_stack_or_quit.
+	* python/py-framefilter.c (throw_quit_or_print_exception):
+	Remove.
+	(gdbpy_apply_frame_filter): Use gdbpy_print_stack_or_quit.
+	* python/python.c (gdbpy_print_stack_or_quit): New function.
+
+2018-12-27  Tom Tromey  <tom@tromey.com>
+
+	* python/py-value.c (convert_value_from_python): Use
+	gdbpy_convert_exception.
+	* python/py-param.c (parmpy_init): Use gdbpy_convert_exception.
+	* python/py-cmd.c (cmdpy_init): Use gdbpy_convert_exception.
+	* python/py-breakpoint.c (bppy_init): Use
+	gdbpy_convert_exception.
+
+2018-12-27  Tom Tromey  <tom@tromey.com>
+
 	* configure.nat (NATDEPFILES): Use nat/ prefix.
 	* Makefile.in (CONFIG_SRC_SUBDIR): Add nat.
 	(%.o: ${srcdir}/nat/%.c): Remove rule.
