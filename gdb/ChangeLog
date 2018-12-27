@@ -1,3 +1,20 @@
+2018-12-27  Tom Tromey  <tom@tromey.com>
+
+	* configure.nat (NATDEPFILES): Use nat/ prefix.
+	* Makefile.in (CONFIG_SRC_SUBDIR): Add nat.
+	(%.o: ${srcdir}/nat/%.c): Remove rule.
+	(INIT_FILES): Do not filter out NATDEPFILES.
+
+2018-12-27  Tom Tromey  <tom@tromey.com>
+
+	* Makefile.in (INIT_FILES): Redefine.
+	(stamp-init): Remove sed, tr invocations.  Use for loop.  Don't
+	set LANG or LC_ALL.
+
+2018-12-27  Tom Tromey  <tom@tromey.com>
+
+	* Makefile.in (stamp-init): Remove gdbtypes special case.
+
 2018-12-27  John Baldwin  <jhb@FreeBSD.org>
 
 	* config/i386/nm-fbsd.h: Remove file.
