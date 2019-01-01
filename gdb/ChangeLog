@@ -1,3 +1,13 @@
+2019-01-01  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
+
+	* record-full.c (record_full_base_target::close): Rewrite
+	record_full_core_buf_list free logic.
+
+2019-01-01  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
+
+	* break-catch-syscall.c (print_one_catch_syscall): xfree
+	the last text.
+
 2019-01-01  Joel Brobecker  <brobecker@adacore.com>
 
 	* top.c (print_gdb_version): Update Copyright year in version
