@@ -1,3 +1,59 @@
+2019-01-03  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-source.c (tui_set_source_content): Use xstrdup.
+
+2019-01-03  Tom Tromey  <tom@tromey.com>
+
+	* python/py-symtab.c (salpy_str): Update.
+	(struct salpy_sal_object) <symtab>: Now a PyObject.
+	(salpy_dealloc): Update.
+	(del_objfile_sal): Use gdbpy_ref.
+
+2019-01-03  Tom Tromey  <tom@tromey.com>
+
+	* python/py-type.c (convert_field): Use new_reference.  Return
+	gdbpy_ref.
+	(make_fielditem): Return gdbpy_ref.
+	(typy_fields): Update.
+	(typy_getitem): Update.
+	(field_name): Return gdbpy_ref.  Use new_reference.
+	(typy_iterator_iternext): Update.
+
+2019-01-03  Tom Tromey  <tom@tromey.com>
+
+	* python/py-record.c (gdbpy_stop_recording): Use Py_RETURN_NONE.
+
+2019-01-03  Tom Tromey  <tom@tromey.com>
+
+	* python/py-value.c (valpy_dealloc): Use Py_XDECREF.
+	* python/py-type.c (typy_fields_items): Use gdbpy_ref.
+	* python/py-progspace.c (pspy_set_printers): Use gdbpy_ref.
+	(pspy_set_frame_filters, pspy_set_frame_unwinders)
+	(pspy_set_type_printers): Likewise.
+	* python/py-function.c (fnpy_init): Use gdbpy_ref.
+	* python/py-cmd.c (cmdpy_init): Use gdbpy_ref.
+	* python/py-objfile.c (objfpy_set_printers): Use gdbpy_ref.
+	(objfpy_set_frame_filters, objfpy_set_frame_unwinders)
+	(objfpy_set_type_printers): Likewise.
+
+2019-01-03  Tom Tromey  <tom@tromey.com>
+
+	* python/python.c (gdbpy_enter, ~gdbpy_enter): Update.
+	(gdbpy_print_stack): Use gdbpy_err_fetch.
+	* python/python-internal.h (class gdbpy_err_fetch): New class.
+	(class gdbpy_enter) <m_error_type, m_error_value,
+	m_error_traceback>: Remove.
+	<m_error>: New member.
+	(gdbpy_exception_to_string): Don't declare.
+	* python/py-varobj.c (py_varobj_iter_next): Use gdbpy_err_fetch.
+	* python/py-value.c (convert_value_from_python): Use
+	gdbpy_err_fetch.
+	* python/py-utils.c (gdbpy_err_fetch::to_string): Rename from
+	gdbpy_exception_to_string.
+	(gdbpy_handle_exception): Use gdbpy_err_fetch.
+	* python/py-prettyprint.c (print_stack_unless_memory_error): Use
+	gdbpy_err_fetch.
+
 2019-01-03  Andrew Burgess  <andrew.burgess@embecosm.com>
 
 	* linux-nat.c (delete_lwp_cleanup): Delete.
