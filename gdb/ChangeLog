@@ -1,3 +1,38 @@
+2019-01-03  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* linux-nat.c (delete_lwp_cleanup): Delete.
+	(struct lwp_deleter): New struct.
+	(lwp_info_up): New typedef.
+	(linux_nat_target::follow_fork): Delete cleanup, and make use of
+	lwp_info_up.
+
+2019-01-03  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* linux-fork.c (class scoped_switch_fork_info): New class.
+	(inferior_call_waitpid): Update to use scoped_switch_fork_info.
+
+2019-01-03  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* valops.c (find_overload_match): Remove use of null_cleanup, and
+	calls to do_cleanups.
+
+2019-01-03  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* compile/compile-cplus-types.c
+	(compile_cplus_instance::decl_name): Handle changes to
+	cp_func_name.
+	* cp-support.c (cp_func_name): Update header comment, update
+	return type.
+	* cp-support.h (cp_func_name): Update return type in declaration.
+	* valops.c (find_overload_match): Move temp_func local to top
+	level of function and change its type.  Use temp_func to hold and
+	delete temporary string obtained from cp_func_name.
+
+2019-01-03  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* remote.c (remote_target::remote_check_symbols): Convert `msg` to
+	gdb::char_vector, remove cleanup, and update uses of `msg`.
+
 2019-01-03  Jim Wilson  <jimw@sifive.com>
 
 	* riscv-tdep.c (riscv_freg_feature): Drop s0 name from f8.
