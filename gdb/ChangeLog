@@ -1,3 +1,237 @@
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* dbxread.c (dbx_end_psymtab): Use objfile_psymtabs.
+	* mdebugread.c (parse_partial_symbols): Use objfile_psymtabs.
+	* psymtab.c (ALL_OBJFILE_PSYMTABS_REQUIRED): Remove.
+	(psym_map_symtabs_matching_filename, find_pc_sect_psymtab)
+	(psym_lookup_symbol, psym_find_last_source_symtab)
+	(psym_forget_cached_source_info, psym_print_stats)
+	(psym_expand_symtabs_for_function, psym_expand_all_symtabs)
+	(psym_expand_symtabs_with_fullname, psym_map_symbol_filenames)
+	(psym_map_matching_symbols, psym_expand_symtabs_matching)
+	(psym_find_compunit_symtab_by_address)
+	(maintenance_print_psymbols, maintenance_info_psymtabs)
+	(maintenance_check_psymtabs): Use ranged for.
+	* psymtab.h (class objfile_psymtabs): New.
+	(require_partial_symbols): Return objfile_psymtabs.
+	* psympriv.h (ALL_OBJFILE_PSYMTABS): Remove.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* symfile.c (overlay_invalidate_all, find_pc_overlay)
+	(find_pc_mapped_section, list_overlays_command)
+	(map_overlay_command, unmap_overlay_command)
+	(simple_overlay_update): Use all_objfiles.
+	* spu-tdep.c (spu_overlay_update): Use all_objfiles.
+	* printcmd.c (info_symbol_command): Use all_objfiles.
+	* objfiles.h (ALL_OBJSECTIONS): Remove.
+	* maint.c (maintenance_translate_address): Use all_objfiles.
+	* gcore.c (gcore_create_callback): Use all_objfiles.
+	(objfile_find_memory_regions): Likewise.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* symtab.c (find_line_symtab, info_sources_command)
+	(make_source_files_completion_list): Use objfile_compunits.
+	* source.c (select_source_symtab): Use objfile_compunits.
+	* objfiles.h (struct objfile): Update comment.
+	(ALL_OBJFILES): Remove.
+	(ALL_FILETABS): Remove.
+	* mi/mi-cmd-file.c (mi_cmd_file_list_exec_source_files): Use
+	objfile_compunits.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* symmisc.c (print_objfile_statistics, dump_objfile)
+	(maintenance_print_symbols): Use compunit_filetabs.
+	* source.c (forget_cached_source_info_for_objfile): Use
+	compunit_filetabs.
+	* objfiles.h (ALL_OBJFILE_FILETABS): Remove.
+	(ALL_FILETABS): Use compunit_filetabs.
+	* objfiles.c (objfile_relocate1): Use compunit_filetabs.
+	* coffread.c (coff_symtab_read): Use compunit_filetabs.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* symtab.h (ALL_COMPUNIT_FILETABS): Remove.
+	(compunit_filetabs): New.
+	* symtab.c (iterate_over_some_symtabs, find_pc_sect_line): Use
+	compunit_filetabs.
+	(info_sources_command, make_source_files_completion_list): Remove
+	declaration.
+	* symmisc.c (print_objfile_statistics, dump_objfile)
+	(maintenance_print_symbols): Remove declaration.
+	(maintenance_info_symtabs): Use compunit_filetabs.
+	(maintenance_info_line_tables): Likewise.
+	* source.c (select_source_symtab): Change local variable name.
+	(forget_cached_source_info_for_objfile): Remove declaration.
+	* objfiles.h (ALL_OBJFILE_FILETABS): Use compunit_filetabs.
+	* objfiles.c (objfile_relocate1): Remove declaration.
+	* mi/mi-cmd-file.c (mi_cmd_file_list_exec_source_files): Remove
+	declaration.
+	* maint.c (count_symtabs_and_blocks): Use compunit_filetabs.
+	* coffread.c (coff_symtab_read): Remove declaration.
+	* buildsym.c (buildsym_compunit::end_symtab_with_blockvector): Use
+	compunit_filetabs.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* symtab.c (lookup_objfile_from_block)
+	(find_pc_sect_compunit_symtab, search_symbols)
+	(default_collect_symbol_completion_matches_break_on): Use
+	objfile_compunits.
+	* objfiles.h (ALL_COMPUNITS): Remove.
+	* maint.c (count_symtabs_and_blocks): Use objfile_compunits.
+	* cp-support.c (add_symbol_overload_list_qualified): Use
+	objfile_compunits.
+	* ada-lang.c (ada_collect_symbol_completion_matches)
+	(ada_add_global_exceptions): Use objfile_compunits.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* source.c (select_source_symtab)
+	(forget_cached_source_info_for_objfile): Remove declaration.
+	* mi/mi-cmd-file.c (mi_cmd_file_list_exec_source_files): Remove
+	declaration.
+	* maint.c (count_symtabs_and_blocks): Remove declaration.
+	* cp-support.c (add_symbol_overload_list_qualified): Remove
+	declaration.
+	* coffread.c (coff_symtab_read): Remove declaration.
+	* symtab.c (lookup_symbol_in_objfile_symtabs)
+	(basic_lookup_transparent_type_1): Use objfile_compunits.
+	(lookup_objfile_from_block, find_pc_sect_compunit_symtab)
+	(info_sources_command, search_symbols)
+	(default_collect_symbol_completion_matches_break_on)
+	(make_source_files_completion_list): Remove declaration.
+	* ada-lang.c (add_nonlocal_symbols): Use objfile_compunits.
+	(ada_collect_symbol_completion_matches)
+	(ada_add_global_exceptions): Remove declaration.
+	* linespec.c (iterate_over_all_matching_symtabs): Use
+	objfile_compunits.
+	* objfiles.h (ALL_OBJFILE_COMPUNITS): Remove.
+	(class objfile_compunits): New.
+	(ALL_COMPUNITS): Use objfile_compunits.
+	* symmisc.c (print_objfile_statistics, maintenance_info_symtabs)
+	(maintenance_check_symtabs, maintenance_info_line_tables): Use
+	objfile_compunits.
+	* objfiles.c (objfile_relocate1): Use objfile_compunits.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* symtab.c (search_symbols)
+	(default_collect_symbol_completion_matches_break_on): Use
+	objfile_msymbols.
+	* ada-lang.c (ada_lookup_simple_minsym)
+	(ada_collect_symbol_completion_matches): Use objfile_msymbols.
+	* minsyms.c (find_solib_trampoline_target): Use objfile_msymbols.
+	* hppa-tdep.c (hppa_lookup_stub_minimal_symbol): Use
+	objfile_msymbols.
+	* coffread.c (coff_symfile_read): Use objfile_msymbols.
+	* symmisc.c (dump_msymbols): Use objfile_msymbols.
+	* objc-lang.c (find_methods): Use objfile_msymbols.
+	(info_selectors_command, info_classes_command): Likewise.
+	* stabsread.c (scan_file_globals): Use objfile_msymbols.
+	* objfiles.h (class objfile_msymbols): New.
+	(ALL_OBJFILE_MSYMBOLS): Remove.
+	(ALL_MSYMBOLS): Remove.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* common/next-iterator.h (next_adapter): Add Iterator template
+	parameter.
+	* objfiles.h (ALL_OBJFILES_SAFE): Remove.
+	(class all_objfiles_safe): New.
+	* jit.c (jit_inferior_exit_hook): Use all_objfiles_safe.
+	* objfiles.c (put_objfile_before): Update comment.
+	(add_separate_debug_objfile): Likewise.
+	(free_all_objfiles): Use all_objfiles_safe.
+	(objfile_purge_solibs): Likewise.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* symtab.c (iterate_over_symtabs, matching_obj_sections)
+	(expand_symtab_containing_pc, lookup_static_symbol)
+	(basic_lookup_transparent_type, find_pc_sect_compunit_symtab)
+	(find_symbol_at_address, find_line_symtab, find_main_name): Use
+	all_objfiles.
+	* probe.c (find_probe_by_pc, collect_probes): Use all_objfiles.
+	* breakpoint.c (create_overlay_event_breakpoint)
+	(create_longjmp_master_breakpoint)
+	(create_std_terminate_master_breakpoint)
+	(create_exception_master_breakpoint): Use all_objfiles.
+	* linux-thread-db.c (try_thread_db_load_from_pdir)
+	(has_libpthread): Use all_objfiles.
+	* ada-lang.c (add_nonlocal_symbols): Use all_objfiles.
+	* linespec.c (iterate_over_all_matching_symtabs)
+	(search_minsyms_for_name): Use all_objfiles.
+	* maint.c (maintenance_info_sections): Use all_objfiles.
+	* main.c (captured_main_1): Use all_objfiles.
+	* spu-tdep.c (spu_objfile_from_frame): Use all_objfiles.
+	* guile/scm-objfile.c (gdbscm_objfiles): Use all_objfiles.
+	* guile/scm-pretty-print.c
+	(ppscm_find_pretty_printer_from_objfiles): Use all_objfiles.
+	* solib-spu.c (append_ocl_sos): Use all_objfiles.
+	* symmisc.c (maintenance_print_symbols): Use all_objfiles.
+	(maintenance_print_msymbols): Use all_objfiles.
+	* source.c (select_source_symtab): Use all_objfiles.
+	* jit.c (jit_find_objf_with_entry_addr): Use all_objfiles.
+	* symfile.c (remove_symbol_file_command)
+	(expand_symtabs_matching, map_symbol_filenames): Use
+	all_objfiles.
+	* ppc-linux-tdep.c (ppc_linux_spe_context_inferior_created): Use
+	all_objfiles.
+	* dwarf2-frame.c (dwarf2_frame_find_fde): Use all_objfiles.
+	* objc-lang.c (find_methods): Use all_objfiles.
+	* objfiles.c (have_partial_symbols, have_full_symbols)
+	(have_minimal_symbols, qsort_cmp)
+	(default_iterate_over_objfiles_in_search_order): Use
+	all_objfiles.
+	* hppa-tdep.c (find_unwind_entry): Use all_objfiles.
+	* psymtab.c (maintenance_print_psymbols): Use all_objfiles.
+	(maintenance_check_psymtabs): Use all_objfiles.
+	(ALL_PSYMTABS): Remove.
+	* compile/compile-object-run.c (do_module_cleanup): Use
+	all_objfiles.
+	* blockframe.c (find_pc_partial_function): Use all_objfiles.
+	* cp-support.c (add_symbol_overload_list_qualified): Use
+	all_objfiles.
+	* windows-tdep.c (windows_iterate_over_objfiles_in_search_order):
+	Use all_objfiles.
+	* dwarf-index-write.c (save_gdb_index_command): Use all_objfiles.
+	* python/py-xmethods.c (gdbpy_get_matching_xmethod_workers): Use
+	all_objfiles.
+	* python/py-objfile.c (objfpy_lookup_objfile_by_name)
+	(objfpy_lookup_objfile_by_build_id): Use all_objfiles.
+	* python/py-prettyprint.c (find_pretty_printer_from_objfiles):
+	Uses all_objfiles.
+	* solib.c (solib_read_symbols): Use all_objfiles
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* probe.c (parse_probes_in_pspace): Use all_objfiles.
+	* guile/scm-progspace.c (gdbscm_progspace_objfiles): Use
+	all_objfiles.
+	* objfiles.h (ALL_PSPACE_OBJFILES): Remove.
+	* symmisc.c (print_symbol_bcache_statistics)
+	(print_objfile_statistics, maintenance_print_objfiles)
+	(maintenance_info_symtabs, maintenance_check_symtabs)
+	(maintenance_expand_symtabs, maintenance_info_line_tables): Use
+	all_objfiles.
+	* source.c (forget_cached_source_info): Use all_objfiles.
+	* symfile-debug.c (set_debug_symfile): Use all_objfiles.
+	* elfread.c (elf_gnu_ifunc_resolve_by_cache)
+	(elf_gnu_ifunc_resolve_by_got): Use all_objfiles.
+	* objfiles.c (update_section_map): Use all_objfiles.
+	(shared_objfile_contains_address_p): Likewise.
+	* psymtab.c (maintenance_info_psymtabs): Use all_objfiles.
+	* python/py-progspace.c (pspy_get_objfiles): Use all_objfiles.
+
+2019-01-09  Tom Tromey  <tom@tromey.com>
+
+	* common/next-iterator.h: New file.
+	* objfiles.h (class all_objfiles): New.
+	(struct objfile_iterator): New.
+
 2019-01-09  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
 
 	* NEWS: Move the description of the changed "frame", "select-frame",

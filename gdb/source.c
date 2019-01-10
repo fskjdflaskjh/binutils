@@ -238,9 +238,6 @@ clear_current_source_symtab_and_line (void)
 void
 select_source_symtab (struct symtab *s)
 {
-  struct objfile *ofp;
-  struct compunit_symtab *cu;
-
   if (s)
     {
       current_source_symtab = s;
@@ -272,29 +269,35 @@ select_source_symtab (struct symtab *s)
 
   current_source_line = 1;
 
-  ALL_FILETABS (ofp, cu, s)
+  for (objfile *ofp : all_objfiles (current_program_space))
     {
-      const char *name = s->filename;
-      int len = strlen (name);
-
-      if (!(len > 2 && (strcmp (&name[len - 2], ".h") == 0
-			|| strcmp (name, "<<C++-namespaces>>") == 0)))
+      for (compunit_symtab *cu : objfile_compunits (ofp))
 	{
-	  current_source_pspace = current_program_space;
-	  current_source_symtab = s;
+	  for (symtab *symtab : compunit_filetabs (cu))
+	    {
+	      const char *name = symtab->filename;
+	      int len = strlen (name);
+
+	      if (!(len > 2 && (strcmp (&name[len - 2], ".h") == 0
+				|| strcmp (name, "<<C++-namespaces>>") == 0)))
+		{
+		  current_source_pspace = current_program_space;
+		  current_source_symtab = symtab;
+		}
+	    }
 	}
     }
 
   if (current_source_symtab)
     return;
 
-  ALL_OBJFILES (ofp)
-  {
-    if (ofp->sf)
-      s = ofp->sf->qf->find_last_source_symtab (ofp);
-    if (s)
-      current_source_symtab = s;
-  }
+  for (objfile *objfile : all_objfiles (current_program_space))
+    {
+      if (objfile->sf)
+	s = objfile->sf->qf->find_last_source_symtab (objfile);
+      if (s)
+	current_source_symtab = s;
+    }
   if (current_source_symtab)
     return;
 
@@ -350,20 +353,20 @@ show_directories_command (struct ui_file *file, int from_tty,
 void
 forget_cached_source_info_for_objfile (struct objfile *objfile)
 {
-  struct compunit_symtab *cu;
-  struct symtab *s;
-
-  ALL_OBJFILE_FILETABS (objfile, cu, s)
+  for (compunit_symtab *cu : objfile_compunits (objfile))
     {
-      if (s->line_charpos != NULL)
+      for (symtab *s : compunit_filetabs (cu))
 	{
-	  xfree (s->line_charpos);
-	  s->line_charpos = NULL;
-	}
-      if (s->fullname != NULL)
-	{
-	  xfree (s->fullname);
-	  s->fullname = NULL;
+	  if (s->line_charpos != NULL)
+	    {
+	      xfree (s->line_charpos);
+	      s->line_charpos = NULL;
+	    }
+	  if (s->fullname != NULL)
+	    {
+	      xfree (s->fullname);
+	      s->fullname = NULL;
+	    }
 	}
     }
 
@@ -377,13 +380,12 @@ void
 forget_cached_source_info (void)
 {
   struct program_space *pspace;
-  struct objfile *objfile;
 
   ALL_PSPACES (pspace)
-    ALL_PSPACE_OBJFILES (pspace, objfile)
-    {
-      forget_cached_source_info_for_objfile (objfile);
-    }
+    for (objfile *objfile : all_objfiles (pspace))
+      {
+	forget_cached_source_info_for_objfile (objfile);
+      }
 
   g_source_cache.clear ();
   last_source_visited = NULL;
