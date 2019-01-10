@@ -2619,9 +2619,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 	textlow = 0;
       pst = start_psymtab_common (objfile,
 				  fdr_name (fh),
-				  textlow,
-				  objfile->global_psymbols,
-				  objfile->static_psymbols);
+				  textlow);
       pst->read_symtab_private = XOBNEW (&objfile->objfile_obstack, symloc);
       memset (pst->read_symtab_private, 0, sizeof (struct symloc));
 
@@ -3050,7 +3048,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 			add_psymbol_to_list (namestring, p - namestring, 1,
 					     VAR_DOMAIN, LOC_STATIC,
 					     SECT_OFF_DATA (objfile),
-					     &objfile->static_psymbols,
+					     psymbol_placement::STATIC,
 					     sh.value,
 					     psymtab_language, objfile);
 			continue;
@@ -3061,7 +3059,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 			add_psymbol_to_list (namestring, p - namestring, 1,
 					     VAR_DOMAIN, LOC_STATIC,
 					     SECT_OFF_DATA (objfile),
-					     &objfile->global_psymbols,
+					     psymbol_placement::GLOBAL,
 					     sh.value,
 					     psymtab_language, objfile);
 			continue;
@@ -3080,7 +3078,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 			    add_psymbol_to_list (namestring, p - namestring, 1,
 						 STRUCT_DOMAIN, LOC_TYPEDEF,
 						 -1,
-						 &objfile->static_psymbols,
+						 psymbol_placement::STATIC,
 						 0, psymtab_language, objfile);
 			    if (p[2] == 't')
 			      {
@@ -3089,7 +3087,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 						     p - namestring, 1,
 						     VAR_DOMAIN, LOC_TYPEDEF,
 						     -1,
-						     &objfile->static_psymbols,
+						     psymbol_placement::STATIC,
 						     0, psymtab_language,
 						     objfile);
 				p += 1;
@@ -3103,7 +3101,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 			    add_psymbol_to_list (namestring, p - namestring, 1,
 						 VAR_DOMAIN, LOC_TYPEDEF,
 						 -1,
-						 &objfile->static_psymbols,
+						 psymbol_placement::STATIC,
 						 0, psymtab_language, objfile);
 			  }
 		      check_enum:
@@ -3168,7 +3166,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 				add_psymbol_to_list (p, q - p, 1,
 						     VAR_DOMAIN, LOC_CONST,
 						     -1,
-						     &objfile->static_psymbols,
+						     psymbol_placement::STATIC,
 						     0, psymtab_language,
 						     objfile);
 				/* Point past the name.  */
@@ -3186,7 +3184,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 			/* Constant, e.g. from "const" in Pascal.  */
 			add_psymbol_to_list (namestring, p - namestring, 1,
 					     VAR_DOMAIN, LOC_CONST, -1,
-					     &objfile->static_psymbols,
+					     psymbol_placement::STATIC,
 					     0, psymtab_language, objfile);
 			continue;
 
@@ -3200,7 +3198,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 			add_psymbol_to_list (namestring, p - namestring, 1,
 					     VAR_DOMAIN, LOC_BLOCK,
 					     SECT_OFF_TEXT (objfile),
-					     &objfile->static_psymbols,
+					     psymbol_placement::STATIC,
 					     sh.value,
 					     psymtab_language, objfile);
 			continue;
@@ -3219,7 +3217,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 			add_psymbol_to_list (namestring, p - namestring, 1,
 					     VAR_DOMAIN, LOC_BLOCK,
 					     SECT_OFF_TEXT (objfile),
-					     &objfile->global_psymbols,
+					     psymbol_placement::GLOBAL,
 					     sh.value,
 					     psymtab_language, objfile);
 			continue;
@@ -3457,13 +3455,13 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 		    add_psymbol_to_list (sym_name, strlen (sym_name), 1,
 					 VAR_DOMAIN, LOC_BLOCK,
 					 section,
-					 &objfile->global_psymbols,
+					 psymbol_placement::GLOBAL,
 					 sh.value, psymtab_language, objfile);
 		  else
 		    add_psymbol_to_list (sym_name, strlen (sym_name), 1,
 					 VAR_DOMAIN, LOC_BLOCK,
 					 section,
-					 &objfile->static_psymbols,
+					 psymbol_placement::STATIC,
 					 sh.value, psymtab_language, objfile);
 
 		  procaddr = sh.value;
@@ -3529,7 +3527,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 		    {
 		      add_psymbol_to_list (sym_name, strlen (sym_name), 1,
 					   STRUCT_DOMAIN, LOC_TYPEDEF, -1,
-					   &objfile->static_psymbols,
+					   psymbol_placement::STATIC,
 					   0, psymtab_language, objfile);
 		    }
 		  handle_psymbol_enumerators (objfile, fh, sh.st, sh.value);
@@ -3569,7 +3567,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 	      /* Use this gdb symbol.  */
 	      add_psymbol_to_list (sym_name, strlen (sym_name), 1,
 				   VAR_DOMAIN, theclass, section,
-				   &objfile->static_psymbols,
+				   psymbol_placement::STATIC,
 				   sh.value, psymtab_language, objfile);
 	    skip:
 	      cur_sdx++;	/* Go to next file symbol.  */
@@ -3649,7 +3647,7 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 	      add_psymbol_to_list (sym_name, strlen (sym_name), 1,
 				   VAR_DOMAIN, theclass,
 				   section,
-				   &objfile->global_psymbols,
+				   psymbol_placement::GLOBAL,
 				   svalue, psymtab_language, objfile);
 	    }
 	}
@@ -3711,8 +3709,8 @@ parse_partial_symbols (minimal_symbol_reader &reader,
       /* Skip the first file indirect entry as it is a self dependency for
          source files or a reverse .h -> .c dependency for header files.  */
       pst->number_of_dependencies = 0;
-      pst->dependencies = XOBNEWVEC (&objfile->objfile_obstack,
-				     partial_symtab *, (fh->crfd - 1));
+      pst->dependencies
+	= objfile->partial_symtabs->allocate_dependencies (fh->crfd - 1);
       for (s_idx = 1; s_idx < fh->crfd; s_idx++)
 	{
 	  RFDT rh;
@@ -3741,11 +3739,12 @@ parse_partial_symbols (minimal_symbol_reader &reader,
 
   /* Remove the dummy psymtab created for -O3 images above, if it is
      still empty, to enable the detection of stripped executables.  */
-  if (objfile->psymtabs->next == NULL
-      && objfile->psymtabs->number_of_dependencies == 0
-      && objfile->psymtabs->n_global_syms == 0
-      && objfile->psymtabs->n_static_syms == 0)
-    objfile->psymtabs = NULL;
+  pst = objfile->partial_symtabs->psymtabs;
+  if (pst->next == NULL
+      && pst->number_of_dependencies == 0
+      && pst->n_global_syms == 0
+      && pst->n_static_syms == 0)
+    objfile->partial_symtabs->psymtabs = NULL;
 }
 
 /* If the current psymbol has an enumerated type, we need to add
@@ -3810,7 +3809,7 @@ handle_psymbol_enumerators (struct objfile *objfile, FDR *fh, int stype,
          in psymtabs, just in symtabs.  */
       add_psymbol_to_list (name, strlen (name), 1,
 			   VAR_DOMAIN, LOC_CONST, -1,
-			   &objfile->static_psymbols, 0,
+			   psymbol_placement::STATIC, 0,
 			   psymtab_language, objfile);
       ext_sym += external_sym_size;
     }
