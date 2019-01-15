@@ -474,12 +474,12 @@ public:
 
   void mourn_inferior () override;
 
-  void pass_signals (int, unsigned char *) override;
+  void pass_signals (int, const unsigned char *) override;
 
   int set_syscall_catchpoint (int, bool, int,
 			      gdb::array_view<const int>) override;
 
-  void program_signals (int, unsigned char *) override;
+  void program_signals (int, const unsigned char *) override;
 
   bool thread_alive (ptid_t ptid) override;
 
@@ -768,7 +768,7 @@ public: /* Remote specific methods.  */
   struct stop_reply *remote_notif_remove_queued_reply (ptid_t ptid);
   struct stop_reply *queued_stop_reply (ptid_t ptid);
   int peek_stop_reply (ptid_t ptid);
-  void remote_parse_stop_reply (char *buf, stop_reply *event);
+  void remote_parse_stop_reply (const char *buf, stop_reply *event);
 
   void remote_stop_ns (ptid_t ptid);
   void remote_interrupt_as ();
@@ -1024,7 +1024,7 @@ static void remote_async_inferior_event_handler (gdb_client_data);
 
 static bool remote_read_description_p (struct target_ops *target);
 
-static void remote_console_output (char *msg);
+static void remote_console_output (const char *msg);
 
 static void remote_btrace_reset (remote_state *rs);
 
@@ -2555,7 +2555,7 @@ record_currthread (struct remote_state *rs, ptid_t currthread)
    it can simply pass through to the inferior without reporting.  */
 
 void
-remote_target::pass_signals (int numsigs, unsigned char *pass_signals)
+remote_target::pass_signals (int numsigs, const unsigned char *pass_signals)
 {
   if (packet_support (PACKET_QPassSignals) != PACKET_DISABLE)
     {
@@ -2681,7 +2681,7 @@ remote_target::set_syscall_catchpoint (int pid, bool needed, int any_count,
    signals it should pass through to the inferior when detaching.  */
 
 void
-remote_target::program_signals (int numsigs, unsigned char *signals)
+remote_target::program_signals (int numsigs, const unsigned char *signals)
 {
   if (packet_support (PACKET_QProgramSignals) != PACKET_DISABLE)
     {
@@ -6799,9 +6799,9 @@ remote_target::terminal_ours ()
 }
 
 static void
-remote_console_output (char *msg)
+remote_console_output (const char *msg)
 {
-  char *p;
+  const char *p;
 
   for (p = msg; p[0] && p[1]; p += 2)
     {
@@ -6864,7 +6864,7 @@ remote_target::stop_reply_queue_length ()
 
 void
 remote_notif_stop_parse (remote_target *remote,
-			 struct notif_client *self, char *buf,
+			 struct notif_client *self, const char *buf,
 			 struct notif_event *event)
 {
   remote->remote_parse_stop_reply (buf, (struct stop_reply *) event);
@@ -6872,7 +6872,7 @@ remote_notif_stop_parse (remote_target *remote,
 
 static void
 remote_notif_stop_ack (remote_target *remote,
-		       struct notif_client *self, char *buf,
+		       struct notif_client *self, const char *buf,
 		       struct notif_event *event)
 {
   struct stop_reply *stop_reply = (struct stop_reply *) event;
@@ -7201,7 +7201,7 @@ strprefix (const char *p, const char *pend, const char *prefix)
    result is stored in EVENT, or throws an error.  */
 
 void
-remote_target::remote_parse_stop_reply (char *buf, stop_reply *event)
+remote_target::remote_parse_stop_reply (const char *buf, stop_reply *event)
 {
   remote_arch_state *rsa = NULL;
   ULONGEST addr;

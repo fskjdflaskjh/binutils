@@ -1,5 +1,37 @@
 2019-01-14  Tom Tromey  <tom@tromey.com>
 
+	* remote-notif.c (handle_notification, remote_notif_ack)
+	(remote_notif_parse): Make "buf" const.
+	* remote-notif.h (struct notif_client) <parse, ack>: Make "buf"
+	const.
+	(remote_notif_parse, remote_notif_ack, handle_notification):
+	Likewise.
+	* remote.c (remote_notif_stop_parse): Make "buf" const.
+	(remote_target::remote_parse_stop_reply): Make "buf" const.
+	(remote_notif_stop_ack): Make "buf" const.
+
+2019-01-14  Tom Tromey  <tom@tromey.com>
+
+	* remote.c (remote_console_output): Make parameter const.
+
+2019-01-14  Tom Tromey  <tom@tromey.com>
+
+	* target-debug.h (target_debug_print_signals): Constify.
+	* nto-procfs.c (nto_procfs_target::pass_signals): Update.
+	* procfs.c (procfs_target::pass_signals): Update.
+	* linux-nat.c (linux_nat_target::pass_signals): Update.
+	* linux-nat.h (class linux_nat_target) <pass_signals>: Update.
+	* target-delegates.c: Rebuild.
+	* remote.c (remote_target::program_signals): Update.
+	(remote_target::pass_signals): Update.
+	* target.c (target_pass_signals): Constify argument.
+	(target_program_signals): Likewise.
+	* target.h (struct target_ops) <pass_signals, program_signals>:
+	Constify argument.
+	(target_pass_signals, target_program_signals): Constify argument.
+
+2019-01-14  Tom Tromey  <tom@tromey.com>
+
 	PR tui/28819:
 	* tui/tui-io.c (gdb_wgetch): Print \r when needed.
 
