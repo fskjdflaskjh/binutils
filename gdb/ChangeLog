@@ -1,4 +1,115 @@
 2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* regcache.c (class regcache_invalidator): Remove.
+	(regcache::raw_write): Use make_scope_exit.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+
+	* ui-out.h (class ui_out_emit_type): Update comment.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+
+	* infrun.c (fetch_inferior_event): Update comment.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* infrun.c (reinstall_readline_callback_handler_cleanup): Remove
+	parameter.
+	(fetch_inferior_event): Use SCOPE_EXIT.
+
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* infrun.c (disable_thread_events): Delete.
+	(stop_all_threads): Use SCOPE_EXIT.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* symfile.c: Include forward-scope-exit.h.
+	(clear_symtab_users_cleanup): Replace forward declaration with
+	a FORWARD_SCOPE_EXIT.
+	(syms_from_objfile_1): Use the forward_scope_exit and
+	gdb::optional instead of cleanup_function.
+	(reread_symbols): Use the forward_scope_exit instead of
+	cleanup_function.
+	(clear_symtab_users_cleanup): Remove function.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* linux-nat.c: Include scope-exit.h.
+	(cleanup_target_stop): Remove.
+	(linux_nat_target::static_tracepoint_markers_by_strid): Use
+	SCOPE_EXIT.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* infcall.c (cleanup_delete_std_terminate_breakpoint): Remove.
+	(call_function_by_hand_dummy): Use SCOPE_EXIT.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Andrew Burgess  <andrew.burgess@embecosm.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* infrun.c (fetch_inferior_event): Use scope_exit.
+	* utils.h (make_bpstat_clear_actions_cleanup): Don't declare.
+	* top.c (execute_command): Use scope_exit.
+	* breakpoint.c (bpstat_do_actions): Use scope_exit.
+	* utils.c (do_bpstat_clear_actions_cleanup)
+	(make_bpstat_clear_actions_cleanup): Remove.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* infrun.c: Include "common/scope-exit.h"
+	(delete_just_stopped_threads_infrun_breakpoints_cleanup): Remove.
+	(wait_for_inferior): Use SCOPE_EXIT.
+	(fetch_inferior_event): Use scope_exit.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* breakpoint.c (create_breakpoint): Remove cleanup.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
+	    Andrew Burgess  <andrew.burgess@embecosm.com>
+	    Pedro Alves  <palves@redhat.com>
+
+2019-01-23  Pedro Alves  <palves@redhat.com>
+
+	* gdbarch-selftests.c (struct on_exit): Use SCOPE_EXIT.
+
+2019-01-23  Pedro Alves  <palves@redhat.com>
+	    Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdbthread.h: Include "common/forward-scope-exit.h".
+	(scoped_finish_thread_state): Redefine custom class in terms of
+	forward_scope_exit.
+
+2019-01-23  Pedro Alves  <palves@redhat.com>
+	    Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* common/forward-scope-exit.h: New file.
+
+2019-01-23  Pedro Alves  <palves@redhat.com>
+	    Andrew Burgess  <andrew.burgess@embecosm.com>
+	    Tom Tromey  <tom@tromey.com>
+
+	* common/scope-exit.h: New file.
+
+2019-01-23  Pedro Alves  <palves@redhat.com>
+
+	* common/preprocessor.h (ESC): Rename to ...
+	(ESC_PARENS): ... this.
+	* common/valid-expr.h (CHECK_VALID_EXPR_1, CHECK_VALID_EXPR_2)
+	(CHECK_VALID_EXPR_3, CHECK_VALID_EXPR_4): Adjust.
+
+2019-01-23  Tom Tromey  <tom@tromey.com>
 
 	* language.h (class scoped_switch_to_sym_language_if_auto):
 	Initialize m_lang in both cases.
