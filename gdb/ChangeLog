@@ -1,5 +1,64 @@
 2019-01-22  Tom Tromey  <tom@tromey.com>
 
+	* corelow.c: Do not include sys/file.h.
+
+2019-01-22  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.h: Include gdb_curses.h.
+
+2019-01-22  Tom Tromey  <tom@tromey.com>
+
+	* source-cache.h (class source_cache) <get_source_lines,
+	get_plain_source_lines, extract_lines>: Rename "lines" parameter.
+
+2019-01-22  Tom Tromey  <tom@tromey.com>
+
+	* remote-fileio.h (struct remote_target): Declare.
+
+2019-01-22  Tom Tromey  <tom@tromey.com>
+
+	* python/py-arch.c: Do not include py-ref.h.
+	* python/py-bpevent.c: Do not include py-ref.h.
+	* python/py-cmd.c: Do not include py-ref.h.
+	* python/py-continueevent.c: Do not include py-ref.h.
+	* python/py-event.h: Do not include py-ref.h.
+	* python/py-evtregistry.c: Do not include py-ref.h.
+	* python/py-finishbreakpoint.c: Do not include py-ref.h.
+	* python/py-frame.c: Do not include py-ref.h.
+	* python/py-framefilter.c: Do not include py-ref.h.
+	* python/py-function.c: Do not include py-ref.h.
+	* python/py-infevents.c: Do not include py-ref.h.
+	* python/py-linetable.c: Do not include py-ref.h.
+	* python/py-objfile.c: Do not include py-ref.h.
+	* python/py-param.c: Do not include py-ref.h.
+	* python/py-prettyprint.c: Do not include py-ref.h.
+	* python/py-progspace.c: Do not include py-ref.h.
+	* python/py-symbol.c: Do not include py-ref.h.
+	* python/py-symtab.c: Do not include py-ref.h.
+	* python/py-type.c: Do not include py-ref.h.
+	* python/py-unwind.c: Do not include py-ref.h.
+	* python/py-utils.c: Do not include py-ref.h.
+	* python/py-value.c: Do not include py-ref.h.
+	* python/py-varobj.c: Do not include py-ref.h.
+	* python/py-xmethods.c: Do not include py-ref.h.
+	* python/python.c: Do not include py-ref.h.
+	* varobj.c: Do not include py-ref.h.
+
+2019-01-22  Tom Tromey  <tom@tromey.com>
+
+	* objfiles.h (struct objfile_per_bfd_storage): Use "struct"
+	keyword for bcache.
+
+2019-01-22  Tom Tromey  <tom@tromey.com>
+
+	* compile/compile-cplus-types.c: Remove a comment by #include.
+
+2019-01-22  Tom Tromey  <tom@tromey.com>
+
+	* compile/gcc-c-plugin.h: Include compile-internal.h.
+
+2019-01-22  Tom Tromey  <tom@tromey.com>
+
 	* stabsread.c (EXTERN): Do not define.
 	(symnum, next_symbol_text_func, processing_gcc_compilation)
 	(within_function, global_sym_chain, global_stabs)
