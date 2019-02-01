@@ -1,3 +1,38 @@
+2019-01-31  John Darrington <john@darrington.wattle.id.au>
+
+        * config/tc-s12z.c (lex_imm): Add new argument exp_o.
+	(emit_reloc): New function.
+	(md_apply_fix): [BFD_RELOC_S12Z_OPR] Recognise that it
+	can be either 2 bytes or 3 bytes long.
+	* testsuite/gas/s12z/mov-imm-reloc.d: New file.
+	* testsuite/gas/s12z/mov-imm-reloc.s: New file.
+	* testsuite/gas/s12z/s12z.exp: Add them.
+
+2019-01-31  John Darrington <john@darrington.wattle.id.au>
+
+	* config/tc-s12z.c (md_apply_fix): Fix incorrect limits.
+	* testsuite/gas/s12z/pc-rel-bad.d: New file.
+	* testsuite/gas/s12z/pc-rel-bad.l: New file.
+	* testsuite/gas/s12z/pc-rel-bad.s: New file.
+	* testsuite/gas/s12z/pc-rel-good.d: New file.
+	* testsuite/gas/s12z/pc-rel-good.s: New file.
+	* testsuite/gas/s12z/s12z.exp: Add them.
+
+2019-01-31  John Darrington <john@darrington.wattle.id.au>
+
+	* config/tc-s12z.c (tfr): Emit warning if operands are the same.
+	* testsuite/gas/s12z/exg.d: New test case.
+	* testsuite/gas/s12z/exg.l: New file.
+
+2019-01-31  John Darrington <john@darrington.wattle.id.au>
+
+	* config/tc-s12z.c (lex_opr): Add a parameter to indicate whether
+	immediate mode operands should be permitted.
+	* testsuite/s12z/imm-dest.d: New file.
+	* testsuite/s12z/imm-dest.l: New file.
+	* testsuite/s12z/imm-dest.s: New file.
+	* testsuite/s12z/s12z.exp: Add them.
+
 2019-01-31  Andreas Krebbel  <krebbel@linux.ibm.com>
 
 	* config/tc-s390.c (s390_parse_cpu): New entry for arch13.
