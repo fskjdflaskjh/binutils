@@ -12396,32 +12396,14 @@ static std::string ada_exception_catchpoint_cond_string
 class ada_catchpoint_location : public bp_location
 {
 public:
-  ada_catchpoint_location (const bp_location_ops *ops, breakpoint *owner)
-    : bp_location (ops, owner)
+  ada_catchpoint_location (breakpoint *owner)
+    : bp_location (owner)
   {}
 
   /* The condition that checks whether the exception that was raised
      is the specific exception the user specified on catchpoint
      creation.  */
   expression_up excep_cond_expr;
-};
-
-/* Implement the DTOR method in the bp_location_ops structure for all
-   Ada exception catchpoint kinds.  */
-
-static void
-ada_catchpoint_location_dtor (struct bp_location *bl)
-{
-  struct ada_catchpoint_location *al = (struct ada_catchpoint_location *) bl;
-
-  al->excep_cond_expr.reset ();
-}
-
-/* The vtable to be used in Ada catchpoint locations.  */
-
-static const struct bp_location_ops ada_catchpoint_location_ops =
-{
-  ada_catchpoint_location_dtor
 };
 
 /* An instance of this type is used to represent an Ada catchpoint.  */
@@ -12493,7 +12475,7 @@ static struct bp_location *
 allocate_location_exception (enum ada_exception_catchpoint_kind ex,
 			     struct breakpoint *self)
 {
-  return new ada_catchpoint_location (&ada_catchpoint_location_ops, self);
+  return new ada_catchpoint_location (self);
 }
 
 /* Implement the RE_SET method in the breakpoint_ops structure for all
@@ -13194,7 +13176,7 @@ ada_exception_catchpoint_cond_string (const char *excep_string,
 
 static struct symtab_and_line
 ada_exception_sal (enum ada_exception_catchpoint_kind ex,
-		   const char **addr_string, const struct breakpoint_ops **ops)
+		   std::string *addr_string, const struct breakpoint_ops **ops)
 {
   const char *sym_name;
   struct symbol *sym;
@@ -13214,7 +13196,7 @@ ada_exception_sal (enum ada_exception_catchpoint_kind ex,
     error (_("Unable to insert catchpoint. %s is not a function."), sym_name);
 
   /* Set ADDR_STRING.  */
-  *addr_string = xstrdup (sym_name);
+  *addr_string = sym_name;
 
   /* Set OPS.  */
   *ops = ada_exception_breakpoint_ops (ex);
@@ -13246,12 +13228,12 @@ create_ada_exception_catchpoint (struct gdbarch *gdbarch,
 				 int disabled,
 				 int from_tty)
 {
-  const char *addr_string = NULL;
+  std::string addr_string;
   const struct breakpoint_ops *ops = NULL;
   struct symtab_and_line sal = ada_exception_sal (ex_kind, &addr_string, &ops);
 
   std::unique_ptr<ada_catchpoint> c (new ada_catchpoint ());
-  init_ada_exception_breakpoint (c.get (), gdbarch, sal, addr_string,
+  init_ada_exception_breakpoint (c.get (), gdbarch, sal, addr_string.c_str (),
 				 ops, tempflag, disabled, from_tty);
   c->excep_string = excep_string;
   create_excep_cond_exprs (c.get (), ex_kind);
