@@ -1,3 +1,96 @@
+2019-02-15  Tom Tromey  <tromey@adacore.com>
+
+	* ravenscar-thread.c (ravenscar_thread_target::resume)
+	(ravenscar_thread_target::wait): Special case wildcard requests.
+
+2019-02-15  Tom Tromey  <tromey@adacore.com>
+
+	* ravenscar-thread.c (base_ptid): Remove.
+	(struct ravenscar_thread_target) <close>: New method.
+	<m_base_ptid>: New member.
+	<update_inferior_ptid, active_task, task_is_currently_active,
+	runtime_initialized>: Declare methods.
+	<ravenscar_thread_target>: Add constructor.
+	(ravenscar_thread_target::task_is_currently_active)
+	(ravenscar_thread_target::update_inferior_ptid)
+	(ravenscar_runtime_initialized): Rename.  Now methods.
+	(ravenscar_thread_target::resume, ravenscar_thread_target::wait)
+	(ravenscar_thread_target::update_thread_list): Update.
+	(ravenscar_thread_target::active_task): Now method.
+	(ravenscar_thread_target::store_registers)
+	(ravenscar_thread_target::prepare_to_store)
+	(ravenscar_thread_target::prepare_to_store)
+	(ravenscar_thread_target::mourn_inferior): Update.
+	(ravenscar_inferior_created): Use "new" to create target.
+	(ravenscar_thread_target::get_ada_task_ptid): Update.
+	(_initialize_ravenscar): Don't initialize base_ptid.
+	(ravenscar_ops): Remove global.
+
+2019-02-15  Tom Tromey  <tromey@adacore.com>
+
+	* target.h (push_target): Declare new overload.
+	* target.c (push_target): New overload, taking an rvalue reference.
+	* remote.c (remote_target::open_1): Use push_target overload.
+	* corelow.c (core_target_open): Use push_target overload.
+
+2019-02-15  Tom Tromey  <tromey@adacore.com>
+
+	* ravenscar-thread.c (is_ravenscar_task)
+	(ravenscar_task_is_currently_active): Return bool.
+	(ravenscar_update_inferior_ptid, get_running_thread_msymbol)
+	(_initialize_ravenscar): Remove "(void)".
+	(has_ravenscar_runtime, ravenscar_runtime_initialized): Likewise.
+	Return bool.
+
+2019-02-15  Tom Tromey  <tromey@adacore.com>
+
+	* ravenscar-thread.c (ravenscar_runtime_initializer)
+	(has_ravenscar_runtime, get_running_thread_id)
+	(ravenscar_thread_target::resume): Fix indentation.
+
+2019-02-15  Tom Tromey  <tromey@adacore.com>
+
+	* sparc-ravenscar-thread.c (struct sparc_ravenscar_ops): Derive
+	from ravenscar_arch_ops.
+	(sparc_ravenscar_ops::fetch_registers)
+	(sparc_ravenscar_ops::store_registers): Now methods.
+	(sparc_ravenscar_prepare_to_store): Remove.
+	(sparc_ravenscar_ops): Redefine.
+	* ravenscar-thread.h (struct ravenscar_arch_ops): Add virtual
+	methods and destructor.  Remove members.
+	* ravenscar-thread.c (ravenscar_thread_target::fetch_registers)
+	(ravenscar_thread_target::store_registers)
+	(ravenscar_thread_target::prepare_to_store): Update.
+	* ppc-ravenscar-thread.c (ppc_ravenscar_generic_prepare_to_store):
+	Remove.
+	(struct ppc_ravenscar_powerpc_ops): Derive from
+	ravenscar_arch_ops.
+	(ppc_ravenscar_powerpc_ops::fetch_registers)
+	(ppc_ravenscar_powerpc_ops::store_registers): Now methods.
+	(ppc_ravenscar_powerpc_ops): Redefine.
+	(struct ppc_ravenscar_e500_ops): Derive from ravenscar_arch_ops.
+	(ppc_ravenscar_e500_ops::fetch_registers)
+	(ppc_ravenscar_e500_ops::store_registers): Now methods.
+	(ppc_ravenscar_e500_ops): Redefine.
+	* aarch64-ravenscar-thread.c
+	(aarch64_ravenscar_generic_prepare_to_store): Remove.
+	(struct aarch64_ravenscar_ops): Derive from ravenscar_arch_ops.
+	(aarch64_ravenscar_fetch_registers)
+	(aarch64_ravenscar_store_registers): Now methods.
+	(aarch64_ravenscar_ops): Redefine.
+
+2019-02-15  Tom Tromey  <tromey@adacore.com>
+
+	* ravenscar-thread.c (ravenscar_thread_target::stopped_by_sw_breakpoint)
+	(ravenscar_thread_target::stopped_by_hw_breakpoint)
+	(ravenscar_thread_target::stopped_by_watchpoint)
+	(ravenscar_thread_target::stopped_data_address)
+	(ravenscar_thread_target::core_of_thread): Use scoped_restore.
+
+2019-02-15  Tom Tromey  <tromey@adacore.com>
+
+	* ravenscar-thread.c: Fix some typos.
+
 2019-02-15  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
 	    Tom Tromey  <tromey@adacore.com>
 
