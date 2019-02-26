@@ -1,3 +1,14 @@
+2019-02-26  Kevin Buettner  <kevinb@redhat.com>
+
+	* NEWS: Mention two argument form of gdb.Value constructor.
+	* python/py-value.c (convert_buffer_and_type_to_value): New
+	function.
+	(valpy_new): Parse arguments via gdb_PyArg_ParseTupleAndKeywords.
+	Add support for handling an optional second argument.  Call
+	convert_buffer_and_type_to_value as appropriate.
+	* python/python-internal.h (Py_buffer_deleter): New struct.
+	(Py_buffer_up): New typedef.
+
 2019-02-25  John Baldwin  <jhb@FreeBSD.org>
 
 	* dwarf2read.c (dwarf2_get_dwz_file): Reset dwz_bfd to nullptr
