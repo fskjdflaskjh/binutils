@@ -1,5 +1,94 @@
 2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
 
+	* gdb/hppa-tdep.c (hppa_dummy_id): Delete.
+	(hppa_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/h8300-tdep.c (h8300_unwind_pc): Delete.
+	(h8300_unwind_sp): Delete.
+	(h8300_dummy_id): Delete.
+	(h8300_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/ft32-tdep.c (ft32_dummy_id): Delete.
+	(ft32_unwind_pc): Delete.
+	(ft32_unwind_sp): Delete.
+	(ft32_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/frv-tdep.c (frv_dummy_id): Delete.
+	(frv_unwind_pc): Delete.
+	(frv_unwind_sp): Delete.
+	(frv_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/riscv-tdep.c (riscv_dummy_id): Delete.
+	(riscv_unwind_pc): Delete.
+	(riscv_unwind_sp): Delete.
+	(riscv_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/csky-tdep.c (csky_dummy_id): Delete.
+	(csky_unwind_pc): Delete.
+	(csky_unwind_sp): Delete.
+	(csky_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/cris-tdep.c (cris_dummy_id): Delete.
+	(cris_unwind_pc): Delete.
+	(cris_unwind_sp): Delete.
+	(cris_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/bfin-tdep.c (bfin_dummy_id): Delete.
+	(bfin_unwind_pc): Delete.
+	(bfin_gdbarch_init): Don't register deleted functions with gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/arm-tdep.c (arm_dummy_id): Delete.
+	(arm_unwind_pc): Delete.
+	(arm_unwind_sp): Delete.
+	(arm_gdbarch_init): Don't register deleted functions with gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/arc-tdep.c (arc_dummy_id): Delete.
+	(arc_unwind_pc): Delete.
+	(arc_unwind_sp): Delete.
+	(arc_gdbarch_init): Don't register deleted functions with gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/alpha-tdep.c (alpha_dummy_id): Delete.
+	(alpha_unwind_pc): Delete.
+	(alpha_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/aarch64-tdep.c (aarch64_dummy_id): Delete.
+	(aarch64_unwind_pc): Delete.
+	(aarch64_unwind_sp): Delete.
+	(aarch64_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-02-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
 	* gdbtypes.c (type_align): Don't consider static members when
 	computing structure alignment.
 
