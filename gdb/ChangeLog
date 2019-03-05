@@ -1,3 +1,44 @@
+2019-03-05  Tom Tromey  <tromey@adacore.com>
+
+	* varobj.c (update_dynamic_varobj_children): Update.
+	(install_default_visualizer): Use reset, not release.
+	* value.c (set_internalvar): Update.
+	* dwarf2loc.c (value_of_dwarf_reg_entry): Update.
+	* common/gdb_ref_ptr.h (class ref_ptr) <release>: Add
+	ATTRIBUTE_UNUSED_RESULT.
+
+2019-03-05  Tom Tromey  <tromey@adacore.com>
+
+	* remote.c (class scoped_remote_fd) <release>: Add
+	ATTRIBUTE_UNUSED_RESULT.
+
+2019-03-05  Tom Tromey  <tromey@adacore.com>
+
+	* macroexp.c (struct macro_buffer) <release>: Add
+	ATTRIBUTE_UNUSED_RESULT.
+
+2019-03-05  Tom Tromey  <tromey@adacore.com>
+
+	* nat/linux-btrace.c (linux_enable_bts, linux_enable_pt): Update.
+	* common/scoped_mmap.h (class scoped_mmap) <release>: Add
+	ATTRIBUTE_UNUSED_RESULT.
+
+2019-03-05  Tom Tromey  <tromey@adacore.com>
+
+	* common/scoped_fd.h (class scoped_fd) <release>: Add
+	ATTRIBUTE_UNUSED_RESULT.
+
+2019-03-05  Tom Tromey  <tromey@adacore.com>
+
+	* parser-defs.h (struct parser_state) <release>: Add
+	ATTRIBUTE_UNUSED_RESULT.
+
+2019-03-05  Tom Tromey  <tromey@adacore.com>
+
+	* utils.h (class gdb_argv) <release>: Add
+	ATTRIBUTE_UNUSED_RESULT.
+	* common/common-defs.h (ATTRIBUTE_UNUSED_RESULT): Define.
+
 2019-03-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* xml-syscall.c (xml_list_syscalls_by_group): Drop 'struct' from
