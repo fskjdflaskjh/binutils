@@ -1,3 +1,79 @@
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* f-exp.y (direct_abs_decl): Handle TYPE*SIZE type names.
+
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+	    Chris January  <chris.january@arm.com>
+	    David Lecomber  <david.lecomber@arm.com>
+
+	* f-exp.y: New token, UNOP_INTRINSIC.
+	(exp): New pattern using UNOP_INTRINSIC token.
+	(f77_keywords): Add 'abs' keyword.
+	* f-lang.c: Add 'target-float.h' and 'math.h' includes.
+	(value_from_host_double): New function.
+	(evaluate_subexp_f): Support UNOP_ABS.
+
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* f-lang.c (build_fortran_types): Use TYPE_CODE_CHAR for character
+	types.
+
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* f-exp.y (convert_to_kind_type): Handle integer (kind=8).
+	* f-lang.c (build_fortran_types): Setup builtin_integer_s8.
+	* f-lang.h (struct builtin_f_type): Add builtin_integer_s8 field.
+
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* f-exp.y (convert_to_kind_type): Handle more type kinds.
+
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+	    Chris January  <chris.january@arm.com>
+
+	* expprint.c (dump_subexp_body_standard): Support UNOP_KIND.
+	* f-exp.y: Define 'KIND' token.
+	(exp): New pattern for KIND expressions.
+	(ptype): Handle types with a kind extension.
+	(direct_abs_decl): Extend to spot kind extensions.
+	(f77_keywords): Add 'kind' to the list.
+	(push_kind_type): New function.
+	(convert_to_kind_type): New function.
+	* f-lang.c (evaluate_subexp_f): Support UNOP_KIND.
+	* parse.c (operator_length_standard): Likewise.
+	* parser-defs.h (enum type_pieces): Add tp_kind.
+	* std-operator.def: Add UNOP_KIND.
+
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* f-exp.y (f_parse): Set yydebug.
+
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* f-lang.c (evaluate_subexp_f): New function.
+	(exp_descriptor_f): New global.
+	(f_language_defn): Use exp_descriptor_f instead of
+	exp_descriptor_standard.
+
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* f-exp.y (struct token): Add comments.
+	(dot_ops): Remove uppercase versions and the end marker.
+	(f77_keywords): Likewise.
+	(yylex): Use ARRAY_SIZE to iterate over dot_ops, assert all
+	entries in the dot_ops array are case insensitive, and use
+	strncasecmp to compare strings.  Also some whitespace cleanup in
+	this area.  Similar for the f77_keywords array, except entries in
+	this list might be case sensitive.
+
+2019-03-06  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* f-exp.y (struct f77_boolean_val): Add comments.
+	(boolean_values): Remove uppercase versions, and end marker.
+	(yylex): Use ARRAY_SIZE for iterating over boolean_values array,
+	and use strncasecmp to achieve case insensitivity.  Additionally,
+	perform whitespace cleanup around this code.
+
 2019-03-06  Tom Tromey  <tromey@adacore.com>
 
 	* remote-sim.c (gdbsim_target_open): Use result of

@@ -34,7 +34,9 @@
 #include "cp-support.h"
 #include "charset.h"
 #include "c-lang.h"
+#include "target-float.h"
 
+#include <math.h>
 
 /* Local functions */
 
@@ -239,11 +241,103 @@ f_collect_symbol_completion_matches (completion_tracker &tracker,
 						      text, word, ":", code);
 }
 
+/* Create and return a value object of TYPE containing the value D.  The
+   TYPE must be of TYPE_CODE_FLT, and must be large enough to hold D once
+   it is converted to target format.  */
+
+static struct value *
+value_from_host_double (struct type *type, double d)
+{
+  struct value *value = allocate_value (type);
+  gdb_assert (TYPE_CODE (type) == TYPE_CODE_FLT);
+  target_float_from_host_double (value_contents_raw (value),
+                                 value_type (value), d);
+  return value;
+}
+
+/* Special expression evaluation cases for Fortran.  */
+struct value *
+evaluate_subexp_f (struct type *expect_type, struct expression *exp,
+		   int *pos, enum noside noside)
+{
+  struct value *arg1 = NULL;
+  enum exp_opcode op;
+  int pc;
+  struct type *type;
+
+  pc = *pos;
+  *pos += 1;
+  op = exp->elts[pc].opcode;
+
+  switch (op)
+    {
+    default:
+      *pos -= 1;
+      return evaluate_subexp_standard (expect_type, exp, pos, noside);
+
+    case UNOP_ABS:
+      arg1 = evaluate_subexp (NULL_TYPE, exp, pos, noside);
+      if (noside == EVAL_SKIP)
+	return eval_skip_value (exp);
+      type = value_type (arg1);
+      switch (TYPE_CODE (type))
+	{
+	case TYPE_CODE_FLT:
+	  {
+	    double d
+	      = fabs (target_float_to_host_double (value_contents (arg1),
+						   value_type (arg1)));
+	    return value_from_host_double (type, d);
+	  }
+	case TYPE_CODE_INT:
+	  {
+	    LONGEST l = value_as_long (arg1);
+	    l = llabs (l);
+	    return value_from_longest (type, l);
+	  }
+	}
+      error (_("ABS of type %s not supported"), TYPE_SAFE_NAME (type));
+
+    case UNOP_KIND:
+      arg1 = evaluate_subexp (NULL, exp, pos, EVAL_AVOID_SIDE_EFFECTS);
+      type = value_type (arg1);
+
+      switch (TYPE_CODE (type))
+        {
+          case TYPE_CODE_STRUCT:
+          case TYPE_CODE_UNION:
+          case TYPE_CODE_MODULE:
+          case TYPE_CODE_FUNC:
+            error (_("argument to kind must be an intrinsic type"));
+        }
+
+      if (!TYPE_TARGET_TYPE (type))
+        return value_from_longest (builtin_type (exp->gdbarch)->builtin_int,
+				   TYPE_LENGTH (type));
+      return value_from_longest (builtin_type (exp->gdbarch)->builtin_int,
+				 TYPE_LENGTH (TYPE_TARGET_TYPE(type)));
+    }
+
+  /* Should be unreachable.  */
+  return nullptr;
+}
+
 static const char *f_extensions[] =
 {
   ".f", ".F", ".for", ".FOR", ".ftn", ".FTN", ".fpp", ".FPP",
   ".f90", ".F90", ".f95", ".F95", ".f03", ".F03", ".f08", ".F08",
   NULL
+};
+
+/* Expression processing for Fortran.  */
+static const struct exp_descriptor exp_descriptor_f =
+{
+  print_subexp_standard,
+  operator_length_standard,
+  operator_check_standard,
+  op_name_standard,
+  dump_subexp_body_standard,
+  evaluate_subexp_f
 };
 
 extern const struct language_defn f_language_defn =
@@ -256,7 +350,7 @@ extern const struct language_defn f_language_defn =
   array_column_major,
   macro_expansion_no,
   f_extensions,
-  &exp_descriptor_standard,
+  &exp_descriptor_f,
   f_parse,			/* parser */
   null_post_parser,
   f_printchar,			/* Print character constant */
@@ -311,7 +405,7 @@ build_fortran_types (struct gdbarch *gdbarch)
     = arch_type (gdbarch, TYPE_CODE_VOID, TARGET_CHAR_BIT, "VOID");
 
   builtin_f_type->builtin_character
-    = arch_integer_type (gdbarch, TARGET_CHAR_BIT, 0, "character");
+    = arch_type (gdbarch, TYPE_CODE_CHAR, TARGET_CHAR_BIT, "character");
 
   builtin_f_type->builtin_logical_s1
     = arch_boolean_type (gdbarch, TARGET_CHAR_BIT, 1, "logical*1");
@@ -319,6 +413,10 @@ build_fortran_types (struct gdbarch *gdbarch)
   builtin_f_type->builtin_integer_s2
     = arch_integer_type (gdbarch, gdbarch_short_bit (gdbarch), 0,
 			 "integer*2");
+
+  builtin_f_type->builtin_integer_s8
+    = arch_integer_type (gdbarch, gdbarch_long_long_bit (gdbarch), 0,
+			 "integer*8");
 
   builtin_f_type->builtin_logical_s2
     = arch_boolean_type (gdbarch, gdbarch_short_bit (gdbarch), 1,
