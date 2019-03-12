@@ -1,3 +1,116 @@
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* ppc-fbsd-tdep.c (ppcfbsd_get_thread_local_address): New.
+	(ppcfbsd_init_abi): Install gdbarch
+	"fetch_tls_load_module_address" and "get_thread_local_address"
+	methods.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* riscv-fbsd-tdep.c (riscv_fbsd_get_thread_local_address): New.
+	(riscv_fbsd_init_abi): Install gdbarch
+	"fetch_tls_load_module_address" and "get_thread_local_address"
+	methods.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* i386-fbsd-tdep.c (i386fbsd_get_thread_local_address): New.
+	(i386fbsd_init_abi): Install gdbarch
+	"fetch_tls_load_module_address" and "get_thread_local_address"
+	methods.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* amd64-fbsd-tdep.c (amd64fbsd_get_thread_local_address): New.
+	(amd64fbsd_init_abi): Install gdbarch
+	"fetch_tls_load_module_address" and "get_thread_local_address"
+	methods.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* fbsd-tdep.c (fbsd_pspace_data_handle): New variable.
+	(struct fbsd_pspace_data): New type.
+	(get_fbsd_pspace_data, fbsd_pspace_data_cleanup)
+	(fbsd_read_integer_by_name, fbsd_fetch_rtld_offsets)
+	(fbsd_get_tls_index, fbsd_get_thread_local_address): New function.
+	(_initialize_fbsd_tdep): Initialize 'fbsd_pspace_data_handle'.
+	* fbsd-tdep.c (fbsd_get_thread_local_address): New prototype.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* gdbtypes.c (lookup_struct_elt): New function.
+	(lookup_struct_elt_type): Reimplement via lookup_struct_elt.
+	* gdbtypes.h (struct struct_elt): New type.
+	(lookup_struct_elt): New prototype.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* gdbtypes.c (lookup_struct_elt_type): Update comment and
+	remove disabled code block.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* gdbarch.sh (get_thread_local_address): New method.
+	* gdbarch.h, gdbarch.c: Regenerate.
+	* target.c (target_translate_tls_address): Use
+	gdbarch_get_thread_local_address if present instead of
+	target::get_thread_local_address.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* target.h (target::get_thread_local_address): Update comment.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* solib-svr4.c (svr4_fetch_objfile_link_map): Look for
+	objfile->separate_debug_objfile_backlink if not NULL.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* amd64-bsd-nat.c (amd64bsd_fetch_inferior_registers): Use
+	tdep->fsbase_regnum instead of constants for fs_base and gs_base.
+	(amd64bsd_store_inferior_registers): Likewise.
+	* amd64-fbsd-nat.c (amd64_fbsd_nat_target::read_description):
+	Enable segment base registers.
+	* i386-bsd-nat.c (i386bsd_fetch_inferior_registers): Use
+	PT_GETFSBASE and PT_GETGSBASE.
+	(i386bsd_store_inferior_registers): Use PT_SETFSBASE and
+	PT_SETGSBASE.
+	* i386-fbsd-nat.c (i386_fbsd_nat_target::read_description): Enable
+	segment base registers.
+	* i386-fbsd-tdep.c (i386fbsd_core_read_description): Likewise.
+
+2019-03-12  John Baldwin  <jhb@FreeBSD.org>
+
+	* amd64-fbsd-nat.c (amd64_fbsd_nat_target::read_description):
+	Update calls to i386_target_description to add 'segments'
+	parameter.
+	* amd64-tdep.c (amd64_init_abi): Set tdep->fsbase_regnum.  Don't
+	add segment base registers.
+	* arch/i386.c (i386_create_target_description): Add 'segments'
+	parameter to enable segment base registers.
+	* arch/i386.h (i386_create_target_description): Likewise.
+	* features/i386/32bit-segments.xml: New file.
+	* features/i386/32bit-segments.c: Generate.
+	* i386-fbsd-nat.c (i386_fbsd_nat_target::read_description): Update
+	call to i386_target_description to add 'segments' parameter.
+	* i386-fbsd-tdep.c (i386fbsd_core_read_description): Likewise.
+	* i386-go32-tdep.c (i386_go32_init_abi): Likewise.
+	* i386-linux-tdep.c (i386_linux_read_description): Likewise.
+	* i386-tdep.c (i386_validate_tdesc_p): Add segment base registers
+	if feature is present.
+	(i386_gdbarch_init): Pass I386_NUM_REGS to set_gdbarch_num_regs.
+	Add 'segments' parameter to call to i386_target_description.
+	(i386_target_description): Add 'segments' parameter to enable
+	segment base registers.
+	(_initialize_i386_tdep) [GDB_SELF_TEST]: Add 'segments' parameter
+	to call to i386_target_description.
+	* i386-tdep.h (struct gdbarch_tdep): Add 'fsbase_regnum'.
+	(enum i386_regnum): Add I386_FSBASE_REGNUM and I386_GSBASE_REGNUM.
+	Define I386_NUM_REGS.
+	(i386_target_description): Add 'segments' parameter to enable
+	segment base registers.
+
 2019-03-12  Eli Zaretskii  <eliz@gnu.org>
 
 	PR/24325
