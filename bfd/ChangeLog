@@ -1,3 +1,21 @@
+2019-03-15  Alan Modra  <amodra@gmail.com>
+
+	PR 24339
+	* elflink.c (elf_link_add_object_symbols): Bail out on a local
+	symbol after globals if elf_bad_symtab is not set.
+
+2019-03-15  Alan Modra  <amodra@gmail.com>
+
+	PR 24337
+	* elf.c (_bfd_elf_rela_local_sym): Don't segfault on NULL sec.
+	(_bfd_elf_rel_local_sym): Likewise.
+
+2019-03-15  Alan Modra  <amodra@gmail.com>
+
+	PR 24336
+	* elflink.c (elf_link_read_relocs_from_section): Handle fuzzed
+	object files with sh_size not a multiple of sh_entsize.
+
 2019-03-15  H.J. Lu  <hongjiu.lu@intel.com>
 
 	PR ld/24338
