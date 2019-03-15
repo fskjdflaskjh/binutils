@@ -1,3 +1,79 @@
+2019-03-15  Tom Tromey  <tom@tromey.com>
+
+	* symtab.h (struct minimal_symbol): Derive from
+	general_symbol_info.
+	(MSYMBOL_VALUE, MSYMBOL_VALUE_RAW_ADDRESS)
+	(MSYMBOL_VALUE_ADDRESS, MSYMBOL_VALUE_BYTES)
+	(MSYMBOL_BLOCK_VALUE, MSYMBOL_VALUE_CHAIN, MSYMBOL_LANGUAGE)
+	(MSYMBOL_SECTION, MSYMBOL_OBJ_SECTION, MSYMBOL_NATURAL_NAME)
+	(MSYMBOL_LINKAGE_NAME, MSYMBOL_DEMANGLED_NAME)
+	(MSYMBOL_SEARCH_NAME): Update.
+	(MSYMBOL_SET_LANGUAGE, MSYMBOL_SET_NAMES): Remove.
+	* solib.c (gdb_bfd_lookup_symbol_from_symtab): Don't use memset.
+	* minsyms.c (minimal_symbol_reader::record_full): Update.
+
+2019-03-15  Tom Tromey  <tom@tromey.com>
+
+	* minsyms.c (minimal_symbol_reader::install): Use memcpy.
+
+2019-03-15  Tom Tromey  <tom@tromey.com>
+
+	* objfiles.h (struct objfile_per_bfd_storage) <msymbols>: Now a
+	unique_xmalloc_ptr.
+	(objfile::msymbols_range::begin, objfile::msymbols_range::end):
+	Update.
+	* minsyms.c (lookup_minimal_symbol_by_pc_section)
+	(build_minimal_symbol_hash_tables)
+	(minimal_symbol_reader::install): Update.
+
+2019-03-15  Tom Tromey  <tom@tromey.com>
+
+	* symtab.c (create_demangled_names_hash): Update.
+	(symbol_set_names): Update.
+	* objfiles.h (struct objfile_per_bfd_storage)
+	<demangled_names_hash>: Now an htab_up.
+	* objfiles.c (objfile_per_bfd_storage): Simplify.
+
+2019-03-15  Tom Tromey  <tom@tromey.com>
+
+	* objfiles.h (struct objfile_per_bfd_storage): Declare
+	destructor.
+	* objfiles.c (objfile_per_bfd_storage::~objfile_per_bfd_storage):
+	New.
+	(get_objfile_bfd_data): Use new.  Don't initialize
+	language_of_main.
+	(free_objfile_per_bfd_storage): Remove.
+	(objfile_bfd_data_free, objfile::~objfile): Use delete.
+
+2019-03-15  Tom Tromey  <tom@tromey.com>
+
+	* symfile.c (reread_symbols): Update.
+	* objfiles.c (objfile::objfile): Update.
+	* minsyms.h (terminate_minimal_symbol_table): Don't declare.
+	* minsyms.c (lookup_minimal_symbol_by_pc_section): Update
+	comment.
+	(minimal_symbol_reader::install): Update.
+	(terminate_minimal_symbol_table): Remove.
+	* jit.c (jit_object_close_impl): Update.
+
+2019-03-15  Tom Tromey  <tom@tromey.com>
+
+	* minsyms.c (minimal_symbol_reader::record_full): Remove some
+	initializations.
+
+2019-03-15  Tom Tromey  <tom@tromey.com>
+
+	* objfiles.h (struct objfile_per_bfd_storage)
+	<demangled_hash_languages>: Now a bitset.
+	* minsyms.c (add_minsym_to_demangled_hash_table): Update.
+	(lookup_minimal_symbol): Update.
+
+2019-03-15  Tom Tromey  <tom@tromey.com>
+
+	* minsyms.h (class minimal_symbol_reader) <record_with_info>:
+	Don't return the symbol.
+	* coffread.c (record_minimal_symbol): Use record_full.
+
 2019-03-14  Eli Zaretskii  <eliz@gnu.org>
 
 	The MS-Windows port of ncurses fails to switch to a color pair if
