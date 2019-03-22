@@ -1,3 +1,88 @@
+2019-03-22  Alan Hayward  <alan.hayward@arm.com>
+	    Jiong Wang  <jiong.wang@arm.com>
+
+	* aarch64-linux-tdep.c
+	(aarch64_linux_iterate_over_regset_sections): Check for pauth
+	section.
+	* aarch64-linux-tdep.h (AARCH64_LINUX_SIZEOF_PAUTH): New define.
+
+2019-03-22  Alan Hayward  <alan.hayward@arm.com>
+	    Jiong Wang  <jiong.wang@arm.com>
+
+	* aarch64-tdep.c (aarch64_analyze_prologue): Check for pauth
+	instructions.
+	(aarch64_analyze_prologue_test): Add PACIASP test.
+	(aarch64_prologue_prev_register): Unmask PC value.
+
+2019-03-22  Alan Hayward  <alan.hayward@arm.com>
+	    Jiong Wang  <jiong.wang@arm.com>
+
+	* aarch64-tdep.c (aarch64_frame_unmask_address): New function.
+	(aarch64_dwarf2_prev_register): Unmask PC value.
+	(aarch64_dwarf2_frame_init_reg): Init pauth registers.
+	(aarch64_execute_dwarf_cfa_vendor_op): Check for
+	DW_CFA_AARCH64_negate_ra_state.
+	(aarch64_gdbarch_init): Add aarch64_execute_dwarf_cfa_vendor_op.
+
+2019-03-22  Alan Hayward  <alan.hayward@arm.com>
+	    Jiong Wang  <jiong.wang@arm.com>
+
+	* aarch64-tdep.c (aarch64_dwarf_reg_to_regnum): Check for pauth
+	registers.
+	(aarch64_pseudo_register_name): Likewise.
+	(aarch64_pseudo_register_type): Likewise.
+	(aarch64_pseudo_register_reggroup_p): Likewise.
+	(aarch64_gdbarch_init): Add pauth registers.
+	* aarch64-tdep.h (AARCH64_DWARF_PAUTH_RA_STATE): New define.
+	(AARCH64_DWARF_PAUTH_DMASK): Likewise.
+	(AARCH64_DWARF_PAUTH_CMASK): Likewise.
+	(struct gdbarch_tdep): Add regnum for ra_state.
+
+2019-03-22  Alan Hayward  <alan.hayward@arm.com>
+	    Jiong Wang  <jiong.wang@arm.com>
+
+	* arch/aarch64.h (AARCH64_PAUTH_REGS_SIZE): New define.
+
+2019-03-22  Alan Hayward  <alan.hayward@arm.com>
+	    Jiong Wang  <jiong.wang@arm.com>
+
+	* aarch64-linux-nat.c (fetch_pauth_masks_from_thread): New
+	function.
+	(aarch64_linux_nat_target::fetch_registers): Read pauth registers.
+	* aarch64-tdep.c (aarch64_cannot_store_register): New function.
+	(aarch64_gdbarch_init): Add puth registers.
+	* aarch64-tdep.h (struct gdbarch_tdep): Add pauth features.
+	* arch/aarch64.h (AARCH64_PAUTH_DMASK_REGNUM): New define.
+	(AARCH64_PAUTH_CMASK_REGNUM): Likewise.
+
+2019-03-22  Alan Hayward  <alan.hayward@arm.com>
+	    Jiong Wang  <jiong.wang@arm.com>
+
+	* aarch64-linux-nat.c
+	(aarch64_linux_nat_target::read_description): Read PACA hwcap.
+	* aarch64-linux-tdep.c
+	(aarch64_linux_core_read_description): Likewise.
+	(aarch64_linux_get_hwcap): New function.
+	* aarch64-linux-tdep.h (AARCH64_HWCAP_PACA): New define.
+	(aarch64_linux_get_hwcap): New declaration.
+
+2019-03-22  Alan Hayward  <alan.hayward@arm.com>
+	    Jiong Wang  <jiong.wang@arm.com>
+
+	* aarch64-linux-nat.c
+	(aarch64_linux_nat_target::read_description): Add pauth param.
+	* aarch64-linux-tdep.c
+	(aarch64_linux_core_read_description): Likewise.
+	* aarch64-tdep.c (struct target_desc): Add in pauth.
+	(aarch64_read_description): Add pauth param.
+	(aarch64_gdbarch_init): Likewise.
+	* aarch64-tdep.h (aarch64_read_description): Likewise.
+	* arch/aarch64.c (aarch64_create_target_description): Likewise.
+	* arch/aarch64.h (aarch64_create_target_description): Likewise.
+	* features/Makefile: Add new files.
+	* features/aarch64-pauth.c: New file.
+	* features/aarch64-pauth.xml: New file.
+
 2019-03-20  Tom Tromey  <tromey@adacore.com>
 
 	* infrun.c (handle_inferior_event): Rename from
