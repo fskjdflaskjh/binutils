@@ -1,3 +1,471 @@
+2019-04-08  Tom Tromey  <tom@tromey.com>
+
+	* valops.c (value_rtti_indirect_type): Replace throw_exception
+	with throw.
+	* tracefile-tfile.c (tfile_target_open): Replace throw_exception
+	with throw.
+	* thread.c (thr_try_catch_cmd): Replace throw_exception with
+	throw.
+	* target.c (target_translate_tls_address): Replace throw_exception
+	with throw.
+	* stack.c (frame_apply_command_count): Replace throw_exception
+	with throw.
+	* solib-spu.c (append_ocl_sos): Replace throw_exception with
+	throw.
+	* s390-tdep.c (s390_frame_unwind_cache): Replace throw_exception
+	with throw.
+	* rs6000-tdep.c (rs6000_frame_cache)
+	(rs6000_epilogue_frame_cache): Replace throw_exception with throw.
+	* remote.c: Replace throw_exception with throw.
+	* record-full.c (record_full_message, record_full_wait_1)
+	(record_full_restore): Replace throw_exception with throw.
+	* record-btrace.c:
+	(get_thread_current_frame_id, record_btrace_start_replaying)
+	(cmd_record_btrace_bts_start, cmd_record_btrace_pt_start)
+	(cmd_record_btrace_start): Replace throw_exception with throw.
+	* parse.c (parse_exp_in_context_1): Replace throw_exception with
+	throw.
+	* linux-nat.c (detach_one_lwp, linux_resume_one_lwp)
+	(resume_stopped_resumed_lwps): Replace throw_exception with throw.
+	* linespec.c:
+	(find_linespec_symbols): Replace throw_exception with throw.
+	* infrun.c (displaced_step_prepare, resume): Replace
+	throw_exception with throw.
+	* infcmd.c (post_create_inferior): Replace throw_exception with
+	throw.
+	* inf-loop.c (inferior_event_handler): Replace throw_exception
+	with throw.
+	* i386-tdep.c (i386_frame_cache, i386_epilogue_frame_cache)
+	(i386_sigtramp_frame_cache): Replace throw_exception with throw.
+	* frame.c (frame_unwind_pc, get_prev_frame_if_no_cycle)
+	(get_prev_frame_always, get_frame_pc_if_available)
+	(get_frame_address_in_block_if_available, get_frame_language):
+	Replace throw_exception with throw.
+	* frame-unwind.c (frame_unwind_try_unwinder): Replace
+	throw_exception with throw.
+	* eval.c (fetch_subexp_value, evaluate_var_value)
+	(evaluate_funcall, evaluate_subexp_standard): Replace
+	throw_exception with throw.
+	* dwarf2loc.c (call_site_find_chain)
+	(dwarf2_evaluate_loc_desc_full, dwarf2_locexpr_baton_eval):
+	Replace throw_exception with throw.
+	* dwarf2-frame.c (dwarf2_frame_cache): Replace throw_exception
+	with throw.
+	* darwin-nat.c (darwin_attach_pid): Replace throw_exception with
+	throw.
+	* cp-abi.c (baseclass_offset): Replace throw_exception with throw.
+	* completer.c (complete_line_internal): Replace throw_exception
+	with throw.
+	* compile/compile-object-run.c (compile_object_run): Replace
+	throw_exception with throw.
+	* cli/cli-script.c (process_next_line): Replace throw_exception
+	with throw.
+	* btrace.c (btrace_compute_ftrace_pt, btrace_compute_ftrace)
+	(btrace_enable, btrace_maint_update_pt_packets): Replace
+	throw_exception with throw.
+	* breakpoint.c (create_breakpoint, save_breakpoints): Replace
+	throw_exception with throw.
+	* break-catch-throw.c (re_set_exception_catchpoint): Replace
+	throw_exception with throw.
+	* amd64-tdep.c (amd64_frame_cache, amd64_sigtramp_frame_cache)
+	(amd64_epilogue_frame_cache): Replace throw_exception with throw.
+	* aarch64-tdep.c (aarch64_make_prologue_cache)
+	(aarch64_make_stub_cache): Replace throw_exception with throw.
+
+2019-04-08  Tom Tromey  <tom@tromey.com>
+
+	* common/common-exceptions.c (throw_exception): Rename from
+	throw_exception_cxx.  Remove old copy.  Make argument const.
+	(throw_it): Create and throw exception objects directly.
+	* common/common-exceptions.h (throw_exception): Make argument
+	const.
+	(struct gdb_exception_error): Add constructor.
+	(struct gdb_exception_quit): Add constructor.
+
+2019-04-08  Tom Tromey  <tom@tromey.com>
+
+	* common/common-exceptions.h (exception_rethrow): Don't declare.
+	(TRY_SJLJ): Update comment.
+	(TRY, CATCH, END_CATCH): Remove.
+	* common/common-exceptions.c (exception_rethrow): Remove.
+
+2019-04-08  Tom Tromey  <tom@tromey.com>
+
+	* common/common-exceptions.h (gdb_exception_RETURN_MASK_ALL):
+	Remove.
+	(gdb_exception_error): Rename from
+	gdb_exception_RETURN_MASK_ERROR.
+	(gdb_exception_quit): Rename from gdb_exception_RETURN_MASK_QUIT.
+	(gdb_quit_bad_alloc): Update.
+	* aarch64-tdep.c: Update.
+	* ada-lang.c: Update.
+	* ada-typeprint.c: Update.
+	* ada-valprint.c: Update.
+	* amd64-tdep.c: Update.
+	* arch-utils.c: Update.
+	* break-catch-throw.c: Update.
+	* breakpoint.c: Update.
+	* btrace.c: Update.
+	* c-varobj.c: Update.
+	* cli/cli-cmds.c: Update.
+	* cli/cli-interp.c: Update.
+	* cli/cli-script.c: Update.
+	* common/common-exceptions.c: Update.
+	* common/new-op.c: Update.
+	* common/selftest.c: Update.
+	* compile/compile-c-symbols.c: Update.
+	* compile/compile-cplus-symbols.c: Update.
+	* compile/compile-object-load.c: Update.
+	* compile/compile-object-run.c: Update.
+	* completer.c: Update.
+	* corelow.c: Update.
+	* cp-abi.c: Update.
+	* cp-support.c: Update.
+	* cp-valprint.c: Update.
+	* darwin-nat.c: Update.
+	* disasm-selftests.c: Update.
+	* dtrace-probe.c: Update.
+	* dwarf-index-cache.c: Update.
+	* dwarf-index-write.c: Update.
+	* dwarf2-frame-tailcall.c: Update.
+	* dwarf2-frame.c: Update.
+	* dwarf2loc.c: Update.
+	* dwarf2read.c: Update.
+	* eval.c: Update.
+	* event-loop.c: Update.
+	* event-top.c: Update.
+	* exec.c: Update.
+	* f-valprint.c: Update.
+	* fbsd-tdep.c: Update.
+	* frame-unwind.c: Update.
+	* frame.c: Update.
+	* gdbtypes.c: Update.
+	* gnu-v3-abi.c: Update.
+	* guile/guile-internal.h: Update.
+	* guile/scm-block.c: Update.
+	* guile/scm-breakpoint.c: Update.
+	* guile/scm-cmd.c: Update.
+	* guile/scm-disasm.c: Update.
+	* guile/scm-frame.c: Update.
+	* guile/scm-lazy-string.c: Update.
+	* guile/scm-math.c: Update.
+	* guile/scm-param.c: Update.
+	* guile/scm-ports.c: Update.
+	* guile/scm-pretty-print.c: Update.
+	* guile/scm-symbol.c: Update.
+	* guile/scm-symtab.c: Update.
+	* guile/scm-type.c: Update.
+	* guile/scm-value.c: Update.
+	* i386-linux-tdep.c: Update.
+	* i386-tdep.c: Update.
+	* inf-loop.c: Update.
+	* infcall.c: Update.
+	* infcmd.c: Update.
+	* infrun.c: Update.
+	* jit.c: Update.
+	* language.c: Update.
+	* linespec.c: Update.
+	* linux-fork.c: Update.
+	* linux-nat.c: Update.
+	* linux-tdep.c: Update.
+	* linux-thread-db.c: Update.
+	* main.c: Update.
+	* mi/mi-cmd-break.c: Update.
+	* mi/mi-cmd-stack.c: Update.
+	* mi/mi-interp.c: Update.
+	* mi/mi-main.c: Update.
+	* objc-lang.c: Update.
+	* p-valprint.c: Update.
+	* parse.c: Update.
+	* ppc-linux-tdep.c: Update.
+	* printcmd.c: Update.
+	* python/py-arch.c: Update.
+	* python/py-breakpoint.c: Update.
+	* python/py-cmd.c: Update.
+	* python/py-finishbreakpoint.c: Update.
+	* python/py-frame.c: Update.
+	* python/py-framefilter.c: Update.
+	* python/py-gdb-readline.c: Update.
+	* python/py-inferior.c: Update.
+	* python/py-infthread.c: Update.
+	* python/py-lazy-string.c: Update.
+	* python/py-linetable.c: Update.
+	* python/py-objfile.c: Update.
+	* python/py-param.c: Update.
+	* python/py-prettyprint.c: Update.
+	* python/py-progspace.c: Update.
+	* python/py-record-btrace.c: Update.
+	* python/py-record.c: Update.
+	* python/py-symbol.c: Update.
+	* python/py-type.c: Update.
+	* python/py-unwind.c: Update.
+	* python/py-utils.c: Update.
+	* python/py-value.c: Update.
+	* python/python.c: Update.
+	* record-btrace.c: Update.
+	* record-full.c: Update.
+	* remote-fileio.c: Update.
+	* remote.c: Update.
+	* riscv-tdep.c: Update.
+	* rs6000-aix-tdep.c: Update.
+	* rs6000-tdep.c: Update.
+	* rust-exp.y: Update.
+	* rust-lang.c: Update.
+	* s390-tdep.c: Update.
+	* selftest-arch.c: Update.
+	* solib-dsbt.c: Update.
+	* solib-frv.c: Update.
+	* solib-spu.c: Update.
+	* solib-svr4.c: Update.
+	* solib.c: Update.
+	* sparc64-linux-tdep.c: Update.
+	* stack.c: Update.
+	* symfile-mem.c: Update.
+	* symmisc.c: Update.
+	* target.c: Update.
+	* thread.c: Update.
+	* top.c: Update.
+	* tracefile-tfile.c: Update.
+	* tui/tui.c: Update.
+	* typeprint.c: Update.
+	* unittests/cli-utils-selftests.c: Update.
+	* unittests/parse-connection-spec-selftests.c: Update.
+	* valops.c: Update.
+	* valprint.c: Update.
+	* value.c: Update.
+	* varobj.c: Update.
+	* windows-nat.c: Update.
+	* x86-linux-nat.c: Update.
+	* xml-support.c: Update.
+
+2019-04-08  Tom Tromey  <tom@tromey.com>
+
+	* xml-support.c: Use C++ exception handling.
+	* x86-linux-nat.c: Use C++ exception handling.
+	* windows-nat.c: Use C++ exception handling.
+	* varobj.c: Use C++ exception handling.
+	* value.c: Use C++ exception handling.
+	* valprint.c: Use C++ exception handling.
+	* valops.c: Use C++ exception handling.
+	* unittests/parse-connection-spec-selftests.c: Use C++ exception
+	handling.
+	* unittests/cli-utils-selftests.c: Use C++ exception handling.
+	* typeprint.c: Use C++ exception handling.
+	* tui/tui.c: Use C++ exception handling.
+	* tracefile-tfile.c: Use C++ exception handling.
+	* top.c: Use C++ exception handling.
+	* thread.c: Use C++ exception handling.
+	* target.c: Use C++ exception handling.
+	* symmisc.c: Use C++ exception handling.
+	* symfile-mem.c: Use C++ exception handling.
+	* stack.c: Use C++ exception handling.
+	* sparc64-linux-tdep.c: Use C++ exception handling.
+	* solib.c: Use C++ exception handling.
+	* solib-svr4.c: Use C++ exception handling.
+	* solib-spu.c: Use C++ exception handling.
+	* solib-frv.c: Use C++ exception handling.
+	* solib-dsbt.c: Use C++ exception handling.
+	* selftest-arch.c: Use C++ exception handling.
+	* s390-tdep.c: Use C++ exception handling.
+	* rust-lang.c: Use C++ exception handling.
+	* rust-exp.y: Use C++ exception handling.
+	* rs6000-tdep.c: Use C++ exception handling.
+	* rs6000-aix-tdep.c: Use C++ exception handling.
+	* riscv-tdep.c: Use C++ exception handling.
+	* remote.c: Use C++ exception handling.
+	* remote-fileio.c: Use C++ exception handling.
+	* record-full.c: Use C++ exception handling.
+	* record-btrace.c: Use C++ exception handling.
+	* python/python.c: Use C++ exception handling.
+	* python/py-value.c: Use C++ exception handling.
+	* python/py-utils.c: Use C++ exception handling.
+	* python/py-unwind.c: Use C++ exception handling.
+	* python/py-type.c: Use C++ exception handling.
+	* python/py-symbol.c: Use C++ exception handling.
+	* python/py-record.c: Use C++ exception handling.
+	* python/py-record-btrace.c: Use C++ exception handling.
+	* python/py-progspace.c: Use C++ exception handling.
+	* python/py-prettyprint.c: Use C++ exception handling.
+	* python/py-param.c: Use C++ exception handling.
+	* python/py-objfile.c: Use C++ exception handling.
+	* python/py-linetable.c: Use C++ exception handling.
+	* python/py-lazy-string.c: Use C++ exception handling.
+	* python/py-infthread.c: Use C++ exception handling.
+	* python/py-inferior.c: Use C++ exception handling.
+	* python/py-gdb-readline.c: Use C++ exception handling.
+	* python/py-framefilter.c: Use C++ exception handling.
+	* python/py-frame.c: Use C++ exception handling.
+	* python/py-finishbreakpoint.c: Use C++ exception handling.
+	* python/py-cmd.c: Use C++ exception handling.
+	* python/py-breakpoint.c: Use C++ exception handling.
+	* python/py-arch.c: Use C++ exception handling.
+	* printcmd.c: Use C++ exception handling.
+	* ppc-linux-tdep.c: Use C++ exception handling.
+	* parse.c: Use C++ exception handling.
+	* p-valprint.c: Use C++ exception handling.
+	* objc-lang.c: Use C++ exception handling.
+	* mi/mi-main.c: Use C++ exception handling.
+	* mi/mi-interp.c: Use C++ exception handling.
+	* mi/mi-cmd-stack.c: Use C++ exception handling.
+	* mi/mi-cmd-break.c: Use C++ exception handling.
+	* main.c: Use C++ exception handling.
+	* linux-thread-db.c: Use C++ exception handling.
+	* linux-tdep.c: Use C++ exception handling.
+	* linux-nat.c: Use C++ exception handling.
+	* linux-fork.c: Use C++ exception handling.
+	* linespec.c: Use C++ exception handling.
+	* language.c: Use C++ exception handling.
+	* jit.c: Use C++ exception handling.
+	* infrun.c: Use C++ exception handling.
+	* infcmd.c: Use C++ exception handling.
+	* infcall.c: Use C++ exception handling.
+	* inf-loop.c: Use C++ exception handling.
+	* i386-tdep.c: Use C++ exception handling.
+	* i386-linux-tdep.c: Use C++ exception handling.
+	* guile/scm-value.c: Use C++ exception handling.
+	* guile/scm-type.c: Use C++ exception handling.
+	* guile/scm-symtab.c: Use C++ exception handling.
+	* guile/scm-symbol.c: Use C++ exception handling.
+	* guile/scm-pretty-print.c: Use C++ exception handling.
+	* guile/scm-ports.c: Use C++ exception handling.
+	* guile/scm-param.c: Use C++ exception handling.
+	* guile/scm-math.c: Use C++ exception handling.
+	* guile/scm-lazy-string.c: Use C++ exception handling.
+	* guile/scm-frame.c: Use C++ exception handling.
+	* guile/scm-disasm.c: Use C++ exception handling.
+	* guile/scm-cmd.c: Use C++ exception handling.
+	* guile/scm-breakpoint.c: Use C++ exception handling.
+	* guile/scm-block.c: Use C++ exception handling.
+	* guile/guile-internal.h: Use C++ exception handling.
+	* gnu-v3-abi.c: Use C++ exception handling.
+	* gdbtypes.c: Use C++ exception handling.
+	* frame.c: Use C++ exception handling.
+	* frame-unwind.c: Use C++ exception handling.
+	* fbsd-tdep.c: Use C++ exception handling.
+	* f-valprint.c: Use C++ exception handling.
+	* exec.c: Use C++ exception handling.
+	* event-top.c: Use C++ exception handling.
+	* event-loop.c: Use C++ exception handling.
+	* eval.c: Use C++ exception handling.
+	* dwarf2read.c: Use C++ exception handling.
+	* dwarf2loc.c: Use C++ exception handling.
+	* dwarf2-frame.c: Use C++ exception handling.
+	* dwarf2-frame-tailcall.c: Use C++ exception handling.
+	* dwarf-index-write.c: Use C++ exception handling.
+	* dwarf-index-cache.c: Use C++ exception handling.
+	* dtrace-probe.c: Use C++ exception handling.
+	* disasm-selftests.c: Use C++ exception handling.
+	* darwin-nat.c: Use C++ exception handling.
+	* cp-valprint.c: Use C++ exception handling.
+	* cp-support.c: Use C++ exception handling.
+	* cp-abi.c: Use C++ exception handling.
+	* corelow.c: Use C++ exception handling.
+	* completer.c: Use C++ exception handling.
+	* compile/compile-object-run.c: Use C++ exception handling.
+	* compile/compile-object-load.c: Use C++ exception handling.
+	* compile/compile-cplus-symbols.c: Use C++ exception handling.
+	* compile/compile-c-symbols.c: Use C++ exception handling.
+	* common/selftest.c: Use C++ exception handling.
+	* common/new-op.c: Use C++ exception handling.
+	* cli/cli-script.c: Use C++ exception handling.
+	* cli/cli-interp.c: Use C++ exception handling.
+	* cli/cli-cmds.c: Use C++ exception handling.
+	* c-varobj.c: Use C++ exception handling.
+	* btrace.c: Use C++ exception handling.
+	* breakpoint.c: Use C++ exception handling.
+	* break-catch-throw.c: Use C++ exception handling.
+	* arch-utils.c: Use C++ exception handling.
+	* amd64-tdep.c: Use C++ exception handling.
+	* ada-valprint.c: Use C++ exception handling.
+	* ada-typeprint.c: Use C++ exception handling.
+	* ada-lang.c: Use C++ exception handling.
+	* aarch64-tdep.c: Use C++ exception handling.
+
+2019-04-08  Tom Tromey  <tom@tromey.com>
+
+	* xml-support.c (gdb_xml_parser::parse): Update.
+	* x86-linux-nat.c (x86_linux_nat_target::enable_btrace): Update.
+	* value.c (show_convenience): Update.
+	* unittests/cli-utils-selftests.c (test_number_or_range_parser)
+	(test_parse_flags_qcs): Update.
+	* thread.c (thr_try_catch_cmd): Update.
+	* target.c (target_translate_tls_address): Update.
+	* stack.c (print_frame_arg, read_frame_local, read_frame_arg)
+	(info_frame_command_core, frame_apply_command_count): Update.
+	* rust-exp.y (rust_lex_exception_test): Update.
+	* riscv-tdep.c (riscv_print_one_register_info): Update.
+	* remote.c (remote_target::enable_btrace): Update.
+	* record-btrace.c (record_btrace_enable_warn): Update.
+	* python/py-utils.c (gdbpy_convert_exception): Update.
+	* printcmd.c (do_one_display, print_variable_and_value): Update.
+	* mi/mi-main.c (mi_print_exception): Update.
+	* mi/mi-interp.c (mi_cmd_interpreter_exec): Use SCOPE_EXIT.
+	* mi/mi-cmd-stack.c (list_arg_or_local): Update.
+	* linux-nat.c (linux_nat_target::attach): Update.
+	* linux-fork.c (class scoped_switch_fork_info): Update.
+	* infrun.c (displaced_step_prepare): Update.
+	* infcall.c (call_function_by_hand_dummy): Update.
+	* guile/scm-exception.c (gdbscm_scm_from_gdb_exception): Update.
+	* gnu-v3-abi.c (print_one_vtable): Update.
+	* frame.c (get_prev_frame_always): Update.
+	* f-valprint.c (info_common_command_for_block): Update.
+	* exec.c (try_open_exec_file): Update.
+	* exceptions.c (print_exception, exception_print)
+	(exception_fprintf, exception_print_same): Update.
+	* dwarf2-frame.c (dwarf2_build_frame_info): Update.
+	* dwarf-index-cache.c (index_cache::store)
+	(index_cache::lookup_gdb_index): Update.
+	* darwin-nat.c (maybe_cache_shell): Update.
+	* cp-valprint.c (cp_print_value_fields): Update.
+	* compile/compile-cplus-symbols.c (gcc_cplus_convert_symbol)
+	(gcc_cplus_symbol_address): Update.
+	* compile/compile-c-symbols.c (gcc_convert_symbol)
+	(gcc_symbol_address, generate_c_for_for_one_variable): Update.
+	* common/selftest.c: Update.
+	* common/common-exceptions.h (struct gdb_exception) <message>: Now
+	a std::string.
+	(exception_try_scope_entry, exception_try_scope_exit): Don't
+	declare.
+	(struct exception_try_scope): Remove.
+	(TRY): Don't use exception_try_scope.
+	(struct gdb_exception): Add constructor, operator=.
+	<what>: New method.
+	(struct gdb_exception_RETURN_MASK_ALL)
+	(struct gdb_exception_RETURN_MASK_ERROR)
+	(struct gdb_exception_RETURN_MASK_QUIT): Add constructor.
+	(struct gdb_quit_bad_alloc): Update.
+	* common/common-exceptions.c (exception_none): Change
+	initializer.
+	(struct catcher) <state, exception>: Initialize inline.
+	<prev>: Remove member.
+	(current_catcher): Remove.
+	(catchers): New global.
+	(exceptions_state_mc_init): Simplify.
+	(catcher_pop): Remove.
+	(exceptions_state_mc, exceptions_state_mc_catch): Update.
+	(try_scope_depth, exception_try_scope_entry)
+	(exception_try_scope_exit): Remove.
+	(throw_exception_sjlj): Update.
+	(exception_messages, exception_messages_size): Remove.
+	(throw_it): Simplify.
+	(gdb_exception_sliced_copy): Remove.
+	(throw_exception_cxx): Update.
+	* cli/cli-script.c (script_from_file): Update.
+	* breakpoint.c (insert_bp_location, update_breakpoint_locations):
+	Update.
+	* ada-valprint.c (ada_val_print): Update.
+	* ada-lang.c (ada_to_fixed_type_1, ada_exception_name_addr)
+	(create_excep_cond_exprs): Update.
+
+2019-04-08  Tom Tromey  <tom@tromey.com>
+
+	* common/common-exceptions.h (GDB_XCPT_SJMP, GDB_XCPT_TRY)
+	(GDB_XCPT_RAW_TRY, GDB_XCPT): Remove.
+	(TRY, CATCH, END_CATCH): Remove some definitions.
+	* common/common-exceptions.c: Don't use GDB_XCPT.
+	(catcher_list_size): Remove.
+	(throw_exception, throw_it): Simplify.
+
 2019-04-05  Tom Tromey  <tom@tromey.com>
 
 	Revert the header-sorting patch.
