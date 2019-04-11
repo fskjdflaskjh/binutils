@@ -1,3 +1,71 @@
+2019-04-11  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* testsuite/gas/xtensa/loop-relax-2.d: New test definition.
+	* testsuite/gas/xtensa/loop-relax.d: New test definition.
+	* testsuite/gas/xtensa/loop-relax.s: New test source.
+	* testsuite/gas/xtensa/text-section-literals-1a.d: New test
+	definition.
+	* testsuite/gas/xtensa/text-section-literals-2.d: New test
+	definition.
+	* testsuite/gas/xtensa/text-section-literals-2.s: New test
+	source.
+	* testsuite/gas/xtensa/text-section-literals-2a.d: New test
+	definition.
+	* testsuite/gas/xtensa/text-section-literals-3.d: New test
+	definition.
+	* testsuite/gas/xtensa/text-section-literals-3.s: New test
+	source.
+	* testsuite/gas/xtensa/text-section-literals-4.d: New test
+	definition.
+	* testsuite/gas/xtensa/text-section-literals-4.s: New test
+	source.
+	* testsuite/gas/xtensa/text-section-literals-4a.d: New test
+	definition.
+
+2019-04-11  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* testsuite/gas/xtensa/all.exp: Remove all expect-based
+	tests and all explicit run_dump_test / run_list_test
+	invocations. Add run_dump_tests for all .d files in the
+	test subdirectory.
+	* testsuite/gas/xtensa/entry_align.d: New test definition.
+	* testsuite/gas/xtensa/entry_align.l: New test output.
+	* testsuite/gas/xtensa/entry_misalign.d: New test definition.
+	* testsuite/gas/xtensa/entry_misalign2.d: New test definition.
+	* testsuite/gas/xtensa/j_too_far.d: New test definition.
+	* testsuite/gas/xtensa/j_too_far.l: New test output.
+	* testsuite/gas/xtensa/loop_align.d: New test definition.
+	* testsuite/gas/xtensa/loop_misalign.d: New test definition.
+	* testsuite/gas/xtensa/trampoline-2.d: New test definition.
+	* testsuite/gas/xtensa/trampoline-2.l: Remove empty output.
+	* testsuite/gas/xtensa/xtensa-err.exp: Use positive logic.
+
+2019-04-11  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* config/tc-xtensa.c (xtensa_literal_pseudo): Drop code that has
+	no effect.
+	(get_literal_pool_location): Only search for the literal pool
+	when auto litpools is used, otherwise take one recorded in the
+	tc_segment_info_data.
+	(xtensa_assign_litpool_addresses): New function.
+	(xtensa_move_literals): Don't duplicate 'literal pool location
+	required...' error message. Call xtensa_assign_litpool_addresses.
+
+2019-04-11  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* config/tc-xtensa.c (xtensa_is_init_fini): Add declaration.
+	(xtensa_mark_literal_pool_location): Don't add fill frag to literal
+	section that records literal pool location.
+	(md_begin): Call xtensa_mark_literal_pool_location when text
+	section literals or auto litpools are used.
+	(xtensa_elf_section_change_hook): Call
+	xtensa_mark_literal_pool_location when text section literals or
+	auto litpools are used, there's no literal pool location defined
+	for the current section and it's not .init or .fini.
+	* testsuite/gas/xtensa/auto-litpools-first1.d: Fix up addresses.
+	* testsuite/gas/xtensa/auto-litpools-first2.d: Likewise.
+	* testsuite/gas/xtensa/auto-litpools.d: Likewise.
+
 2019-04-11  Sudakshina Das  <sudi.das@arm.com>
 
 	* config/tc-aarch64.c (process_omitted_operand): Add case for
