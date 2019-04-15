@@ -1,3 +1,204 @@
+2019-04-15  Thomas Preud'homme  <thomas.preudhomme@arm.com>
+
+	* config/tc-arm.c (parse_sys_vldr_vstr): New function.
+	(OP_VLDR): New enum operand_parse_code enumerator.
+	(parse_operands): Add logic for OP_VLDR.
+	(do_t_vldr_vstr_sysreg): New function.
+	(do_vldr_vstr): Likewise.
+	(insns): Guard VLDR and VSTR by arm_ext_v4t for Thumb mode.
+	(md_apply_fix): Add bound check for VLDR and VSTR co-processor offset.
+	Add masking logic for BFD_RELOC_ARM_T32_VLDR_VSTR_OFF_IMM relocation.
+	* testsuite/gas/arm/archv8m_1m-cmse-main-bad.s: Add examples of bad
+	uses of VLDR and VSTR.
+	* testsuite/gas/arm/archv8m_1m-cmse-main-bad.l: Add error messages for
+	above bad uses.
+	* testsuite/gas/arm/archv8m_1m-cmse-main.s: Add examples of VLDR and
+	VSTR valid uses.
+	* testsuite/gas/arm/archv8m_1m-cmse-main.d: Add disassembly for the
+	above examples.
+
+2019-04-15  Thomas Preud'homme  <thomas.preudhomme@arm.com>
+
+	* config/tc-arm.c (arm_typed_reg_parse): Fix typo in comment.
+	(enum reg_list_els): New REGLIST_VFP_S_VPR and REGLIST_VFP_D_VPR
+	enumerators.
+	(parse_vfp_reg_list): Add new partial_match parameter.  Set
+	*partial_match to TRUE if at least one element in the register list has
+	matched.  Add support for REGLIST_VFP_S_VPR and REGLIST_VFP_D_VPR
+	register lists which expect VPR as last element in the list.
+	(s_arm_unwind_save_vfp_armv6): Adapt call to parse_vfp_reg_list to new
+	prototype.
+	(s_arm_unwind_save_vfp): Likewise.
+	(enum operand_parse_code): New OP_VRSDVLST enumerator.
+	(parse_operands): Adapt call to parse_vfp_reg_list to new prototype.
+	Handle new OP_VRSDVLST case.
+	(do_t_vscclrm): New function.
+	(insns): New entry for VSCCLRM instruction.
+	* testsuite/gas/arm/archv8m_1m-cmse-main-bad.s: Add invalid VSCCLRM
+	instructions.
+	* testsuite/gas/arm/archv8m_1m-cmse-main-bad.l: Add error expectations
+	for above instructions.
+	* testsuite/gas/arm/archv8m_1m-cmse-main.s: Add tests for VSCCLRM
+	instruction.
+	* testsuite/gas/arm/archv8m_1m-cmse-main.d: Add expected disassembly
+	for above instructions.
+
+2019-04-15  Thomas Preud'homme  <thomas.preudhomme@arm.com>
+
+	* config/tc-arm.c (enum reg_list_els): Define earlier and add
+	REGLIST_RN and REGLIST_CLRM enumerators.
+	(parse_reg_list): Add etype parameter to distinguish between regular
+	core register list and CLRM register list.  Add logic to
+	recognize CLRM register list.
+	(parse_vfp_reg_list): Assert type is not for core register list.
+	(s_arm_unwind_save_core): Update call to parse_reg_list to new
+	prototype.
+	(enum operand_parse_code): Declare OP_CLRMLST enumerator.
+	(parse_operands): Update call to parse_reg_list to new prototype.  Add
+	logic for OP_CLRMLST.
+	(encode_thumb2_ldmstm): Rename into ...
+	(encode_thumb2_multi): This.  Add do_io parameter.  Add logic to
+	encode CLRM and guard LDM/STM only code by do_io.
+	(do_t_ldmstm): Adapt to use encode_thumb2_multi.
+	(do_t_push_pop): Likewise.
+	(do_t_clrm): New function.
+	(insns): Define CLRM.
+	* testsuite/gas/arm/archv8m_1m-cmse-main-bad.d: New file.
+	* testsuite/gas/arm/archv8m_1m-cmse-main-bad.l: Likewise.
+	* testsuite/gas/arm/archv8m_1m-cmse-main-bad.s: Likewise.
+	* testsuite/gas/arm/archv8m_1m-cmse-main.d: Likewise.
+	* testsuite/gas/arm/archv8m_1m-cmse-main.s: Likewise.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+            Andre Vieira  <andre.simoesdiasvieira@arm.com>
+
+	* config/tc-arm.c (operand_parse_code): Add OP_LR and OP_oLR
+	for the LR operand and optional LR operand.
+	(parse_operands): Add switch cases for OP_LR and OP_oLR for
+	both type checking and value checking.
+	(encode_thumb32_addr_mode): New entries for DLS, WLS and LE.
+	(v8_1_loop_reloc): New helper function for handling labels
+	for the low overhead loop instructions.
+	(do_t_loloop): New function to encode DLS, WLS and LE.
+	(insns): New entries for WLS, DLS and LE.
+	(md_pcrel_from_section): New switch case
+	for BFD_RELOC_ARM_THUMB_LOOP12.
+	(md_appdy_fix): Likewise.
+	(tc_gen_reloc): Likewise.
+	* testsuite/gas/arm/armv8_1-m-tloop.s: New.
+	* testsuite/gas/arm/armv8_1-m-tloop.d: New.
+	* testsuite/gas/arm/armv8_1-m-tloop-bad.s: New.
+	* testsuite/gas/arm/armv8_1-m-tloop-bad.d: New.
+	* testsuite/gas/arm/armv8_1-m-tloop-bad.l: New.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+            Andre Vieira  <andre.simoesdiasvieira@arm.com>
+
+	* config/tc-arm.c (T16_32_TAB): New entriy for bfcsel.
+	(do_t_v8_1_branch): New switch case for bfcsel.
+	(toU): Define.
+	(insns): New instruction for bfcsel.
+	(md_pcrel_from_section): New switch case
+	for BFD_RELOC_THUMB_PCREL_BFCSEL.
+	(md_appdy_fix): Likewise
+	(tc_gen_reloc): Likewise.
+	* testsuite/gas/arm/armv8_1-m-bfcsel.d: New.
+	* testsuite/gas/arm/armv8_1-m-bfcsel.s: New.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* config/tc-arm.c (md_pcrel_from_section): New switch case for
+	BFD_RELOC_ARM_THUMB_BF13.
+	(md_appdy_fix): Likewise.
+	(tc_gen_reloc): Likewise.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+            Andre Vieira  <andre.simoesdiasvieira@arm.com>
+
+	* config/tc-arm.c (T16_32_TAB): New entrie for bfl.
+	(do_t_v8_1_branch): New switch case for bfl.
+	(insns): New instruction for bfl.
+	* testsuite/gas/arm/armv8_1-m-bfl.d: New.
+	* testsuite/gas/arm/armv8_1-m-bfl.s: New.
+	* testsuite/gas/arm/armv8_1-m-bfl-bad.s: New.
+	* testsuite/gas/arm/armv8_1-m-bfl-bad.d: New.
+	* testsuite/gas/arm/armv8_1-m-bfl-bad.l: New.
+	* testsuite/gas/arm/armv8_1-m-bfl-rel.d: New.
+	* testsuite/gas/arm/armv8_1-m-bfl-rel.s: New.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* config/tc-arm.c (md_pcrel_from_section): New switch case for
+	BFD_RELOC_ARM_THUMB_BF19.
+	(md_appdy_fix): Likewise.
+	(tc_gen_reloc): Likewise.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* config/tc-arm.c (T16_32_TAB): New entries for bfx and bflx.
+	(do_t_v8_1_branch): New switch cases for bfx and bflx.
+	(insns): New instruction for bfx and bflx.
+	* testsuite/gas/arm/armv8_1-m-bf-exchange.d: New.
+	* testsuite/gas/arm/armv8_1-m-bf-exchange.s: New.
+	* testsuite/gas/arm/armv8_1-m-bf-exchange-bad.s: New
+	* testsuite/gas/arm/armv8_1-m-bf-exchange-bad.l: New
+	* testsuite/gas/arm/armv8_1-m-bf-exchange-bad.d: New
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+            Andre Vieira  <andre.simoesdiasvieira@arm.com>
+
+	* config/tc-arm.c (T16_32_TAB): New entries for bf.
+	(do_t_branch_future): New.
+	(insns): New instruction for bf.
+	* testsuite/gas/arm/armv8_1-m-bf.d: New.
+	* testsuite/gas/arm/armv8_1-m-bf.s: New.
+	* testsuite/gas/arm/armv8_1-m-bf-bad.s: New.
+	* testsuite/gas/arm/armv8_1-m-bf-bad.l: New.
+	* testsuite/gas/arm/armv8_1-m-bf-bad.d: New.
+	* testsuite/gas/arm/armv8_1-m-bf-rel.d: New.
+	* testsuite/gas/arm/armv8_1-m-bf-rel.s: New.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* config/tc-arm.c (md_pcrel_from_section): New switch case for
+	BFD_RELOC_ARM_THUMB_BF17.
+	(md_appdy_fix): Likewise.
+	(tc_gen_reloc): Likewise.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* config/tc-arm.c (ARM_IT_MAX_RELOCS): New macro.
+	(arm_it): Member reloc renamed relocs and updated to an array.
+	Rest: Replace all occurrences of reloc to relocs[0].
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* config/tc-arm.c (md_pcrel_from_section): New switch case
+	for BFD_RELOC_THUMB_PCREL_BRANCH5.
+	(v8_1_branch_value_check): New function to check branch
+	offsets.
+	(md_appdy_fix): New switch case for
+	BFD_RELOC_THUMB_PCREL_BRANCH5.
+	(tc_gen_reloc): Likewise.
+
+2019-04-15  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+
+	* config/tc-arm.c (do_neon_movhf): Remove fp-armv8 check.
+	(armv8_1m_main_ext_table): New extension table.
+	(arm_archs): Use the new extension table.
+	* doc/c-arm.texi: Add missing arch and document new extensions.
+	* testsuite/gas/arm/armv8.1-m.main-fp.d: New.
+	* testsuite/gas/arm/armv8.1-m.main-fp-dp.d: New.
+	* testsuite/gas/arm/armv8.1-m.main-hp.d: New.
+
+2019-04-15  Thomas Preud'homme  <thomas.preudhomme@arm.com>
+
+	* config/tc-arm.c (cpu_arch_ver): Add entry for Armv8.1-M Mainline
+	Tag_CPU_arch build attribute value.  Reindent.
+	(get_aeabi_cpu_arch_from_fset): Update assert.
+	(aeabi_set_public_attributes): Update assert for Tag_DIV_use logic.
+	* testsuite/gas/arm/attr-march-armv8_1-m.main.d: New test.
+
 2019-04-09  Matthew Fortune  <matthew.fortune@mips.com>
 
 	* config/tc-mips.c (mips_cpu_info_table): Add i6500.  Update
