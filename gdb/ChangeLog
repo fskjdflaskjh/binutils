@@ -1,5 +1,183 @@
 2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
 
+	* s12z-tdep.c (s12z_unwind_pc): Delete.
+	(s12z_unwind_sp): Delete.
+	(s12z_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* rl78-tdep.c (rl78_unwind_sp): Delete.
+	(rl78_gdbarch_init): Don't register deleted function with gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* xstormy16-tdep.c (xstormy16_unwind_sp): Delete.
+	(xstormy16_unwind_pc): Delete.
+	(xstormy16_dummy_id): Delete.
+	(xstormy16_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* vax-tdep.c (vax_unwind_pc): Delete.
+	(vax_gdbarch_init): Don't register deleted function with gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* v850-tdep.c (v850_unwind_sp): Delete.
+	(v850_unwind_pc): Delete.
+	(v850_dummy_id): Delete.
+	(v850_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* tilegx-tdep.c (tilegx_unwind_sp): Delete.
+	(tilegx_unwind_pc): Delete.
+	(tilegx_unwind_dummy_id): Delete.
+	(tilegx_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* tic6x-tdep.c (tic6x_unwind_sp): Delete.
+	(tic6x_dummy_id): Delete.
+	(tic6x_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* sparc-tdep.c (sparc_unwind_pc): Delete.
+	(sparc32_gdbarch_init): Don't register deleted function with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* sh-tdep.c (sh_unwind_sp): Delete.
+	(sh_unwind_pc): Delete.
+	(sh_dummy_id): Delete.
+	(sh_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* score-tdep.c (score_unwind_sp): Delete.
+	(score_unwind_pc): Delete.
+	(score_dummy_id): Delete.
+	(score_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* rx-tdep.c (rx_unwind_pc): Delete.
+	(rx_unwind_sp): Delete.
+	(rx_dummy_id): Delete.
+	(rx_gdbarch_init): Don't register deleted functions with
+	gdbarch.  Update comment.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* rs6000-tdep.c (rs6000_unwind_pc): Delete.
+	(rs6000_dummy_id): Delete.
+	(rs6000_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* or1k-tdep.c (or1k_dummy_id): Delete.
+	(or1k_gdbarch_init): Don't register deleted function with gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* nios2-tdep.c (nios2_dummy_id): Delete.
+	(nios2_unwind_sp): Delete.
+	(nios2_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* nds32-tdep.c (nds32_dummy_id): Delete.
+	(nds32_unwind_pc): Delete.
+	(nds32_unwind_sp): Delete.
+	(nds32_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* msp430-tdep.c (msp430_unwind_pc): Delete.
+	(msp430_unwind_sp): Delete.
+	(msp430_dummy_id): Delete.
+	(msp430_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* moxie-tdep.c (moxie_unwind_sp): Delete.
+	(moxie_unwind_pc): Delete.
+	(moxie_dummy_id): Delete.
+	(moxie_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* mn10300-tdep.c (mn10300_dummy_id): Delete.
+	(mn10300_unwind_pc): Delete.
+	(mn10300_unwind_sp): Delete.
+	(mn10300_push_dummy_call): Use gdbarch_unwind_sp not
+	mn10300_unwind_sp.
+	(mn10300_frame_unwind_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* mep-tdep.c (mep_unwind_pc): Delete.
+	(mep_unwind_sp): Delete.
+	(mep_dummy_id): Delete.
+	(mep_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* m68hc11-tdep.c (m68hc11_unwind_pc): Delete.
+	(m68hc11_unwind_sp): Delete.
+	(m68hc11_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* m32r-tdep.c (m32r_unwind_sp): Delete.
+	(m32r_unwind_pc): Delete.
+	(m32r_dummy_id): Delete.
+	(m32r_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* m32c-tdep.c (m32c_unwind_pc): Delete.
+	(m32c_unwind_sp): Delete.
+	(m32c_dummy_id): Delete.
+	(m32c_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/lm32-tdep.c (lm32_unwind_sp): Delete.
+	(lm32_unwind_pc): Delete.
+	(lm32_dummy_id): Delete.
+	(lm32_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb/iq2000-tdep.c (iq2000_unwind_sp): Delete.
+	(iq2000_unwind_pc): Delete.
+	(iq2000_dummy_id): Delete.
+	(iq2000_gdbarch_init): Don't register deleted functions with
+	gdbarch.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
 	* nds32-tdep.c (nds32_type_align): Delete.
 	(nds32_push_dummy_call): Use type_align instead.
 
