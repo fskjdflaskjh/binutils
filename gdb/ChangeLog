@@ -1,3 +1,22 @@
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* nds32-tdep.c (nds32_type_align): Delete.
+	(nds32_push_dummy_call): Use type_align instead.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* arm-tdep.c (arm_type_align): Only handle vector override case.
+	(arm_push_dummy_call): Use type_align.
+	(arm_gdbarch_init): Register arm_type_align gdbarch function.
+
+2019-04-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* aarch64-tdep.c (aarch64_type_align): Only handle vector override
+	case.
+	(pass_on_stack): Use type_align.
+	(aarch64_gdbarch_init): Register aarch64_type_align gdbarch
+	function.
+
 2019-04-23  Tom Tromey  <tromey@adacore.com>
 
 	* dwarf2read.c (line_header::file_name_at): Remove unused
