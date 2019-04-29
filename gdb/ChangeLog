@@ -1,3 +1,88 @@
+2019-04-29  Andrew Burgess  <andrew.burgess@embecosm.com>
+	    Chris January  <chris.january@arm.com>
+	    Daniel Everett  <daniel.everett@arm.com>
+	    Nick Forrington  <nick.forrington@arm.com>
+	    Richard Bunt  <richard.bunt@arm.com>
+
+	* cp-valprint.c (cp_print_value_fields): Allow an additional level
+	of depth when printing anonymous structs or unions.
+	* guile/scm-pretty-print.c (gdbscm_apply_val_pretty_printer):
+	Don't print either the top-level value, or the children if the
+	max-depth is exceeded.
+	(ppscm_print_children): When printing the key of a map, allow one
+	extra level of depth.
+	* python/py-prettyprint.c (gdbpy_apply_val_pretty_printer): Don't
+	print either the top-level value, or the children if the max-depth
+	is exceeded.
+	(print_children): When printing the key of a map, allow one extra
+	level of depth.
+	* python/py-value.c (valpy_format_string): Add max_depth keyword.
+	* valprint.c: (PRINT_MAX_DEPTH_DEFAULT): Define.
+	(user_print_options): Initialise max_depth field.
+	(val_print_scalar_or_string_type_p): New function.
+	(val_print): Check to see if the max depth has been reached.
+	(val_print_check_max_depth): Define new function.
+	(show_print_max_depth): New function.
+	(_initialize_valprint): Add 'print max-depth' option.
+	* valprint.h (struct value_print_options) <max_depth>: New field.
+	(val_print_check_max_depth): Declare new function.
+	* NEWS: Document new feature.
+
+2019-04-29  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* ada-lang.c (ada_language_defn): Initialise new field.
+	* c-lang.c (c_is_string_type_p): New function.
+	(c_language_defn): Initialise new field.
+	(cplus_language_defn): Initialise new field.
+	(asm_language_defn): Initialise new field.
+	(minimal_language_defn): Initialise new field.
+	* c-lang.h (c_is_string_type_p): Declare new function.
+	* d-lang.c (d_language_defn): Initialise new field.
+	* f-lang.c (f_is_string_type_p): New function.
+	(f_language_defn): Initialise new field.
+	* go-lang.c (go_is_string_type_p): New function.
+	(go_language_defn): Initialise new field.
+	* language.c (default_is_string_type_p): New function.
+	(unknown_language_defn): Initialise new field.
+	(auto_language_defn): Initialise new field.
+	* language.h (struct language_defn) <la_is_string_type_p>: New
+	member variable.
+	(default_is_string_type_p): Declare new function.
+	* m2-lang.c (m2_language_defn): Initialise new field.
+	* objc-lang.c (objc_language_defn): Initialise new field.
+	* opencl-lang.c (opencl_language_defn): Initialise new field.
+	* p-lang.c (pascal_is_string_type_p): New function.
+	(pascal_language_defn): Initialise new field.
+	* rust-lang.c (rust_is_string_type_p): New function.
+	(rust_language_defn): Initialise new field.
+
+2019-04-29  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* language.h (struct language_defn) <la_struct_too_deep_ellipsis>:
+	New field.
+	* ada-lang.c (ada_language_defn): Initialise new field.
+	* c-lang.c (c_language_defn): Likewise.
+	(cplus_language_defn): Likewise.
+	(asm_language_defn): Likewise.
+	(minimal_language_defn): Likewise.
+	* d-lang.c (d_language_defn): Likewise.
+	* f-lang.c (f_language_defn): Likewise.
+	* go-lang.c (go_language_defn): Likewise.
+	* language.c (unknown_language_defn): Likewise.
+	(auto_language_defn): Likewise.
+	* m2-lang.c (m2_language_defn): Likewise.
+	* objc-lang.c (objc_language_defn): Likewise.
+	* opencl-lang.c (opencl_language_defn): Likewise.
+	* p-lang.c (pascal_language_defn): Likewise.
+	* rust-lang.c (rust_language_defn): Likewise.
+
+2019-04-29  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* ada-lang.c (ada_is_character_type): Change return type to bool.
+	(ada_is_string_type): Likewise.
+	* ada-lang.h (ada_is_character_type): Update declaration
+	(ada_is_string_type): Likewise.
+
 2019-04-27  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
 
 	Support style in 'frame|thread apply'
