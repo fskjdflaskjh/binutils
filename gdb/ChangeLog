@@ -1,3 +1,34 @@
+2019-05-04  Tom Tromey  <tom@tromey.com>
+
+	* arc-tdep.c (arc_tdesc_init): Return bool.
+
+2019-05-04  Tom Tromey  <tom@tromey.com>
+
+	* arm-linux-nat.c (arm_linux_nat_target::can_use_hw_breakpoint):
+	Use gdb_assert_not_reached.
+
+2019-05-04  Tom Tromey  <tom@tromey.com>
+
+	* compile/compile-cplus-types.c (compile_cplus_convert_enum): Use
+	"false".
+
+2019-05-04  Tom Tromey  <tom@tromey.com>
+
+	* arc-tdep.c (arc_tdesc_init): Use bool.
+
+2019-05-04  Tom Tromey  <tom@tromey.com>
+
+	* stack.c (select_frame_for_mi): Use "false", not "FALSE".
+
+2019-05-04  Tom Tromey  <tom@tromey.com>
+
+	* cli/cli-cmds.c (valid_command_p): Return bool.
+
+2019-05-04  Tom Tromey  <tom@tromey.com>
+
+	* cli/cli-decode.c (valid_user_defined_cmd_name_p): Return bool.
+	* command.h (valid_user_defined_cmd_name_p): Channge return type.
+
 2019-05-04  Raul Tambre  <raul@tambre.ee>
 
 	* python/lib/gdb/prompt.py (_ExtendedPrompt)
