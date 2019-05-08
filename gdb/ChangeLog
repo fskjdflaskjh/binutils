@@ -1,5 +1,34 @@
 2019-05-08  Tom Tromey  <tromey@adacore.com>
 
+	* remote.c (remote_hw_watchpoint_limit)
+	(remote_hw_watchpoint_length_limit, remote_hw_breakpoint_limit):
+	Now static.
+
+2019-05-08  Tom Tromey  <tromey@adacore.com>
+
+	* maint.c (_initialize_maint_cmds): Move initialization code to
+	remote.c.
+	(watchdog, show_watchdog): Move to remote.c.
+	* remote.c (watchdog, show_watchdog): Move from maint.c.  Make
+	"watchdog" static.
+	(_initialize_remote): Move initialization code from maint.c.
+	* defs.h (watchdog): Don't declare.
+
+2019-05-08  Tom Tromey  <tromey@adacore.com>
+
+	* tui/tui-interp.c: Include main.h.
+	* interps.c: Include main.h.
+	* main.h (interpreter_p): Declare.
+	* defs.h (interpreter_p): Don't declare.
+
+2019-05-08  Tom Tromey  <tromey@adacore.com>
+
+	* dwarf2loc.c: Include dwarf2read.h.
+	* defs.h (read_unsigned_leb128): Don't declare.
+	* dwarf2read.h (read_unsigned_leb128): Declare.
+
+2019-05-08  Tom Tromey  <tromey@adacore.com>
+
 	* utils.c (fputs_maybe_filtered): Call can_emit_style_escape as a
 	method.
 
