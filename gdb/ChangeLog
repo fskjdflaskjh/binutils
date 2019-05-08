@@ -1,3 +1,284 @@
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* gdbtypes.c (objfile_type_data): Change type.
+	(objfile_type, _initialize_gdbtypes): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* dwarf2-frame.c (dwarf2_frame_objfile_data): Change type.
+	(dwarf2_frame_find_fde, dwarf2_build_frame_info)
+	(_initialize_dwarf2_frame): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* objc-lang.c (objc_objfile_data): Change type.
+	(find_methods): Update.
+	(_initialize_objc_lang): Remove.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* stabsread.c (rs6000_builtin_type_data): Change type.
+	(rs6000_builtin_type, _initialize_stabsread): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* mips-tdep.c (mips_pdr_data): Remove.
+	(_initialize_mips_tdep): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* hppa-tdep.c (hppa_objfile_priv_data): Change type.
+	(hppa_init_objfile_priv_data, read_unwind_info)
+	(find_unwind_entry, _initialize_hppa_tdep): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* elfread.c (elf_objfile_gnu_ifunc_cache_data): Change type.
+	(elf_gnu_ifunc_record_cache): Update.  Don't allocate hash table
+	on obstack.
+	(elf_gnu_ifunc_resolve_by_cache, _initialize_elfread): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* mdebugread.c (basic_type_data): Change type.
+	(basic_type, _initialize_mdebugread): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* common/gdb_unique_ptr.h (struct noop_deleter): New.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* nto-tdep.c (nto_inferior_data_reg): Change type.
+	(nto_inferior_data): Update.
+	(nto_inferior_data_cleanup, nto_new_inferior_data)
+	(_initialize_nto_tdep): Remove.
+	* nto-tdep.h (struct nto_inferior_data): Add initializers.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* ada-lang.c (struct ada_inferior_data): Add initializers.
+	(ada_inferior_data): Change type.
+	(ada_inferior_data_cleanup): Remove.
+	(get_ada_inferior_data, ada_inferior_exit)
+	(struct ada_pspace_data): Add initializers, destructor.
+	(ada_pspace_data_handle): Change type.
+	(get_ada_pspace_data): Update.
+	(ada_pspace_data_cleanup): Remove.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* coffread.c (struct coff_symfile_info): Add initializers.
+	(coff_objfile_data_key): Move lower.  Change type.
+	(coff_symfile_init, coff_symfile_read, _initialize_coffread):
+	Update.
+	(coff_free_info): Remove.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* fbsd-tdep.c (struct fbsd_pspace_data): Add initializers.
+	(fbsd_pspace_data_handle): Move lower.  Change type.
+	(get_fbsd_pspace_data): Update.
+	(fbsd_pspace_data_cleanup): Remove.
+	(_initialize_fbsd_tdep): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* ada-tasks.c (ada_tasks_pspace_data_handle): Change type.
+	(get_ada_tasks_pspace_data): Update.
+	(ada_tasks_pspace_data_cleanup): Remove.
+	(_initialize_tasks): Update.
+	(ada_tasks_inferior_data_handle): Change type.
+	(get_ada_tasks_inferior_data): Update.
+	(ada_tasks_inferior_data_cleanup): Remove.
+	(struct ada_tasks_pspace_data): Add initializers.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* symfile.h (struct sym_probe_fns) <sym_get_probes>: Change type.
+	* symfile-debug.c (debug_sym_get_probes): Change type.
+	* stap-probe.c (handle_stap_probe):
+	(stap_static_probe_ops::get_probes): Change type.
+	* probe.h (class static_probe_ops) <get_probes>: Change type.
+	* probe.c (class any_static_probe_ops) <get_probes>: Change type.
+	(parse_probes_in_pspace): Update.
+	(find_probes_in_objfile, find_probe_by_pc, collect_probes):
+	Update.
+	(any_static_probe_ops::get_probes): Change type.
+	* elfread.c (elfread_data): New typedef.
+	(probe_key): Change type.
+	(elf_get_probes): Likewise.  Update.
+	(probe_key_free): Remove.
+	(_initialize_elfread): Update.
+	* dtrace-probe.c (class dtrace_static_probe_ops) <get_probes>:
+	Change type.
+	(dtrace_process_dof_probe, dtrace_process_dof)
+	(dtrace_static_probe_ops::get_probe): Change type.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* xcoffread.c (struct xcoff_symfile_info): Rename from
+	coff_symfile_info.  Add initializers.
+	(xcoff_objfile_data_key): Move lower.  Change type.
+	(XCOFF_DATA): Rewrite.
+	(xcoff_free_info): Remove.
+	(xcoff_symfile_init, _initialize_xcoffread, read_xcoff_symtab)
+	(read_symbol, read_symbol_lineno, find_linenos, init_stringtab)
+	(xcoff_initial_scan): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* solib-svr4.c (struct svr4_info): Add initializers and
+	destructor.
+	<probes_table>: Now an htab_up.
+	(solib_svr4_pspace_data): Change type.
+	(free_probes_table): Simplify.
+	(~svr4_info): Rename from svr4_pspace_data_cleanup.
+	(get_svr4_info, probes_table_htab_remove_objfile_probes)
+	(probes_table_remove_objfile_probes, register_solib_event_probe)
+	(solib_event_probe_at, svr4_update_solib_event_breakpoint)
+	(_initialize_svr4_solib): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* remote.c (remote_pspace_data): Change type.
+	(remote_pspace_data_cleanup): Remove.
+	(get_remote_exec_file, set_pspace_remote_exec_file)
+	(_initialize_remote): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* breakpoint.c (breakpoint_objfile_key): Change type.
+	(get_breakpoint_objfile_data): Update.
+	(free_breakpoint_objfile_data): Remove.
+	(_initialize_breakpoint): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* linux-tdep.c (struct linux_info): Add initializers.
+	(linux_inferior_data): Move.  Change type.
+	(invalidate_linux_cache_inf): Update.
+	(linux_inferior_data_cleanup): Remove.
+	(get_linux_inferior_data, _initialize_linux_tdep): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* auxv.c (auxv_inferior_data): Move.  Change type.
+	(auxv_inferior_data_cleanup): Remove.
+	(invalidate_auxv_cache_inf): Rewrite.
+	(get_auxv_inferior_data, _initialize_auxv): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* symfile-debug.c (struct debug_sym_fns_data): Add initializers.
+	(symfile_debug_objfile_data_key): Change type.
+	(symfile_debug_installed, debug_qf_has_symbols)
+	(debug_qf_find_last_source_symtab)
+	(debug_qf_forget_cached_source_info)
+	(debug_qf_map_symtabs_matching_filename, debug_qf_lookup_symbol)
+	(debug_qf_print_stats, debug_qf_dump)
+	(debug_qf_expand_symtabs_for_function)
+	(debug_qf_expand_all_symtabs)
+	(debug_qf_expand_symtabs_with_fullname)
+	(debug_qf_map_matching_symbols)
+	(debug_qf_expand_symtabs_matching)
+	(debug_qf_find_pc_sect_compunit_symtab)
+	(debug_qf_map_symbol_filenames)
+	(debug_qf_find_compunit_symtab_by_address, debug_sym_get_probes)
+	(debug_sym_new_init, debug_sym_init, debug_sym_read)
+	(debug_sym_read_psymbols, debug_sym_finish, debug_sym_offsets)
+	(debug_sym_read_linetable, debug_sym_relocate): Update.
+	(symfile_debug_free_objfile): Remove.
+	(install_symfile_debug_logging, _initialize_symfile_debug):
+	Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* dwarf2read.h (struct dwarf2_per_objfile): Don't inherit from
+	allocate_on_obstack.
+	* dwarf2read.c (dwarf2_objfile_data_key): Change type.
+	(get_dwarf2_per_objfile): Update.
+	(set_dwarf2_per_objfile): Remove.
+	(dwarf2_has_info, dwarf2_get_section_info): Update.
+	(dwarf2_free_objfile): Remove.
+	(_initialize_dwarf2_read): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* auto-load.c (struct auto_load_pspace_info): Add destructor and
+	initializers.
+	<unsupported_script_warning_printed,
+	script_not_found_warning_printed>: Now bool.
+	(auto_load_pspace_data): Change type.
+	(~auto_load_pspace_info): Rename from
+	auto_load_pspace_data_cleanup.
+	(get_auto_load_pspace_data, init_loaded_scripts_info)
+	(clear_section_scripts, maybe_print_unsupported_script_warning)
+	(maybe_print_script_not_found_warning, _initialize_auto_load):
+	Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* objfiles.c (objfile_pspace_info): Add destructor and
+	initializers.
+	(objfiles_pspace_data): Change type.
+	(~objfile_pspace_info): Rename from objfiles_pspace_data_cleanup.
+	(get_objfile_pspace_data): Update.
+	(objfiles_bfd_data): Change type.
+	(get_objfile_bfd_data): Update.
+	(objfile_bfd_data_free, _initialize_objfiles): Remove.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* break-catch-syscall.c (catch_syscall_inferior_data): Move.
+	Change type.
+	(get_catch_syscall_inferior_data): Update.
+	(catch_syscall_inferior_data_cleanup): Remove.
+	(_initialize_break_catch_syscall): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* inflow.c (struct terminal_info): Add destructor and
+	initializers.
+	(inflow_inferior_data): Change type.
+	(~terminal_info): Rename from inflow_inferior_data_cleanup.
+	(get_inflow_inferior_data, inflow_inferior_exit)
+	(swap_terminal_info, _initialize_inflow): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* target-dcache.c (target_dcache_cleanup): Remove.
+	(target_dcache_aspace_key): Change type.
+	(target_dcache_init_p, target_dcache_invalidate)
+	(target_dcache_get, target_dcache_get_or_init)
+	(_initialize_target_dcache): Update.
+	* dcache.h (struct dcache_deleter): New.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* symtab.c (struct symbol_cache): Add destructor and
+	initializers.
+	(symbol_cache_key): Move.  Change type.
+	(make_symbol_cache, free_symbol_cache): Remove.
+	(get_symbol_cache): Update.
+	(symbol_cache_cleanup): Remove.
+	(ALL_PSPACES, symbol_cache_flush)
+	(maintenance_print_symbol_cache)
+	(maintenance_print_symbol_cache_statistics, _initialize_symtab):
+	Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* symtab.c (struct main_info): Add destructor and initializers.
+	(main_progspace_key): Move.  Change type.
+	(get_main_info): Update.
+	(main_info_cleanup): Remove.
+	(_initialize_symtab): Update.
+
+2019-05-08  Tom Tromey  <tom@tromey.com>
+
+	* registry.h (DECLARE_REGISTRY): Define the _key class.
+
 2019-05-08  Andrew Burgess  <andrew.burgess@embecosm.com>
 
 	* NEWS: Merge two 'New commands' sections.
