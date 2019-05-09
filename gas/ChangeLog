@@ -1,3 +1,54 @@
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* testsuite/gas/aarch64/illegal-sve2-aes.d: New test.
+	* testsuite/gas/aarch64/illegal-sve2-bitperm.d: New test.
+	* testsuite/gas/aarch64/illegal-sve2-sha3.d: Test new instructions.
+	* testsuite/gas/aarch64/illegal-sve2-sm4.d: Test new instructions.
+	* testsuite/gas/aarch64/illegal-sve2-sve1ext.d: Test new instructions.
+	* testsuite/gas/aarch64/illegal-sve2-sve1ext.l: Test new instructions.
+	* testsuite/gas/aarch64/illegal-sve2.d: Test new instructions.
+	* testsuite/gas/aarch64/illegal-sve2.l: Test new instructions.
+	* testsuite/gas/aarch64/illegal-sve2.s: Test new instructions.
+	* testsuite/gas/aarch64/sve1-extended-sve2.s: New test.
+	* testsuite/gas/aarch64/sve2.d: Test new instructions.
+	* testsuite/gas/aarch64/sve2.s: Test new instructions.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* config/tc-aarch64.c (parse_operands): Handle new SVE_SHLIMM_UNPRED_22
+	operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* config/tc-aarch64.c (parse_operands): Handle new SVE_Zm4_11_INDEX
+	operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* config/tc-aarch64.c (parse_operands): Handle new SVE_SHRIMM_UNPRED_22
+	operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* config/tc-aarch64.c (REG_ZR): Macro specifying zero register.
+	(parse_address_main): Account for new addressing mode [Zn.S, Xm].
+	(parse_operands): Handle new SVE_ADDR_ZX operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* config/tc-aarch64.c (parse_operands): Handle new SVE_Zm3_11_INDEX
+	operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* config/tc-aarch64.c (parse_operands): Handle new SVE_IMM_ROT3 operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* config/tc-aarch64.c: Add command line architecture feature flags
+	"sve2", "sve2-sm4", "sve2-aes", "sve2-sha3", "bitperm".
+	* doc/c-aarch64.texi: Document new architecture feature flags.
+
 2019-05-08  Alan Modra  <amodra@gmail.com>
 
 	* testsuite/gas/elf/dwarf2-1.s,
