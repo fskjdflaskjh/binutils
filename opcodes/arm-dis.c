@@ -264,6 +264,32 @@ enum mve_instructions
   MVE_VREV16,
   MVE_VREV32,
   MVE_VREV64,
+  MVE_LSLL,
+  MVE_LSLLI,
+  MVE_LSRL,
+  MVE_ASRL,
+  MVE_ASRLI,
+  MVE_SQRSHRL,
+  MVE_SQRSHR,
+  MVE_UQRSHL,
+  MVE_UQRSHLL,
+  MVE_UQSHL,
+  MVE_UQSHLL,
+  MVE_URSHRL,
+  MVE_URSHR,
+  MVE_SRSHRL,
+  MVE_SRSHR,
+  MVE_SQSHLL,
+  MVE_SQSHL,
+  MVE_CINC,
+  MVE_CINV,
+  MVE_CNEG,
+  MVE_CSINC,
+  MVE_CSINV,
+  MVE_CSET,
+  MVE_CSETM,
+  MVE_CSNEG,
+  MVE_CSEL,
   MVE_NONE
 };
 
@@ -783,8 +809,10 @@ static const struct sopcode32 coprocessor_opcodes[] =
   /* Floating point coprocessor (VFP) instructions.  */
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
     0x0ee00a10, 0x0fff0fff, "vmsr%c\tfpsid, %12-15r"},
-  {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
+  {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD | FPU_MVE),
     0x0ee10a10, 0x0fff0fff, "vmsr%c\tfpscr, %12-15r"},
+  {ANY, ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+    0x0ee20a10, 0x0fff0fff, "vmsr%c\tfpscr_nzcvqc, %12-15r"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
     0x0ee60a10, 0x0fff0fff, "vmsr%c\tmvfr1, %12-15r"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
@@ -797,12 +825,22 @@ static const struct sopcode32 coprocessor_opcodes[] =
     0x0ee90a10, 0x0fff0fff, "vmsr%c\tfpinst, %12-15r\t@ Impl def"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
     0x0eea0a10, 0x0fff0fff, "vmsr%c\tfpinst2, %12-15r\t@ Impl def"},
+  {ANY, ARM_FEATURE_COPROC (FPU_MVE),
+    0x0eec0a10, 0x0fff0fff, "vmsr%c\tvpr, %12-15r"},
+  {ANY, ARM_FEATURE_COPROC (FPU_MVE),
+    0x0eed0a10, 0x0fff0fff, "vmsr%c\tp0, %12-15r"},
+  {ANY, ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+    0x0eee0a10, 0x0fff0fff, "vmsr%c\tfpcxt_ns, %12-15r"},
+  {ANY, ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+    0x0eef0a10, 0x0fff0fff, "vmsr%c\tfpcxt_s, %12-15r"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
     0x0ef00a10, 0x0fff0fff, "vmrs%c\t%12-15r, fpsid"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
     0x0ef1fa10, 0x0fffffff, "vmrs%c\tAPSR_nzcv, fpscr"},
-  {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
+  {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD | FPU_MVE),
     0x0ef10a10, 0x0fff0fff, "vmrs%c\t%12-15r, fpscr"},
+  {ANY, ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+    0x0ef20a10, 0x0fff0fff, "vmrs%c\t%12-15r, fpscr_nzcvqc"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_ARMV8),
     0x0ef50a10, 0x0fff0fff, "vmrs%c\t%12-15r, mvfr2"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
@@ -815,6 +853,14 @@ static const struct sopcode32 coprocessor_opcodes[] =
     0x0ef90a10, 0x0fff0fff, "vmrs%c\t%12-15r, fpinst\t@ Impl def"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1xD),
     0x0efa0a10, 0x0fff0fff, "vmrs%c\t%12-15r, fpinst2\t@ Impl def"},
+  {ANY, ARM_FEATURE_COPROC (FPU_MVE),
+    0x0efc0a10, 0x0fff0fff, "vmrs%c\t%12-15r, vpr"},
+  {ANY, ARM_FEATURE_COPROC (FPU_MVE),
+    0x0efd0a10, 0x0fff0fff, "vmrs%c\t%12-15r, p0"},
+  {ANY, ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+    0x0efe0a10, 0x0fff0fff, "vmrs%c\t%12-15r, fpcxt_ns"},
+  {ANY, ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+    0x0eff0a10, 0x0fff0fff, "vmrs%c\t%12-15r, fpcxt_s"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1),
     0x0e000b10, 0x0fd00fff, "vmov%c.32\t%z2[%21d], %12-15r"},
   {ANY, ARM_FEATURE_COPROC (FPU_VFP_EXT_V1),
@@ -2026,6 +2072,7 @@ static const struct opcode32 neon_opcodes[] =
    %d			print addr mode of MVE vldr[bhw] and vstr[bhw]
    %u			print 'U' (unsigned) or 'S' for various mve instructions
    %i			print MVE predicate(s) for vpt and vpst
+   %j			print a 5-bit immediate from hw2[14:12,7:6]
    %m			print rounding mode for vcvt and vrint
    %n			print vector comparison code for predicated instruction
    %s			print size for various vcvt instructions
@@ -2042,10 +2089,14 @@ static const struct opcode32 neon_opcodes[] =
    %<bitfield>r		print as an ARM register
    %<bitfield>d		print the bitfield in decimal
    %<bitfield>A		print accumulate or not
+   %<bitfield>c		print bitfield as a condition code
+   %<bitfield>C		print bitfield as an inverted condition code
    %<bitfield>Q		print as a MVE Q register
    %<bitfield>F		print as a MVE S register
    %<bitfield>Z		as %<>r but r15 is ZR instead of PC and r13 is
 			UNPREDICTABLE
+
+   %<bitfield>S		as %<>r but r15 or r13 is UNPREDICTABLE
    %<bitfield>s		print size for vector predicate & non VMOV instructions
    %<bitfield>I		print carry flag or not
    %<bitfield>i		print immediate for vstr/vldr reg +/- imm
@@ -3294,6 +3345,136 @@ static const struct mopcode32 mve_opcodes[] =
    MVE_VSUB_VEC_T2,
    0xee011f40, 0xff811f70,
    "vsub%v.i%20-21s\t%13-15,22Q, %17-19,7Q, %0-3r"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_ASRLI,
+   0xea50012f, 0xfff1813f,
+   "asrl%c\t%17-19l, %9-11h, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_ASRL,
+   0xea50012d, 0xfff101ff,
+   "asrl%c\t%17-19l, %9-11h, %12-15S"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_LSLLI,
+   0xea50010f, 0xfff1813f,
+   "lsll%c\t%17-19l, %9-11h, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_LSLL,
+   0xea50010d, 0xfff101ff,
+   "lsll%c\t%17-19l, %9-11h, %12-15S"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_LSRL,
+   0xea50011f, 0xfff1813f,
+   "lsrl%c\t%17-19l, %9-11h, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_SQRSHRL,
+   0xea51012d, 0xfff101ff,
+   "sqrshrl%c\t%17-19l, %9-11h, %12-15S"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_SQRSHR,
+   0xea500f2d, 0xfff00fff,
+   "sqrshr%c\t%16-19S, %12-15S"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_SQSHLL,
+   0xea51013f, 0xfff1813f,
+   "sqshll%c\t%17-19l, %9-11h, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_SQSHL,
+   0xea500f3f, 0xfff08f3f,
+   "sqshl%c\t%16-19S, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_SRSHRL,
+   0xea51012f, 0xfff1813f,
+   "srshrl%c\t%17-19l, %9-11h, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_SRSHR,
+   0xea500f2f, 0xfff08f3f,
+   "srshr%c\t%16-19S, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_UQRSHLL,
+   0xea51010d, 0xfff101ff,
+   "uqrshll%c\t%17-19l, %9-11h, %12-15S"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_UQRSHL,
+   0xea500f0d, 0xfff00fff,
+   "uqrshl%c\t%16-19S, %12-15S"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_UQSHLL,
+    0xea51010f, 0xfff1813f,
+   "uqshll%c\t%17-19l, %9-11h, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_UQSHL,
+   0xea500f0f, 0xfff08f3f,
+   "uqshl%c\t%16-19S, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_URSHRL,
+    0xea51011f, 0xfff1813f,
+   "urshrl%c\t%17-19l, %9-11h, %j"},
+
+  {ARM_FEATURE_COPROC (FPU_MVE),
+   MVE_URSHR,
+   0xea500f1f, 0xfff08f3f,
+   "urshr%c\t%16-19S, %j"},
+
+  {ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+   MVE_CSINC,
+   0xea509000, 0xfff0f000,
+   "csinc\t%8-11S, %16-19Z, %0-3Z, %4-7c"},
+
+  {ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+   MVE_CSINV,
+   0xea50a000, 0xfff0f000,
+   "csinv\t%8-11S, %16-19Z, %0-3Z, %4-7c"},
+
+  {ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+   MVE_CSET,
+   0xea5f900f, 0xfffff00f,
+   "cset\t%8-11S, %4-7C"},
+
+  {ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+   MVE_CSETM,
+   0xea5fa00f, 0xfffff00f,
+   "csetm\t%8-11S, %4-7C"},
+
+  {ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+   MVE_CSEL,
+   0xea508000, 0xfff0f000,
+   "csel\t%8-11S, %16-19Z, %0-3Z, %4-7c"},
+
+  {ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+   MVE_CSNEG,
+   0xea50b000, 0xfff0f000,
+   "csneg\t%8-11S, %16-19Z, %0-3Z, %4-7c"},
+
+  {ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+   MVE_CINC,
+   0xea509000, 0xfff0f000,
+   "cinc\t%8-11S, %16-19Z, %4-7C"},
+
+  {ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+   MVE_CINV,
+   0xea50a000, 0xfff0f000,
+   "cinv\t%8-11S, %16-19Z, %4-7C"},
+
+  {ARM_FEATURE_CORE_HIGH (ARM_EXT2_V8_1M_MAIN),
+   MVE_CNEG,
+   0xea50b000, 0xfff0f000,
+   "cneg\t%8-11S, %16-19Z, %4-7C"},
 
   {ARM_FEATURE_CORE_LOW (0),
    MVE_NONE,
@@ -5169,6 +5350,23 @@ is_mve_okay_in_it (enum mve_instructions matched_insn)
     case MVE_VMOV2_VEC_LANE_TO_GP:
     case MVE_VMOV2_GP_TO_VEC_LANE:
     case MVE_VMOV_VEC_LANE_TO_GP:
+    case MVE_LSLL:
+    case MVE_LSLLI:
+    case MVE_LSRL:
+    case MVE_ASRL:
+    case MVE_ASRLI:
+    case MVE_SQRSHRL:
+    case MVE_SQRSHR:
+    case MVE_UQRSHL:
+    case MVE_UQRSHLL:
+    case MVE_UQSHL:
+    case MVE_UQSHLL:
+    case MVE_URSHRL:
+    case MVE_URSHR:
+    case MVE_SRSHRL:
+    case MVE_SRSHR:
+    case MVE_SQSHLL:
+    case MVE_SQSHL:
       return TRUE;
     default:
       return FALSE;
@@ -5513,6 +5711,46 @@ is_mve_encoding_conflict (unsigned long given,
     if (arm_decode_field (given, 16, 19) == 0xf)
       return TRUE;
     else
+      return FALSE;
+
+    case MVE_ASRLI:
+    case MVE_ASRL:
+    case MVE_LSLLI:
+    case MVE_LSLL:
+    case MVE_LSRL:
+    case MVE_SQRSHRL:
+    case MVE_SQSHLL:
+    case MVE_SRSHRL:
+    case MVE_UQRSHLL:
+    case MVE_UQSHLL:
+    case MVE_URSHRL:
+      if (arm_decode_field (given, 9, 11) == 0x7)
+	return TRUE;
+      else
+	return FALSE;
+
+    case MVE_CSINC:
+    case MVE_CSINV:
+      {
+	unsigned long rm, rn;
+	rm = arm_decode_field (given, 0, 3);
+	rn = arm_decode_field (given, 16, 19);
+	/* CSET/CSETM.  */
+	if (rm == 0xf && rn == 0xf)
+	  return TRUE;
+	/* CINC/CINV.  */
+	else if (rn == rm && rn != 0xf)
+	  return TRUE;
+      }
+    /* Fall through.  */
+    case MVE_CSEL:
+    case MVE_CSNEG:
+      if (arm_decode_field (given, 0, 3) == 0xd)
+	return TRUE;
+      /* CNEG.  */
+      else if (matched_insn == MVE_CSNEG)
+	if (arm_decode_field (given, 0, 3) == arm_decode_field (given, 16, 19))
+	  return TRUE;
       return FALSE;
 
     default:
@@ -6488,6 +6726,34 @@ is_mve_unpredictable (unsigned long given, enum mve_instructions matched_insn,
 	  }
 	else
 	  return FALSE;
+      }
+
+    case MVE_LSLL:
+    case MVE_LSLLI:
+    case MVE_LSRL:
+    case MVE_ASRL:
+    case MVE_ASRLI:
+    case MVE_UQSHLL:
+    case MVE_UQRSHLL:
+    case MVE_URSHRL:
+    case MVE_SRSHRL:
+    case MVE_SQSHLL:
+    case MVE_SQRSHRL:
+      {
+	unsigned long gpr = arm_decode_field (given, 9, 11);
+	gpr = ((gpr << 1) | 1);
+	if (gpr == 0xd)
+	  {
+	    *unpredictable_code = UNPRED_R13;
+	    return TRUE;
+	  }
+	else if (gpr == 0xf)
+	  {
+	    *unpredictable_code = UNPRED_R15;
+	    return TRUE;
+	  }
+
+	return FALSE;
       }
 
     default:
@@ -8983,6 +9249,15 @@ print_insn_mve (struct disassemble_info *info, long given)
 		      }
 		      break;
 
+		    case 'j':
+		      {
+			unsigned int imm5 = 0;
+			imm5 |= arm_decode_field (given, 6, 7);
+			imm5 |= (arm_decode_field (given, 12, 14) << 2);
+			func (stream, "#%u", (imm5 == 0) ? 32 : imm5);
+		      }
+		      break;
+
 		    case 'n':
 		      print_vec_condition (info, given, insn->mve_op);
 		      break;
@@ -9088,6 +9363,23 @@ print_insn_mve (struct disassemble_info *info, long given)
 			    else
 			      func (stream, "%s", arm_regnames[value]);
 			    break;
+
+			  case 'c':
+			    func (stream, "%s", arm_conditional[value]);
+			    break;
+
+			  case 'C':
+			    value ^= 1;
+			    func (stream, "%s", arm_conditional[value]);
+			    break;
+
+			  case 'S':
+			    if (value == 13 || value == 15)
+			      is_unpredictable = TRUE;
+			    else
+			      func (stream, "%s", arm_regnames[value]);
+			    break;
+
 			  case 's':
 			    print_mve_size (info,
 					    value,

@@ -1009,6 +1009,9 @@ static void it_fsm_post_encode (void);
     }							\
   while (0)
 
+/* Toggle value[pos].  */
+#define TOGGLE_BIT(value, pos) (value ^ (1 << pos))
+
 /* Pure syntax.	 */
 
 /* This array holds the chars that always start a comment.  If the
@@ -6930,6 +6933,7 @@ enum operand_parse_code
   OP_RRe,	/* ARM register, only even numbered.  */
   OP_RRo,	/* ARM register, only odd numbered, not r13 or r15.  */
   OP_RRnpcsp_I32, /* ARM register (no BadReg) or literal 1 .. 32 */
+  OP_RR_ZR,	/* ARM register or ZR but no PC */
 
   OP_REGLST,	/* ARM register list */
   OP_CLRMLST,	/* CLRM register list */
@@ -7232,7 +7236,20 @@ parse_operands (char *str, const unsigned int *pattern, bfd_boolean thumb)
 	  break;
 	  /* Also accept generic coprocessor regs for unknown registers.  */
 	  coproc_reg:
-	  po_reg_or_fail (REG_TYPE_CN);
+	  po_reg_or_goto (REG_TYPE_CN, vpr_po);
+	  break;
+	  /* Also accept P0 or p0 for VPR.P0.  Since P0 is already an
+	     existing register with a value of 0, this seems like the
+	     best way to parse P0.  */
+	  vpr_po:
+	  if (strncasecmp (str, "P0", 2) == 0)
+	    {
+	      str += 2;
+	      inst.operands[i].isreg = 1;
+	      inst.operands[i].reg = 13;
+	    }
+	  else
+	    goto failure;
 	  break;
 	case OP_RMF:   po_reg_or_fail (REG_TYPE_MVF);	  break;
 	case OP_RMD:   po_reg_or_fail (REG_TYPE_MVD);	  break;
@@ -7559,6 +7576,9 @@ parse_operands (char *str, const unsigned int *pattern, bfd_boolean thumb)
 	case OP_RRnpc_I0: po_reg_or_goto (REG_TYPE_RN, I0);   break;
 	I0:		  po_imm_or_fail (0, 0, FALSE);	      break;
 
+	case OP_RRnpcsp_I32: po_reg_or_goto (REG_TYPE_RN, I32);	break;
+	I32:		     po_imm_or_fail (1, 32, FALSE);	break;
+
 	case OP_RF_IF:    po_reg_or_goto (REG_TYPE_FN, IF);   break;
 	IF:
 	  if (!is_immediate_prefix (*str))
@@ -7790,6 +7810,8 @@ parse_operands (char *str, const unsigned int *pattern, bfd_boolean thumb)
 	case OP_oRMQRZ:
 	  po_reg_or_goto (REG_TYPE_MQ, try_rr_zr);
 	  break;
+
+	case OP_RR_ZR:
 	try_rr_zr:
 	  po_reg_or_goto (REG_TYPE_RN, ZR);
 	  break;
@@ -7818,6 +7840,7 @@ parse_operands (char *str, const unsigned int *pattern, bfd_boolean thumb)
 
 	case OP_oRRnpcsp:
 	case OP_RRnpcsp:
+	case OP_RRnpcsp_I32:
 	  if (inst.operands[i].isreg)
 	    {
 	      if (inst.operands[i].reg == REG_PC)
@@ -7876,6 +7899,7 @@ parse_operands (char *str, const unsigned int *pattern, bfd_boolean thumb)
 
 	case OP_RMQRZ:
 	case OP_oRMQRZ:
+	case OP_RR_ZR:
 	  if (!inst.operands[i].iszr && inst.operands[i].reg == REG_PC)
 	    inst.error = BAD_PC;
 	  break;
@@ -9825,10 +9849,42 @@ do_vmrs (void)
       return;
     }
 
-  /* MVFR2 is only valid at ARMv8-A.  */
-  if (inst.operands[1].reg == 5)
-    constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_armv8),
-		_(BAD_FPU));
+  switch (inst.operands[1].reg)
+    {
+    /* MVFR2 is only valid for Armv8-A.  */
+    case 5:
+      constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_armv8),
+		  _(BAD_FPU));
+      break;
+
+    /* Check for new Armv8.1-M Mainline changes to <spec_reg>.  */
+    case 1: /* fpscr.  */
+      constraint (!(ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext)
+		    || ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_v1xd)),
+		  _(BAD_FPU));
+      break;
+
+    case 14: /* fpcxt_ns.  */
+    case 15: /* fpcxt_s.  */
+      constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, arm_ext_v8_1m_main),
+		  _("selected processor does not support instruction"));
+      break;
+
+    case  2: /* fpscr_nzcvqc.  */
+    case 12: /* vpr.  */
+    case 13: /* p0.  */
+      constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, arm_ext_v8_1m_main)
+		  || (!ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext)
+		      && !ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_v1xd)),
+		  _("selected processor does not support instruction"));
+      if (inst.operands[0].reg != 2
+	  && !ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext))
+	as_warn (_("accessing MVE system register without MVE is UNPREDICTABLE"));
+      break;
+
+    default:
+      break;
+    }
 
   /* APSR_ sets isvec. All other refs to PC are illegal.  */
   if (!inst.operands[0].isvec && Rt == REG_PC)
@@ -9856,10 +9912,42 @@ do_vmsr (void)
       return;
     }
 
-  /* MVFR2 is only valid for ARMv8-A.  */
-  if (inst.operands[0].reg == 5)
-    constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_armv8),
-		_(BAD_FPU));
+  switch (inst.operands[0].reg)
+    {
+    /* MVFR2 is only valid for Armv8-A.  */
+    case 5:
+      constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_armv8),
+		  _(BAD_FPU));
+      break;
+
+    /* Check for new Armv8.1-M Mainline changes to <spec_reg>.  */
+    case  1: /* fpcr.  */
+      constraint (!(ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext)
+		    || ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_v1xd)),
+		  _(BAD_FPU));
+      break;
+
+    case 14: /* fpcxt_ns.  */
+    case 15: /* fpcxt_s.  */
+      constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, arm_ext_v8_1m_main),
+		  _("selected processor does not support instruction"));
+      break;
+
+    case  2: /* fpscr_nzcvqc.  */
+    case 12: /* vpr.  */
+    case 13: /* p0.  */
+      constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, arm_ext_v8_1m_main)
+		  || (!ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext)
+		      && !ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_v1xd)),
+		  _("selected processor does not support instruction"));
+      if (inst.operands[0].reg != 2
+	  && !ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext))
+	as_warn (_("accessing MVE system register without MVE is UNPREDICTABLE"));
+      break;
+
+    default:
+      break;
+    }
 
   /* If we get through parsing the register name, we just insert the number
      generated into the instruction without further validation.  */
@@ -11103,7 +11191,7 @@ encode_thumb32_addr_mode (int i, bfd_boolean is_t, bfd_boolean is_d)
     inst.error = _("instruction does not accept unindexed addressing");
 }
 
-/* Table of Thumb instructions which exist in both 16- and 32-bit
+/* Table of Thumb instructions which exist in 16- and/or 32-bit
    encodings (the latter only in post-V6T2 cores).  The index is the
    value used in the insns table below.  When there is more than one
    possible 16-bit encoding for the instruction, this table always
@@ -11132,11 +11220,20 @@ encode_thumb32_addr_mode (int i, bfd_boolean is_t, bfd_boolean is_d)
   X(_bflx,  0000, f070e001),			\
   X(_bic,   4380, ea200000),			\
   X(_bics,  4380, ea300000),			\
+  X(_cinc,  0000, ea509000),			\
+  X(_cinv,  0000, ea50a000),			\
   X(_cmn,   42c0, eb100f00),			\
   X(_cmp,   2800, ebb00f00),			\
+  X(_cneg,  0000, ea50b000),			\
   X(_cpsie, b660, f3af8400),			\
   X(_cpsid, b670, f3af8600),			\
   X(_cpy,   4600, ea4f0000),			\
+  X(_csel,  0000, ea508000),			\
+  X(_cset,  0000, ea5f900f),			\
+  X(_csetm, 0000, ea5fa00f),			\
+  X(_csinc, 0000, ea509000),			\
+  X(_csinv, 0000, ea50a000),			\
+  X(_csneg, 0000, ea50b000),			\
   X(_dec_sp,80dd, f1ad0d00),			\
   X(_dls,   0000, f040e001),			\
   X(_dlstp, 0000, f000e001),			\
@@ -11949,6 +12046,60 @@ do_t_clz (void)
   inst.instruction |= Rd << 8;
   inst.instruction |= Rm << 16;
   inst.instruction |= Rm;
+}
+
+/* For the Armv8.1-M conditional instructions.  */
+static void
+do_t_cond (void)
+{
+  unsigned Rd, Rn, Rm;
+  signed int cond;
+
+  constraint (inst.cond != COND_ALWAYS, BAD_COND);
+
+  Rd = inst.operands[0].reg;
+  switch (inst.instruction)
+    {
+      case T_MNEM_csinc:
+      case T_MNEM_csinv:
+      case T_MNEM_csneg:
+      case T_MNEM_csel:
+	Rn = inst.operands[1].reg;
+	Rm = inst.operands[2].reg;
+	cond = inst.operands[3].imm;
+	constraint (Rn == REG_SP, BAD_SP);
+	constraint (Rm == REG_SP, BAD_SP);
+	break;
+
+      case T_MNEM_cinc:
+      case T_MNEM_cinv:
+      case T_MNEM_cneg:
+	Rn = inst.operands[1].reg;
+	cond = inst.operands[2].imm;
+	/* Invert the last bit to invert the cond.  */
+	cond = TOGGLE_BIT (cond, 0);
+	constraint (Rn == REG_SP, BAD_SP);
+	Rm = Rn;
+	break;
+
+      case T_MNEM_csetm:
+      case T_MNEM_cset:
+	cond = inst.operands[1].imm;
+	/* Invert the last bit to invert the cond.  */
+	cond = TOGGLE_BIT (cond, 0);
+	Rn = REG_PC;
+	Rm = REG_PC;
+	break;
+
+      default: abort ();
+    }
+
+  set_pred_insn_type (OUTSIDE_PRED_INSN);
+  inst.instruction = THUMB_OP32 (inst.instruction);
+  inst.instruction |= Rd << 8;
+  inst.instruction |= Rn << 16;
+  inst.instruction |= Rm;
+  inst.instruction |= cond << 4;
 }
 
 static void
@@ -14120,6 +14271,37 @@ v8_1_loop_reloc (int is_le)
     {
       inst.relocs[0].type = BFD_RELOC_ARM_THUMB_LOOP12;
       inst.relocs[0].pc_rel = 1;
+    }
+}
+
+/* For shifts in MVE.  */
+static void
+do_mve_scalar_shift (void)
+{
+  if (!inst.operands[2].present)
+    {
+      inst.operands[2] = inst.operands[1];
+      inst.operands[1].reg = 0xf;
+    }
+
+  inst.instruction |= inst.operands[0].reg << 16;
+  inst.instruction |= inst.operands[1].reg << 8;
+
+  if (inst.operands[2].isreg)
+    {
+      /* Assuming Rm is already checked not to be 11x1.  */
+      constraint (inst.operands[2].reg == inst.operands[0].reg, BAD_OVERLAP);
+      constraint (inst.operands[2].reg == inst.operands[1].reg, BAD_OVERLAP);
+      inst.instruction |= inst.operands[2].reg << 12;
+    }
+  else
+    {
+      /* Assuming imm is already checked as [1,32].  */
+      unsigned int value = inst.operands[2].imm;
+      inst.instruction |= (value & 0x1c) << 10;
+      inst.instruction |= (value & 0x03) << 6;
+      /* Change last 4 bits from 0xd to 0xf.  */
+      inst.instruction |= 0x2;
     }
 }
 
@@ -22708,6 +22890,10 @@ static const struct reg_entry reg_names[] =
   REGDEF(mvfr0,7,VFC), REGDEF(mvfr1,6,VFC),
   REGDEF(MVFR0,7,VFC), REGDEF(MVFR1,6,VFC),
   REGDEF(mvfr2,5,VFC), REGDEF(MVFR2,5,VFC),
+  REGDEF(fpscr_nzcvqc,2,VFC), REGDEF(FPSCR_nzcvqc,2,VFC),
+  REGDEF(vpr,12,VFC), REGDEF(VPR,12,VFC),
+  REGDEF(fpcxt_ns,14,VFC), REGDEF(FPCXT_NS,14,VFC),
+  REGDEF(fpcxt_s,15,VFC), REGDEF(FPCXT_S,15,VFC),
 
   /* Maverick DSP coprocessor registers.  */
   REGSET(mvf,MVF),  REGSET(mvd,MVD),  REGSET(mvfx,MVFX),  REGSET(mvdx,MVDX),
@@ -24335,11 +24521,14 @@ static const struct asm_opcode insns[] =
 
 #undef  ARM_VARIANT
 #define ARM_VARIANT  & fpu_vfp_ext_v1xd  /* VFP V1xD (single precision).  */
+#undef THUMB_VARIANT
+#define THUMB_VARIANT  & arm_ext_v6t2
+ mcCE(vmrs,	ef00a10, 2, (APSR_RR, RVC),   vmrs),
+ mcCE(vmsr,	ee00a10, 2, (RVC, RR),        vmsr),
+#undef THUMB_VARIANT
 
   /* Moves and type conversions.  */
  cCE("fmstat",	ef1fa10, 0, (),		      noargs),
- cCE("vmrs",	ef00a10, 2, (APSR_RR, RVC),   vmrs),
- cCE("vmsr",	ee00a10, 2, (RVC, RR),        vmsr),
  cCE("fsitos",	eb80ac0, 2, (RVS, RVS),	      vfp_sp_monadic),
  cCE("fuitos",	eb80a40, 2, (RVS, RVS),	      vfp_sp_monadic),
  cCE("ftosis",	ebd0a40, 2, (RVS, RVS),	      vfp_sp_monadic),
@@ -25122,6 +25311,16 @@ static const struct asm_opcode insns[] =
  /* Armv8.1-M Mainline instructions.  */
 #undef  THUMB_VARIANT
 #define THUMB_VARIANT & arm_ext_v8_1m_main
+ toU("cinc",  _cinc,  3, (RRnpcsp, RR_ZR, COND),	t_cond),
+ toU("cinv",  _cinv,  3, (RRnpcsp, RR_ZR, COND),	t_cond),
+ toU("cneg",  _cneg,  3, (RRnpcsp, RR_ZR, COND),	t_cond),
+ toU("csel",  _csel,  4, (RRnpcsp, RR_ZR, RR_ZR, COND),	t_cond),
+ toU("csetm", _csetm, 2, (RRnpcsp, COND),		t_cond),
+ toU("cset",  _cset,  2, (RRnpcsp, COND),		t_cond),
+ toU("csinc", _csinc, 4, (RRnpcsp, RR_ZR, RR_ZR, COND),	t_cond),
+ toU("csinv", _csinv, 4, (RRnpcsp, RR_ZR, RR_ZR, COND),	t_cond),
+ toU("csneg", _csneg, 4, (RRnpcsp, RR_ZR, RR_ZR, COND),	t_cond),
+
  toC("bf",     _bf,	2, (EXPs, EXPs),	     t_branch_future),
  toU("bfcsel", _bfcsel,	4, (EXPs, EXPs, EXPs, COND), t_branch_future),
  toC("bfx",    _bfx,	2, (EXPs, RRnpcsp),	     t_branch_future),
@@ -25137,6 +25336,21 @@ static const struct asm_opcode insns[] =
 
 #undef  THUMB_VARIANT
 #define THUMB_VARIANT & mve_ext
+ ToC("lsll",	ea50010d, 3, (RRe, RRo, RRnpcsp_I32), mve_scalar_shift),
+ ToC("lsrl",	ea50011f, 3, (RRe, RRo, I32),	      mve_scalar_shift),
+ ToC("asrl",	ea50012d, 3, (RRe, RRo, RRnpcsp_I32), mve_scalar_shift),
+ ToC("uqrshll",	ea51010d, 3, (RRe, RRo, RRnpcsp),     mve_scalar_shift),
+ ToC("sqrshrl",	ea51012d, 3, (RRe, RRo, RRnpcsp),     mve_scalar_shift),
+ ToC("uqshll",	ea51010f, 3, (RRe, RRo, I32),	      mve_scalar_shift),
+ ToC("urshrl",	ea51011f, 3, (RRe, RRo, I32),	      mve_scalar_shift),
+ ToC("srshrl",	ea51012f, 3, (RRe, RRo, I32),	      mve_scalar_shift),
+ ToC("sqshll",	ea51013f, 3, (RRe, RRo, I32),	      mve_scalar_shift),
+ ToC("uqrshl",	ea500f0d, 2, (RRnpcsp, RRnpcsp),      mve_scalar_shift),
+ ToC("sqrshr",	ea500f2d, 2, (RRnpcsp, RRnpcsp),      mve_scalar_shift),
+ ToC("uqshl",	ea500f0f, 2, (RRnpcsp, I32),	      mve_scalar_shift),
+ ToC("urshr",	ea500f1f, 2, (RRnpcsp, I32),	      mve_scalar_shift),
+ ToC("srshr",	ea500f2f, 2, (RRnpcsp, I32),	      mve_scalar_shift),
+ ToC("sqshl",	ea500f3f, 2, (RRnpcsp, I32),	      mve_scalar_shift),
 
  ToC("vpt",	ee410f00, 3, (COND, RMQ, RMQRZ), mve_vpt),
  ToC("vptt",	ee018f00, 3, (COND, RMQ, RMQRZ), mve_vpt),
