@@ -9102,6 +9102,18 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	{
 	  switch (r_type)
 	    {
+	    case R_MIPS_TLS_TPREL_HI16:
+	    case R_MIPS16_TLS_TPREL_HI16:
+	    case R_MICROMIPS_TLS_TPREL_HI16:
+	    case R_MIPS_TLS_TPREL_LO16:
+	    case R_MIPS16_TLS_TPREL_LO16:
+	    case R_MICROMIPS_TLS_TPREL_LO16:
+	      /* These are okay in PIE, but not in a shared library.  */
+	      if (bfd_link_executable (info))
+		break;
+
+	      /* FALLTHROUGH */
+
 	    case R_MIPS16_HI16:
 	    case R_MIPS_HI16:
 	    case R_MIPS_HIGHER:
@@ -9115,7 +9127,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		break;
 
 	      /* Likewise an absolute symbol.  */
-	      if (bfd_is_abs_symbol (&h->root))
+	      if (h != NULL && bfd_is_abs_symbol (&h->root))
 		break;
 
 	      /* R_MIPS_HI16 against _gp_disp is used for $gp setup,
@@ -9133,13 +9145,16 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	    case R_MIPS16_26:
 	    case R_MIPS_26:
 	    case R_MICROMIPS_26_S1:
-	      howto = MIPS_ELF_RTYPE_TO_HOWTO (abfd, r_type, FALSE);
-	      info->callbacks->einfo
-		/* xgettext:c-format */
-		(_("%X%H: relocation %s against `%s' cannot be used"
-		   " when making a shared object; recompile with -fPIC\n"),
-		 abfd, sec, rel->r_offset, howto->name,
-		 (h) ? h->root.root.string : "a local symbol");
+	      howto = MIPS_ELF_RTYPE_TO_HOWTO (abfd, r_type, NEWABI_P (abfd));
+	      /* An error for unsupported relocations is raised as part
+		 of the above search, so we can skip the following.  */
+	      if (howto != NULL)
+		info->callbacks->einfo
+		  /* xgettext:c-format */
+		  (_("%X%H: relocation %s against `%s' cannot be used"
+		     " when making a shared object; recompile with -fPIC\n"),
+		   abfd, sec, rel->r_offset, howto->name,
+		   (h) ? h->root.root.string : "a local symbol");
 	      break;
 	    default:
 	      break;
