@@ -1,3 +1,53 @@
+2019-05-24  Alan Modra  <amodra@gmail.com>
+
+	* config/tc-ppc.c (ppc_elf_suffix): Support @pcrel, @got@pcrel,
+	@plt@pcrel, @higher34, @highera34, @highest34, and @highesta34.
+	(fixup_size): Handle new powerxx relocs.
+	(md_assemble): Warn for @pcrel on non-prefix insns.
+	Accept @l, @h and @ha on prefix insns, and infer reloc without
+	any @ suffix.  Translate powerxx relocs to suit DQ and DS field
+	instructions.  Include operand tests as well as opcode test to
+	translate BFD_RELOC_HI16_S to BFD_RELOC_PPC_16DX_HA.
+	(ppc_fix_adjustable): Return false for pcrel GOT and PLT relocs.
+	(md_apply_fix): Handle new powerxx relocs.
+	* config/tc-ppc.h (TC_FORCE_RELOCATION_SUB_LOCAL): Accept
+	BFD_RELOC_PPC64_ADDR16_HIGHER34, BFD_RELOC_PPC64_ADDR16_HIGHERA34,
+	BFD_RELOC_PPC64_ADDR16_HIGHEST34, BFD_RELOC_PPC64_ADDR16_HIGHESTA34,
+	BFD_RELOC_PPC64_D34, and BFD_RELOC_PPC64_D28.
+	* testsuite/gas/ppc/prefix-reloc.d,
+	* testsuite/gas/ppc/prefix-reloc.s: New test.
+	* testsuite/gas/ppc/ppc.exp: Run it.
+
+2019-05-24  Peter Bergner  <bergner@linux.ibm.com>
+	    Alan Modra  <amodra@gmail.com>
+
+	* config/tc-ppc.c (ppc_insert_operand): Only sign extend fields that
+	are 32-bits or smaller.
+	* messages.c (as_internal_value_out_of_range): Do not truncate
+	variables and use BFD_VMA_FMT to print them.
+	* testsuite/gas/ppc/prefix-pcrel.s,
+	* testsuite/gas/ppc/prefix-pcrel.d: New test.
+	* testsuite/gas/ppc/ppc.exp: Run it.
+
+2019-05-24  Peter Bergner  <bergner@linux.ibm.com>
+	    Alan Modra  <amodra@gmail.com>
+
+	* config/tc-ppc.c (ppc_setup_opcodes): Handle prefix_opcodes.
+	(struct insn_label_list): New.
+	(insn_labels, free_insn_labels): New variables.
+	(ppc_record_label, ppc_clear_labels, ppc_start_line_hook): New funcs.
+	(ppc_frob_label, ppc_new_dot_label): Move functions earlier in file
+	and call ppc_record_label.
+	(md_assemble): Handle 64-bit prefix instructions.  Align labels
+	that are on the same line as a prefix instruction.
+	* config/tc-ppc.h (tc_frob_label, ppc_frob_label): Move to
+	later in the file.
+	(md_start_line_hook): Define.
+	(ppc_start_line_hook): Declare.
+	* testsuite/gas/ppc/prefix-align.d,
+	* testsuite/gas/ppc/prefix-align.s: New test.
+	* testsuite/gas/ppc/ppc.exp: Run new test.
+
 2019-05-23  Jose E. Marchesi  <jose.marchesi@oracle.com>
 
 	* configure.ac: Handle bpf-*-* targets.

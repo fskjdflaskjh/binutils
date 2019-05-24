@@ -1,3 +1,30 @@
+2019-05-24  Peter Bergner  <bergner@linux.ibm.com>
+	    Alan Modra  <amodra@gmail.com>
+
+	* ppc-opc.c (insert_d34, extract_d34, insert_nsi34, extract_nsi34),
+	(insert_pcrel, extract_pcrel, extract_pcrel0): New functions.
+	(extract_esync, extract_raq, extract_tbr, extract_sxl): Comment.
+	(powerpc_operands <D34, SI34, NSI34, PRA0, PRAQ, PCREL, PCREL0,
+	XTOP>): Define and add entries.
+	(P8LS, PMLS, P_D_MASK, P_DRAPCREL_MASK): Define.
+	(prefix_opcodes): Add pli, paddi, pla, psubi, plwz, plbz, pstw,
+	pstb, plhz, plha, psth, plfs, plfd, pstfs, pstfd, plq, plxsd,
+	plxssp, pld, plwa, pstxsd, pstxssp, pstxv, pstd, and pstq.
+
+2019-05-24  Peter Bergner  <bergner@linux.ibm.com>
+	    Alan Modra  <amodra@gmail.com>
+
+	* ppc-dis.c (ppc_opts): Add "future" entry.
+	(PREFIX_OPCD_SEGS): Define.
+	(prefix_opcd_indices): New array.
+	(disassemble_init_powerpc): Initialize prefix_opcd_indices.
+	(lookup_prefix): New function.
+	(print_insn_powerpc): Handle 64-bit prefix instructions.
+	* ppc-opc.c (PREFIX_OP, PREFIX_FORM, SUFFIX_MASK, PREFIX_MASK),
+	(PMRR, POWERXX): Define.
+	(prefix_opcodes): New instruction table.
+	(prefix_num_opcodes): New constant.
+
 2019-05-23  Jose E. Marchesi  <jose.marchesi@oracle.com>
 
 	* configure.ac (SHARED_DEPENDENCIES): Add case for bfd_bpf_arch.
