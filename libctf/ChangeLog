@@ -1,0 +1,109 @@
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* Makefile.am: New.
+	* Makefile.in: Regenerated.
+	* config.h.in: Likewise.
+	* aclocal.m4: Likewise.
+	* configure: Likewise.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-dump.c: New.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-labels.c: New.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-impl.h (_libctf_version): New declaration.
+	* ctf-subr.c (_libctf_version): Define it.
+	(ctf_version): New.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-create.c (enumcmp): New.
+	(enumadd): Likewise.
+	(membcmp): Likewise.
+	(membadd): Likewise.
+	(ctf_add_type): Likewise.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-lookup.c (isqualifier): New.
+	(ctf_lookup_by_name): Likewise.
+	(struct ctf_lookup_var_key): Likewise.
+	(ctf_lookup_var): Likewise.
+	(ctf_lookup_variable): Likewise.
+	(ctf_lookup_symbol_name): Likewise.
+	(ctf_lookup_by_symbol): Likewise.
+	(ctf_func_info): Likewise.
+	(ctf_func_args): Likewise.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-decl.c: New file.
+	* ctf-types.c: Likewise.
+	* ctf-impl.h: New declarations.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-open-bfd.c: New file.
+	* ctf-open.c (ctf_close): New.
+	* ctf-impl.h: Include bfd.h.
+	(ctf_file): New members ctf_data_mmapped, ctf_data_mmapped_len.
+	(ctf_archive_internal): New members ctfi_abfd, ctfi_data,
+	ctfi_bfd_close.
+	(ctf_bfdopen_ctfsect): New declaration.
+	(_CTF_SECTION): likewise.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-archive.c: New.
+	* ctf-impl.h (ctf_archive_internal): New type.
+	(ctf_arc_open_internal): New declaration.
+	(ctf_arc_bufopen): Likewise.
+	(ctf_arc_close_internal): Likewise.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-open.c: New file.
+	* swap.h: Likewise.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-create.c: New file.
+	* ctf-lookup.c: New file.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-impl.h: New definitions and declarations for type creation
+	and lookup.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-hash.c: New file.
+	* ctf-impl.h: New declarations.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-error.c: New file.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-util.c: New file.
+	* elf.h: Likewise.
+	* ctf-impl.h: Include it, and add declarations.
+
+2019-05-28  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-impl.h: New file.
+	* ctf-subr.c: New file.
+
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 76
+version-control: never
+End:
