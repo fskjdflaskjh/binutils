@@ -1,3 +1,45 @@
+2019-05-31  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
+
+	* NEWS: Mention new pipe command and new convenience variables.
+
+2019-05-31  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
+
+	* cli/cli-cmds.c (pipe_command): New function.
+	(_initialize_cli_cmds): Call add_com for pipe_command.
+	Define | as an alias for pipe.
+	(exit_status_set_internal_vars): New function.
+	(shell_escape): Call exit_status_set_internal_vars.
+	cli/cli-decode.c (find_command_name_length): Recognize | as
+	a single character command.
+
+2019-05-31  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
+
+	* gdbcmd.h (execute_command_to_ui_file): New declaration.
+	top.c (execute_command_to_ui_file): New function, mostly a copy
+	of execute_command_to_string.
+	(execute_command_to_string): Implement by calling
+	execute_command_to_ui_file.
+
+2019-05-31  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
+
+	* top.h (saved_command_line): Remove declaration.
+	* top.c (previous_saved_command_line, previous_repeat_arguments):
+	New variables.
+	(saved_command_line): Make static, define together with other
+	'repeat variables'.
+	(dont_repeat): Clear repeat_arguments.
+	(repeat_previous, get_saved_command_line, save_command_line):
+	New functions.
+	(gdb_init): Initialize saved_command_line
+	and previous_saved_command_line.
+	* main.c (captured_main_1): Remove saved_command_line initialization.
+	* event-top.c (handle_line_of_input): Update to use
+	the new 'repeat' related functions instead of direct access to
+	saved_command_line.
+	* command.h (repeat_previous, get_saved_command_line,
+	save_command_line): New declarations.
+	(dont_repeat): Add comment.
+
 2019-05-30  Tom Tromey  <tromey@adacore.com>
 
 	* gdbtypes.h (struct range_bounds) <flag_upper_bound_is_count>:
