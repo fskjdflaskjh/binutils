@@ -1,3 +1,297 @@
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* NEWS (New commands): Mention "maint test-options
+	require-delimiter", "maint test-options unknown-is-error", "maint
+	test-options unknown-is-operand" and "maint show
+	test-options-completion-result".
+	(New command options, command completion): New section.
+	(Completion improvements): New section.
+	Mention that you can abbreviate "unlimited".
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* cli/cli-utils.c (parse_flags, parse_flags_qcs): Delete.
+	* cli/cli-utils.h (parse_flags, parse_flags_qcs): Delete.
+	* unittests/cli-utils-selftests.c (test_parse_flags)
+	(test_parse_flags_qcs): Delete.
+	(test_cli_utils): Don't call deleted functions.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* thread.c: Include "cli/cli-option.h".
+	(tp_array_compar_ascending): Global.
+	(tp_array_compar): Delete function.
+	(tp_array_compar_ascending, tp_array_compar_descending): New
+	functions.
+	(ascending_option_def, qcs_flag_option_def)
+	(thr_qcs_flags_option_defs)
+	(make_thread_apply_all_options_def_group)
+	(make_thread_apply_options_def_group): New.
+	(thread_apply_all_command): Use gdb::option::process_options.
+	(thread_apply_command_completer)
+	(thread_apply_all_command_completer): New.
+	(thread_apply_command): Use gdb::option::process_options.
+	(_initialize_thread): Delete THREAD_APPLY_FLAGS_HELP, replace it
+	with a new THREAD_APPLY_OPTION_HELP.  Use gdb::option::build_help
+	to generate help text of "thread apply".  Adjust "taas"'s help.
+	* tid-parse.c (tid_range_parser::in_thread_range): New method.
+	* tid-parse.h (tid_range_parser::in_thread_range): New method.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* thread.c (thread_apply_command): Check for invalid TID with
+	isdigit instead of !isalpha.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* cli/cli-utils.c (parse_flags_qcs): Use validate_flags_qcs.
+	(validate_flags_qcs): New.
+	* cli/cli-utils.h (struct qcs_flags): Change field types to int.
+	(validate_flags_qcs): Declare.
+	* stack.c (qcs_flag_option_def, fr_qcs_flags_option_defs): New.
+	(make_frame_apply_options_def_group): New.
+	(frame_apply_command_count): Process options with
+	gdb::option::process_options.
+	(frame_apply_completer): New.
+	(frame_apply_level_completer, frame_apply_all_completer)
+	(frame_apply_completer): New.
+	(_initialize_stack): Update help of "frame apply", "frame apply
+	level", "frame apply all" and "faas" to mention supported options
+	and install command completers.
+	* stack.h (frame_apply_all_completer): Declare.
+	* thread.c: Include "stack.h".
+	(tfaas_command): Add "--".
+	(_initialize_thread): Update help "tfaas" to mention supported
+	options and install command completer.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* completer.c (complete_nested_command_line): New.
+	(gdb_completion_word_break_characters_throw): Add assertion.
+	* completer.h (complete_nested_command_line): Declare.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* stack.c (parse_backtrace_qualifiers): New.
+	(backtrace_command): Use it.
+	(backtrace_command_completer): Complete on qualifiers.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* frame.c: Include "cli/cli-option.h.
+	(user_set_backtrace_options): New.
+	(backtrace_past_main, backtrace_past_entry, backtrace_limit):
+	Delete.
+	(get_prev_frame): Adjust.
+	(boolean_option_def, uinteger_option_def)
+	(set_backtrace_option_defs): New.
+	(_initialize_frame): Adjust and use
+	gdb::option::add_setshow_cmds_for_options to install "set
+	backtrace past-main" and "set backtrace past-entry".
+	* frame.h: Include "cli/cli-option.h".
+	(struct frame_print_options): Forward declare.
+	(print_frame_arguments_all, print_frame_arguments_scalars)
+	(print_frame_arguments_none): Declare.
+	(print_entry_values): Delete declaration.
+	(struct frame_print_options, user_frame_print_options): New.
+	(struct set_backtrace_options): New.
+	(set_backtrace_option_defs, user_set_backtrace_options): Declare.
+	* mi/mi-cmd-stack.c (mi_cmd_stack_list_frames)
+	(mi_cmd_stack_list_locals, mi_cmd_stack_list_args)
+	(mi_cmd_stack_list_variables): Pass down USER_FRAME_PRINT_OPTIONS.
+	(list_args_or_locals): Add frame_print_options parameter.
+	(mi_cmd_stack_info_frame): Pass down USER_FRAME_PRINT_OPTIONS.
+	* python/py-framefilter.c (enumerate_args): Pass down
+	USER_FRAME_PRINT_OPTIONS.
+	* stack.c: Include "cli/cli-option.h".
+	(print_frame_arguments_all, print_frame_arguments_scalars)
+	(print_frame_arguments_none): Declare.
+	(print_raw_frame_arguments, print_entry_values): Delete.
+	(user_frame_print_options): New.
+	(boolean_option_def, enum_option_def, frame_print_option_defs):
+	New.
+	(struct backtrace_cmd_options): New.
+	(bt_flag_option_def): New.
+	(backtrace_command_option_defs): New.
+	(print_stack_frame): Pass down USER_FRAME_PRINT_OPTIONS.
+	(print_frame_arg, read_frame_arg, print_frame_args)
+	(print_frame_info, print_frame): Add frame_print_options parameter
+	and use it.
+	(info_frame_command_core): Pass down USER_FRAME_PRINT_OPTIONS.
+	(backtrace_command_1): Add frame_print_options and
+	backtrace_cmd_options parameters and use them.
+	(make_backtrace_options_def_group): New.
+	(backtrace_command): Process command options with
+	gdb::option::process_options.
+	(backtrace_command_completer): New.
+	(_initialize_stack): Extend "backtrace"'s help to mention
+	supported options.  Install completer for "backtrace".
+	Install some settings commands with add_setshow_cmds_for_options.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* NEWS (Changed commands): Mention set/show print raw-frame-arguments,
+	and that "set/show print raw frame-arguments" are now deprecated.
+
+	* cli/cli-decode.c (add_setshow_boolean_cmd): Now returns the
+	command.
+	* command.h (add_setshow_boolean_cmd): Return cmd_list_element *.
+	* stack.c (_initialize_stack): Install "set/show print
+	raw-frame-arguments", and deprecate "set/show print raw
+	frame-arguments".
+	* valprint.c (_initialize_valprint): Deprecate "set/show print
+	raw".
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* compile/compile.c (struct compile_options): New.
+	(compile_flag_option_def, compile_command_option_defs)
+	(make_compile_options_def_group): New.
+	(compile_file_command): Handle options with
+	gdb::option::process_options.
+	(compile_file_command_completer): New function.
+	(compile_code_command): Handle options with
+	gdb::option::process_options.
+	(compile_code_command_completer): New function.
+	(_initialize_compiler): Install completers for "compile code" and
+	"compile file".  Mention available options in "compile code" and
+	"compile code"'s help.
+	* completer.c (advance_to_completion_word): New, factored out from
+	...
+	(advance_to_expression_complete_word_point): ... this.
+	(advance_to_filename_complete_word_point): New.
+	* completer.h (advance_to_filename_complete_word_point): New
+	declaration.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* compile/compile.c: Include "cli/cli-option.h".
+	(compile_print_value): Scope data pointer is now a
+	value_print_options pointer; adjust.
+	(compile_print_command): Process options.  Scope data pointer is
+	now a value_print_options pointer; adjust.
+	(_initialize_compile): Update "compile print"'s help to include
+	supported options.  Install a completer for "compile print".
+	* cp-valprint.c (show_vtblprint, show_objectprint)
+	(show_static_field_print): Delete.
+	(_initialize_cp_valprint): Don't install "set print
+	static-members", "set print vtbl", "set print object" here.
+	* printcmd.c: Include "cli/cli-option.h" and
+	"common/gdb_optional.h".
+	(print_command_parse_format): Rework to fill in a
+	value_print_options instead of a format_data.
+	(print_value): Change parameter type from format_data pointer to
+	value_print_options reference.  Adjust.
+	(print_command_1): Process options.  Adjust to pass down a
+	value_print_options.
+	(print_command_completer): New.
+	(_initialize_printcmd): Install print_command_completer as
+	handle_brkchars completer for the "print" command.  Update
+	"print"'s help to include supported options.
+	* valprint.c: Include "cli/cli-option.h".
+	(show_vtblprint, show_objectprint, show_static_field_print): Moved
+	here from cp-valprint.c.
+	(boolean_option_def, uinteger_option_def)
+	(value_print_option_defs, make_value_print_options_def_group):
+	New.  Use gdb::option::add_setshow_cmds_for_options to install
+	"set print elements", "set print null-stop", "set print repeats",
+	"set print pretty", "set print union", "set print array", "set
+	print address", "set print symbol", "set print array-indexes".
+	* valprint.h: Include <string> and "cli/cli-option.h".
+	(make_value_print_options_def_group): Declare.
+	(print_value): Change parameter type from format_data pointer to
+	value_print_options reference.
+	(print_command_completer): Declare.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* Makefile.in (SUBDIR_CLI_SRCS): Add cli/cli-option.c.
+	(COMMON_SFILES): Add maint-test-settings.c.
+	* cli/cli-decode.c (boolean_enums): New global, factored out from
+	...
+	(add_setshow_boolean_cmd): ... here.
+	* cli/cli-decode.h (boolean_enums): Declare.
+	* cli/cli-option.c: New file.
+	* cli/cli-option.h: New file.
+	* cli/cli-setshow.c (parse_cli_boolean_value(const char **)): New,
+	factored out from ...
+	(parse_cli_boolean_value(const char *)): ... this.
+	(is_unlimited_literal): Change parameter type to pointer to
+	pointer.  Adjust and advance ARG pointer.
+	(parse_cli_var_uinteger, parse_cli_var_zuinteger_unlimited)
+	(parse_cli_var_enum): New, factored out from ...
+	(do_set_command): ... this.  Adjust.
+	* cli/cli-setshow.h (parse_cli_boolean_value)
+	(parse_cli_var_uinteger, parse_cli_var_zuinteger_unlimited)
+	(parse_cli_var_enum): Declare.
+	* cli/cli-utils.c: Include "cli/cli-option.h".
+	(get_ulongest): New.
+	* cli/cli-utils.h (get_ulongest): Declare.
+	(check_for_argument): New overloads.
+	* maint-test-options.c: New file.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* cli/cli-utils.c (number_or_range_parser::get_number): Do not
+	parse a range if "-" is at the end of the string.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* cli/cli-setshow.c (parse_auto_binary_operation)
+	(parse_cli_boolean_value): Don't allow "o".
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* Makefile.in (COMMON_SFILES): Add maint-test-settings.c.
+	* NEWS: Mention maint test-settings KIND.
+	* maint-test-settings.c: New file.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* cli/cli-decode.c (add_setshow_cmd_full): Remove "show"
+	completer.
+	(add_setshow_string_cmd, add_setshow_string_noescape_cmd): Remove
+	"set" completers.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* cli/cli-setshow.c (do_set_command) <var_enum>: Detect junk
+	after item.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* cli/cli-setshow.c (is_unlimited_literal): Allow abbreviations.
+
+2019-06-13  Pedro Alves <palves@redhat.com>
+
+	* ax-gdb.c (agent_command_1): Remove skip_spaces call.
+	* breakpoint.c (watch_maybe_just_location): Remove skip_spaces
+	call.
+	* cli/cli-cmds.c (apropos_command): Remove skip_spaces call.
+	* cli/cli-utils.c (extract_info_print_args): Remove skip_spaces
+	calls.
+	(check_for_argument): Skip spaces after argument.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* thread.c (thread_apply_command): Adjust TID parsing.
+	* tid-parse.c (tid_range_parser::finished): Ensure parsing end is
+	detected before end of string.
+	(tid_is_in_list): Error out if LIST is invalid.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* completer.c (complete_line_internal_1): Rewind completion word
+	point.
+	(completion_tracker::advance_custom_word_point_by): Change
+	parameter type to int.
+	* completer.h (completion_tracker::advance_custom_word_point_by):
+	Likewise.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* completer.c (advance_to_completion_word): Handle delimiters.
+
 2019-06-11  Bernhard Heckel  <bernhard.heckel@intel.com>
 
 	* dwarf2read.c (add_partial_symbol): Skip nameless modules.

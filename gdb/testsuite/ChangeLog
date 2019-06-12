@@ -1,3 +1,72 @@
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.base/options.exp (test-thread-apply): New.
+	(top level): Call it.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.base/options.exp (test-frame-apply): New.
+	(top level): Test print commands with different "frame apply"
+	prefixes.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+        * lib/completion-support.exp (test_gdb_complete_tab_multiple)
+	(test_gdb_complete_cmd_multiple, test_gdb_complete_multiple): Add
+	'max_completions' parameter and handle it.
+	(test_gdb_completion_offers_commands): New.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.base/options.exp (test-backtrace): Test completing qualifiers.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.base/options.exp (test-backtrace): New.
+	(top level): Call it.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.guile/scm-frame-args.exp: Use "set print
+	raw-frame-arguments" instead of "set print raw frame-arguments".
+	* gdb.python/py-frame-args.exp: Likewise.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.compile/compile.exp: Adjust expected output to option
+	processing changes.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.base/options.exp: Build executable.
+	(test-print): New procedure.
+	(top level): Call it, once for "print" and another for "compile
+	print".
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.base/options.c: New file.
+	* gdb.base/options.exp: New file.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.base/settings.exp (test-boolean, test-auto-boolean): Check
+	that "o" is ambiguous.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.base/settings.c: New file.
+	* gdb.base/settings.exp: New file.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.base/completion.exp: Fix comment typo.
+
+2019-06-13  Pedro Alves  <palves@redhat.com>
+
+	* gdb.multi/tids.exp: Adjust expected output.  Add "thread apply 1
+	foo --1" test.
+
 2019-06-11  Bernhard Heckel  <bernhard.heckel@intel.com>
 
 	* gdb.fortran/block-data.f: New.
