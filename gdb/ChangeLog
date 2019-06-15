@@ -1,3 +1,54 @@
+2019-06-15  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* annotate.c (annotate_source_line): Change return type to void,
+	update implementation to match.
+	* annotate.h (annotate_source_line): Change return type to void,
+	update header comment.
+	* stack.c (print_frame_info): Don't change what frame information
+	is printed based on whether annotations are on or not.
+
+2019-06-15  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* annotate.c: Add 'source.h' and 'objfiles.h' includes.
+	(annotate_source): Make static.
+	(annotate_source_line): Moved from source.c and renamed from
+	identify_source_line.  Update the return type.
+	* annotate.h (annotate_source): Delete declaration.
+	(annotate_source_line): Declaration moved from source.h, and
+	renamed from identify_source_line.  Return type updated.
+	* source.c (identify_source_line): Moved to annotate.c and renamed
+	to annotate_source_line.
+	(info_line_command): Remove check of annotation_level.
+	* source.h (identify_source_line): Move declaration to annotate.h
+	and rename to annotate_source_line.
+	* stack.c: Add 'annotate.h' include.
+	(print_frame_info): Remove check of annotation_level before
+	calling annotate_source_line.
+
+2019-06-15  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* source-cache.c (source_cache::get_plain_source_lines): Use
+	open_source_file_with_line_charpos instead of just
+	open_source_file, remove call to find_source_lines.
+	(source_cache::get_source_lines): Likewise.
+	* source.c (find_source_lines): Make static.
+	(get_filename_and_charpos): Renamed into...
+	(open_source_file_with_line_charpos): ..this along with changes to
+	return a scoped_fd, and some other minor clean ups.
+	(identify_source_line): Use open_source_file_with_line_charpos.
+	(search_command_helper): Use open_source_file_with_line_charpos
+	instead of just open_source_file, remove call to
+	find_source_lines.
+	* source.h (open_source_file_with_line_charpos): Declare new
+	function.
+	(find_source_lines): Delete declaration.
+
+2019-06-15  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* source.c (get_filename_and_charpos): Remove fullname
+	parameter.
+	(identify_source_line): Update call to get_filename_and_charpos.
+
 2019-06-14  Tom Tromey  <tromey@adacore.com>
 
 	PR gdb/24502:
