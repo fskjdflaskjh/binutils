@@ -1,3 +1,53 @@
+2019-06-19  Nick Alcock <nick.alcock@oracle.com>
+
+	* ctf-open-bfd.c: Add swap.h and ctf-endian.h.
+	(ctf_fdopen): Check for endian-swapped raw CTF magic, and
+	little-endian CTF archive magic.  Do not check the CTF version:
+	ctf_simple_open does that in endian-safe ways.  Do not dereference
+	null pointers on open failure.
+
+2019-06-19  Nick Alcock <nick.alcock@oracle.com>
+
+	* ctf-open.c (get_vbytes_common): Return the new slice size.
+	(ctf_bufopen): Flip the endianness of the CTF-section header copy.
+	Remember to copy in the CTF data when opening an uncompressed
+	foreign-endian CTF file.  Prune useless variable manipulation.
+
+2019-06-19  Nick Alcock <nick.alcock@oracle.com>
+
+	* ctf-open.c (ctf_types): Fail when unidentified type kinds are
+	seen.
+
+2019-06-19  Nick Alcock <nick.alcock@oracle.com>
+
+	* ctf-open.c (ctf_bufopen): Dump header offsets into the debugging
+	output.
+
+2019-06-19  Nick Alcock <nick.alcock@oracle.com>
+
+	* ctf-subr.c (_PAGESIZE): Remove.
+	(ctf_data_alloc): Likewise.
+	(ctf_data_free): Likewise.
+	(ctf_data_protect): Likewise.
+	* ctf-impl.h: Remove declarations.
+	* ctf-create.c (ctf_update): No longer call ctf_data_protect: use
+	ctf_free, not ctf_data_free.
+	(ctf_compress_write): Use ctf_data_alloc, not ctf_alloc.  Free
+	the buffer again on compression error.
+	* ctf-open.c (ctf_set_base): No longer track the size: call
+	ctf_free, not ctf_data_free.
+	(upgrade_types): Likewise.  Call ctf_alloc, not ctf_data_alloc.
+	(ctf_bufopen): Likewise.  No longer call ctf_data_protect.
+
+2019-06-19  Nick Alcock <nick.alcock@oracle.com>
+
+	* ctf-create.c (ctf_dtd_insert): Pass on error returns from
+	ctf_dynhash_insert.
+	(ctf_dvd_insert): Likewise.
+	(ctf_add_generic): Likewise.
+	(ctf_add_variable): Likewise.
+	* ctf-impl.h: Adjust declarations.
+
 2019-06-14  Alan Modra  <amodra@gmail.com>
 
 	* configure: Regenerate.
