@@ -1,3 +1,58 @@
+2019-06-21  Simon Marchi  <simon.marchi@efficios.com>
+
+	* dwarf2read.h (dwarf2_section_info_def): Remove.
+	(DEF_VEC_O (dwarf2_section_info_def)): Remove.
+	* dwarf2read.c (struct dwo_sections) <types>: Change type to
+	std::vector<dwarf2_section_info>.
+	(struct dwo_file) <~dwo_file>: Remove.
+	(dwarf2_per_objfile::~dwarf2_per_objfile): Don't manually free
+	types field.
+	(dwarf2_per_objfile::locate_sections): Adjust to std::vector.
+	(dwarf2_read_debug_names): Likewise.
+	(create_debug_types_hash_table): Change parameter type to
+	array_view, adjust code accordingly.
+	(dwarf2_locate_dwo_sections): Adjust to std::vector.
+	(partial_die_info::fixup): Likewise.
+	(determine_prefix): Likewise.
+	* dwarf-index-write.c (write_psymtabs_to_index): Adjust.
+
+2019-06-21  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* dwarf2read.c (struct dwo_file) <dbfd>: Change type to
+	gdb_bfd_ref_ptr.
+	<~dwo_file>: Remove call to gdb_bfd_unref.
+	(open_and_init_dwo_file): Move gdb_bfd_ref_ptr into dbfd field. Call
+	gdb_bfd_ref_ptr::get.
+
+2019-06-21  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* dwarf2read.h (struct dwarf2_per_objfile) <dwo_files>: Change
+	type to htab_up.
+	* dwarf2read.c (struct dwo_file): Initialize fields.
+	<~dwo_file>: New.
+	(free_dwo_file): Remove, move content to ~dwo_file.
+	(struct dwo_file_deleter): Remove.
+	(dwo_file_up>: Remove custom deleter.
+	(free_dwo_files): Remove.
+	(dwarf2_per_objfile::~dwarf2_per_objfile): Don't explicitly free
+	dwo_files.
+	(process_skeletonless_type_units): Call unique_ptr::get.
+	(allocate_dwo_file_hash_table): Add deleter to created hash
+	table.  Change return type to htab_up.
+	(lookup_dwo_file_slot): Don't memset dwo_file, call
+	unique_ptr::get.
+	(create_dwo_unit_in_dwp_v1): Allocate dwo_file with new.
+	(create_dwo_unit_in_dwp_v2): Likewise.
+	(open_and_init_dwo_file): Likewise.
+	(free_dwo_file_from_slot): Remove.
+
+2019-06-21  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* dwarf2read.h (struct dwarf2_section_info) <readin,
+	is_virtual>: Change type to bool.
+	* dwarf2read.c (dwarf2_read_section, create_dwp_v2_section): Use
+	true instead of 1.
+
 2019-06-19  Tom Tromey  <tom@tromey.com>
 
 	* tui/tui-data.h (tui_init_content_element): Don't declare.

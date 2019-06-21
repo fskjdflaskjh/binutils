@@ -655,7 +655,7 @@ struct dwo_sections
   struct dwarf2_section_info str_offsets;
   /* In the case of a virtual DWO file, these two are unused.  */
   struct dwarf2_section_info info;
-  VEC (dwarf2_section_info_def) *types;
+  std::vector<dwarf2_section_info> types;
 };
 
 /* CUs/TUs in DWP/DWO files.  */
@@ -703,33 +703,36 @@ enum dwp_v2_section_ids
 
 struct dwo_file
 {
+  dwo_file () = default;
+  DISABLE_COPY_AND_ASSIGN (dwo_file);
+
   /* The DW_AT_GNU_dwo_name attribute.
      For virtual DWO files the name is constructed from the section offsets
      of abbrev,line,loc,str_offsets so that we combine virtual DWO files
      from related CU+TUs.  */
-  const char *dwo_name;
+  const char *dwo_name = nullptr;
 
   /* The DW_AT_comp_dir attribute.  */
-  const char *comp_dir;
+  const char *comp_dir = nullptr;
 
   /* The bfd, when the file is open.  Otherwise this is NULL.
      This is unused(NULL) for virtual DWO files where we use dwp_file.dbfd.  */
-  bfd *dbfd;
+  gdb_bfd_ref_ptr dbfd;
 
   /* The sections that make up this DWO file.
      Remember that for virtual DWO files in DWP V2, these are virtual
      sections (for lack of a better name).  */
-  struct dwo_sections sections;
+  struct dwo_sections sections {};
 
   /* The CUs in the file.
      Each element is a struct dwo_unit. Multiple CUs per DWO are supported as
      an extension to handle LLVM's Link Time Optimization output (where
      multiple source files may be compiled into a single object/dwo pair). */
-  htab_t cus;
+  htab_t cus {};
 
   /* Table of TUs in the file.
      Each element is a struct dwo_unit.  */
-  htab_t tus;
+  htab_t tus {};
 };
 
 /* These sections are what may appear in a DWP file.  */
@@ -1988,21 +1991,9 @@ static struct dwo_unit *lookup_dwo_type_unit
 
 static void queue_and_load_all_dwo_tus (struct dwarf2_per_cu_data *);
 
-static void free_dwo_file (struct dwo_file *);
-
-/* A unique_ptr helper to free a dwo_file.  */
-
-struct dwo_file_deleter
-{
-  void operator() (struct dwo_file *df) const
-  {
-    free_dwo_file (df);
-  }
-};
-
 /* A unique pointer to a dwo_file.  */
 
-typedef std::unique_ptr<struct dwo_file, dwo_file_deleter> dwo_file_up;
+typedef std::unique_ptr<struct dwo_file> dwo_file_up;
 
 static void process_cu_includes (struct dwarf2_per_objfile *dwarf2_per_objfile);
 
@@ -2147,8 +2138,6 @@ dwarf2_per_objfile::dwarf2_per_objfile (struct objfile *objfile_,
     locate_sections (obfd, sec, *names);
 }
 
-static void free_dwo_files (htab_t dwo_files, struct objfile *objfile);
-
 dwarf2_per_objfile::~dwarf2_per_objfile ()
 {
   /* Cached DIE trees use xmalloc and the comp_unit_obstack.  */
@@ -2165,11 +2154,6 @@ dwarf2_per_objfile::~dwarf2_per_objfile ()
 
   for (signatured_type *sig_type : all_type_units)
     VEC_free (dwarf2_per_cu_ptr, sig_type->per_cu.imported_symtabs);
-
-  VEC_free (dwarf2_section_info_def, types);
-
-  if (dwo_files != NULL)
-    free_dwo_files (dwo_files, objfile);
 
   /* Everything else should be on the objfile obstack.  */
 }
@@ -2427,8 +2411,7 @@ dwarf2_per_objfile::locate_sections (bfd *abfd, asection *sectp,
       type_section.s.section = sectp;
       type_section.size = bfd_get_section_size (sectp);
 
-      VEC_safe_push (dwarf2_section_info_def, this->types,
-		     &type_section);
+      this->types.push_back (type_section);
     }
   else if (section_is_p (sectp->name, &names.gdb_index))
     {
@@ -2474,7 +2457,7 @@ dwarf2_read_section (struct objfile *objfile, dwarf2_section_info *info)
   if (info->readin)
     return;
   info->buffer = NULL;
-  info->readin = 1;
+  info->readin = true;
 
   if (dwarf2_section_empty_p (info))
     return;
@@ -3601,15 +3584,12 @@ dwarf2_read_gdb_index
 
   if (types_list_elements)
     {
-      struct dwarf2_section_info *section;
-
       /* We can only handle a single .debug_types when we have an
 	 index.  */
-      if (VEC_length (dwarf2_section_info_def, dwarf2_per_objfile->types) != 1)
+      if (dwarf2_per_objfile->types.size () != 1)
 	return 0;
 
-      section = VEC_index (dwarf2_section_info_def,
-			   dwarf2_per_objfile->types, 0);
+      dwarf2_section_info *section = &dwarf2_per_objfile->types[0];
 
       create_signatured_type_table_from_index (dwarf2_per_objfile, section,
 					       types_list, types_list_elements);
@@ -5645,11 +5625,10 @@ dwarf2_read_debug_names (struct dwarf2_per_objfile *dwarf2_per_objfile)
     {
       /* We can only handle a single .debug_types when we have an
 	 index.  */
-      if (VEC_length (dwarf2_section_info_def, dwarf2_per_objfile->types) != 1)
+      if (dwarf2_per_objfile->types.size () != 1)
 	return false;
 
-      dwarf2_section_info *section = VEC_index (dwarf2_section_info_def,
-						dwarf2_per_objfile->types, 0);
+      dwarf2_section_info *section = &dwarf2_per_objfile->types[0];
 
       create_signatured_type_table_from_debug_names
 	(dwarf2_per_objfile, *map, section, &dwarf2_per_objfile->abbrev);
@@ -6826,19 +6805,11 @@ create_debug_type_hash_table (struct dwarf2_per_objfile *dwarf2_per_objfile,
 static void
 create_debug_types_hash_table (struct dwarf2_per_objfile *dwarf2_per_objfile,
 			       struct dwo_file *dwo_file,
-			       VEC (dwarf2_section_info_def) *types,
+			       gdb::array_view<dwarf2_section_info> type_sections,
 			       htab_t &types_htab)
 {
-  int ix;
-  struct dwarf2_section_info *section;
-
-  if (VEC_empty (dwarf2_section_info_def, types))
-    return;
-
-  for (ix = 0;
-       VEC_iterate (dwarf2_section_info_def, types, ix, section);
-       ++ix)
-    create_debug_type_hash_table (dwarf2_per_objfile, dwo_file, section,
+  for (dwarf2_section_info &section : type_sections)
+    create_debug_type_hash_table (dwarf2_per_objfile, dwo_file, &section,
 				  types_htab, rcuh_kind::TYPE);
 }
 
@@ -8407,7 +8378,7 @@ process_skeletonless_type_units (struct dwarf2_per_objfile *dwarf2_per_objfile)
   if (get_dwp_file (dwarf2_per_objfile) == NULL
       && dwarf2_per_objfile->dwo_files != NULL)
     {
-      htab_traverse_noresize (dwarf2_per_objfile->dwo_files,
+      htab_traverse_noresize (dwarf2_per_objfile->dwo_files.get (),
 			      process_dwo_file_for_skeletonless_type_units,
 			      dwarf2_per_objfile);
     }
@@ -11775,16 +11746,23 @@ eq_dwo_file (const void *item_lhs, const void *item_rhs)
 
 /* Allocate a hash table for DWO files.  */
 
-static htab_t
+static htab_up
 allocate_dwo_file_hash_table (struct objfile *objfile)
 {
-  return htab_create_alloc_ex (41,
-			       hash_dwo_file,
-			       eq_dwo_file,
-			       NULL,
-			       &objfile->objfile_obstack,
-			       hashtab_obstack_allocate,
-			       dummy_obstack_deallocate);
+  auto delete_dwo_file = [] (void *item)
+    {
+      struct dwo_file *dwo_file = (struct dwo_file *) item;
+
+      delete dwo_file;
+    };
+
+  return htab_up (htab_create_alloc_ex (41,
+					hash_dwo_file,
+					eq_dwo_file,
+					delete_dwo_file,
+					&objfile->objfile_obstack,
+					hashtab_obstack_allocate,
+					dummy_obstack_deallocate));
 }
 
 /* Lookup DWO file DWO_NAME.  */
@@ -11801,10 +11779,10 @@ lookup_dwo_file_slot (struct dwarf2_per_objfile *dwarf2_per_objfile,
     dwarf2_per_objfile->dwo_files
       = allocate_dwo_file_hash_table (dwarf2_per_objfile->objfile);
 
-  memset (&find_entry, 0, sizeof (find_entry));
   find_entry.dwo_name = dwo_name;
   find_entry.comp_dir = comp_dir;
-  slot = htab_find_slot (dwarf2_per_objfile->dwo_files, &find_entry, INSERT);
+  slot = htab_find_slot (dwarf2_per_objfile->dwo_files.get (), &find_entry,
+			 INSERT);
 
   return slot;
 }
@@ -12451,7 +12429,7 @@ create_dwo_unit_in_dwp_v1 (struct dwarf2_per_objfile *dwarf2_per_objfile,
 	  fprintf_unfiltered (gdb_stdlog, "Creating virtual DWO: %s\n",
 			      virtual_dwo_name.c_str ());
 	}
-      dwo_file = OBSTACK_ZALLOC (&objfile->objfile_obstack, struct dwo_file);
+      dwo_file = new struct dwo_file;
       dwo_file->dwo_name
 	= (const char *) obstack_copy0 (&objfile->objfile_obstack,
 					virtual_dwo_name.c_str (),
@@ -12513,7 +12491,7 @@ create_dwp_v2_section (struct dwarf2_per_objfile *dwarf2_per_objfile,
 
   memset (&result, 0, sizeof (result));
   result.s.containing_section = section;
-  result.is_virtual = 1;
+  result.is_virtual = true;
 
   if (size == 0)
     return result;
@@ -12649,7 +12627,7 @@ create_dwo_unit_in_dwp_v2 (struct dwarf2_per_objfile *dwarf2_per_objfile,
 	  fprintf_unfiltered (gdb_stdlog, "Creating virtual DWO: %s\n",
 			      virtual_dwo_name.c_str ());
 	}
-      dwo_file = OBSTACK_ZALLOC (&objfile->objfile_obstack, struct dwo_file);
+      dwo_file = new struct dwo_file;
       dwo_file->dwo_name
 	= (const char *) obstack_copy0 (&objfile->objfile_obstack,
 					virtual_dwo_name.c_str (),
@@ -12945,8 +12923,7 @@ dwarf2_locate_dwo_sections (bfd *abfd, asection *sectp, void *dwo_sections_ptr)
       memset (&type_section, 0, sizeof (type_section));
       type_section.s.section = sectp;
       type_section.size = bfd_get_section_size (sectp);
-      VEC_safe_push (dwarf2_section_info_def, dwo_sections->types,
-		     &type_section);
+      dwo_sections->types.push_back (type_section);
     }
 }
 
@@ -12959,9 +12936,8 @@ open_and_init_dwo_file (struct dwarf2_per_cu_data *per_cu,
 			const char *dwo_name, const char *comp_dir)
 {
   struct dwarf2_per_objfile *dwarf2_per_objfile = per_cu->dwarf2_per_objfile;
-  struct objfile *objfile = dwarf2_per_objfile->objfile;
 
-  gdb_bfd_ref_ptr dbfd (open_dwo_file (dwarf2_per_objfile, dwo_name, comp_dir));
+  gdb_bfd_ref_ptr dbfd = open_dwo_file (dwarf2_per_objfile, dwo_name, comp_dir);
   if (dbfd == NULL)
     {
       if (dwarf_read_debug)
@@ -12969,15 +12945,12 @@ open_and_init_dwo_file (struct dwarf2_per_cu_data *per_cu,
       return NULL;
     }
 
-  /* We use a unique pointer here, despite the obstack allocation,
-     because a dwo_file needs some cleanup if it is abandoned.  */
-  dwo_file_up dwo_file (OBSTACK_ZALLOC (&objfile->objfile_obstack,
-					struct dwo_file));
+  dwo_file_up dwo_file (new struct dwo_file);
   dwo_file->dwo_name = dwo_name;
   dwo_file->comp_dir = comp_dir;
-  dwo_file->dbfd = dbfd.release ();
+  dwo_file->dbfd = std::move (dbfd);
 
-  bfd_map_over_sections (dwo_file->dbfd, dwarf2_locate_dwo_sections,
+  bfd_map_over_sections (dwo_file->dbfd.get (), dwarf2_locate_dwo_sections,
 			 &dwo_file->sections);
 
   create_cus_hash_table (dwarf2_per_objfile, *dwo_file, dwo_file->sections.info,
@@ -13486,38 +13459,6 @@ queue_and_load_all_dwo_tus (struct dwarf2_per_cu_data *per_cu)
     htab_traverse_noresize (dwo_file->tus, queue_and_load_dwo_tu, per_cu);
 }
 
-/* Free all resources associated with DWO_FILE.
-   Close the DWO file and munmap the sections.  */
-
-static void
-free_dwo_file (struct dwo_file *dwo_file)
-{
-  /* Note: dbfd is NULL for virtual DWO files.  */
-  gdb_bfd_unref (dwo_file->dbfd);
-
-  VEC_free (dwarf2_section_info_def, dwo_file->sections.types);
-}
-
-/* Traversal function for free_dwo_files.  */
-
-static int
-free_dwo_file_from_slot (void **slot, void *info)
-{
-  struct dwo_file *dwo_file = (struct dwo_file *) *slot;
-
-  free_dwo_file (dwo_file);
-
-  return 1;
-}
-
-/* Free all resources associated with DWO_FILES.  */
-
-static void
-free_dwo_files (htab_t dwo_files, struct objfile *objfile)
-{
-  htab_traverse_noresize (dwo_files, free_dwo_file_from_slot, objfile);
-}
-
 /* Read in various DIEs.  */
 
 /* DW_AT_abstract_origin inherits whole DIEs (not just their attributes).
@@ -19068,8 +19009,7 @@ partial_die_info::fixup (struct dwarf2_cu *cu)
      children, see if we can determine the namespace from their linkage
      name.  */
   if (cu->language == language_cplus
-      && !VEC_empty (dwarf2_section_info_def,
-		     cu->per_cu->dwarf2_per_objfile->types)
+      && !cu->per_cu->dwarf2_per_objfile->types.empty ()
       && die_parent == NULL
       && has_children
       && (tag == DW_TAG_class_type
@@ -22571,7 +22511,7 @@ determine_prefix (struct die_info *die, struct dwarf2_cu *cu)
       case DW_TAG_partial_unit:
 	/* gcc-4.5 -gdwarf-4 can drop the enclosing namespace.  Cope.  */
 	if (cu->language == language_cplus
-	    && !VEC_empty (dwarf2_section_info_def, dwarf2_per_objfile->types)
+	    && !dwarf2_per_objfile->types.empty ()
 	    && die->child != NULL
 	    && (die->tag == DW_TAG_class_type
 		|| die->tag == DW_TAG_structure_type

@@ -67,14 +67,11 @@ struct dwarf2_section_info
      Only valid if is_virtual.  */
   bfd_size_type virtual_offset;
   /* True if we have tried to read this section.  */
-  char readin;
+  bool readin;
   /* True if this is a virtual section, False otherwise.
      This specifies which of s.section and s.containing_section to use.  */
-  char is_virtual;
+  bool is_virtual;
 };
-
-typedef struct dwarf2_section_info dwarf2_section_info_def;
-DEF_VEC_O (dwarf2_section_info_def);
 
 /* Read the contents of the section INFO.
    OBJFILE is the main object file, but not necessarily the file where
@@ -167,7 +164,7 @@ public:
   dwarf2_section_info debug_names {};
   dwarf2_section_info debug_aranges {};
 
-  VEC (dwarf2_section_info_def) *types = NULL;
+  std::vector<dwarf2_section_info> types;
 
   /* Back link.  */
   struct objfile *objfile = NULL;
@@ -197,7 +194,7 @@ public:
 
   /* A table mapping DW_AT_dwo_name values to struct dwo_file objects.
      This is NULL if the table hasn't been allocated yet.  */
-  htab_t dwo_files {};
+  htab_up dwo_files;
 
   /* True if we've checked for whether there is a DWP file.  */
   bool dwp_checked = false;
