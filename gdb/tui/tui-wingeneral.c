@@ -31,37 +31,31 @@
 ** PUBLIC FUNCTIONS
 ***********************/
 
-/* Refresh the window.  */
+/* See tui-data.h.  */
+
 void
-tui_refresh_win (struct tui_gen_win_info *win_info)
+tui_gen_win_info::refresh_window ()
 {
-  if (win_info->type == DATA_WIN && win_info->content_size > 0)
-    {
-      int i;
-
-      for (i = 0; (i < win_info->content_size); i++)
-	{
-	  struct tui_gen_win_info *data_item_win_ptr;
-
-	  data_item_win_ptr = &win_info->content[i]->which_element.data_window;
-	  if (data_item_win_ptr != NULL
-	      && data_item_win_ptr->handle != NULL)
-	    wrefresh (data_item_win_ptr->handle);
-	}
-    }
-  else if (win_info->type == CMD_WIN)
-    {
-      /* Do nothing.  */
-    }
-  else
-    {
-      if (win_info->handle != NULL)
-	wrefresh (win_info->handle);
-    }
-
-  return;
+  if (handle != NULL)
+    wrefresh (handle);
 }
 
+/* See tui-data.h.  */
+
+void
+tui_data_window::refresh_window ()
+{
+  if (!regs_content.empty ())
+    {
+      for (auto &&win : regs_content)
+	{
+	  if (win != NULL && win->handle != NULL)
+	    wrefresh (win->handle);
+	}
+    }
+  else
+    tui_gen_win_info::refresh_window ();
+}
 
 /* Function to delete the curses window, checking for NULL.  */
 void
@@ -69,8 +63,6 @@ tui_delete_win (WINDOW *window)
 {
   if (window != NULL)
     delwin (window);
-
-  return;
 }
 
 
@@ -110,11 +102,12 @@ void
 tui_unhighlight_win (struct tui_win_info *win_info)
 {
   if (win_info != NULL 
-      && win_info->generic.handle != NULL)
+      && win_info->can_highlight
+      && win_info->handle != NULL)
     {
-      box_win (&win_info->generic, NO_HILITE);
-      wrefresh (win_info->generic.handle);
-      tui_set_win_highlight (win_info, 0);
+      box_win (win_info, NO_HILITE);
+      wrefresh (win_info->handle);
+      win_info->set_highlight (false);
     }
 }
 
@@ -124,18 +117,18 @@ tui_highlight_win (struct tui_win_info *win_info)
 {
   if (win_info != NULL
       && win_info->can_highlight
-      && win_info->generic.handle != NULL)
+      && win_info->handle != NULL)
     {
-      box_win (&win_info->generic, HILITE);
-      wrefresh (win_info->generic.handle);
-      tui_set_win_highlight (win_info, 1);
+      box_win (win_info, HILITE);
+      wrefresh (win_info->handle);
+      win_info->set_highlight (true);
     }
 }
 
 void
 tui_check_and_display_highlight_if_needed (struct tui_win_info *win_info)
 {
-  if (win_info != NULL && win_info->generic.type != CMD_WIN)
+  if (win_info != NULL && win_info->type != CMD_WIN)
     {
       if (win_info->is_highlighted)
 	tui_highlight_win (win_info);
@@ -148,7 +141,7 @@ tui_check_and_display_highlight_if_needed (struct tui_win_info *win_info)
 
 
 void
-tui_make_window (struct tui_gen_win_info *win_info, int box_it)
+tui_make_window (struct tui_gen_win_info *win_info, enum tui_box box_it)
 {
   WINDOW *handle;
 
@@ -161,7 +154,7 @@ tui_make_window (struct tui_gen_win_info *win_info, int box_it)
     {
       if (box_it == BOX_WINDOW)
 	box_win (win_info, NO_HILITE);
-      win_info->is_visible = TRUE;
+      win_info->is_visible = true;
       scrollok (handle, TRUE);
     }
 }
@@ -170,65 +163,61 @@ tui_make_window (struct tui_gen_win_info *win_info, int box_it)
 /* We can't really make windows visible, or invisible.  So we have to
    delete the entire window when making it visible, and create it
    again when making it visible.  */
-static void
-make_visible (struct tui_gen_win_info *win_info, int visible)
+void
+tui_gen_win_info::make_visible (bool visible)
 {
-  /* Don't tear down/recreate command window.  */
-  if (win_info->type == CMD_WIN)
-    return;
-
   if (visible)
     {
-      if (!win_info->is_visible)
+      if (!is_visible)
 	{
-	  tui_make_window (win_info,
-			   (win_info->type != CMD_WIN
-			    && !tui_win_is_auxillary (win_info->type)));
-	  win_info->is_visible = TRUE;
+	  tui_make_window (this, (tui_win_is_auxiliary (type)
+				  ? DONT_BOX_WINDOW : BOX_WINDOW));
+	  is_visible = true;
 	}
     }
   else if (!visible
-	   && win_info->is_visible
-	   && win_info->handle != NULL)
+	   && is_visible
+	   && handle != NULL)
     {
-      win_info->is_visible = FALSE;
-      tui_delete_win (win_info->handle);
-      win_info->handle = NULL;
+      is_visible = false;
+      tui_delete_win (handle);
+      handle = NULL;
     }
-
-  return;
 }
 
 void
 tui_make_visible (struct tui_gen_win_info *win_info)
 {
-  make_visible (win_info, 1);
+  win_info->make_visible (true);
 }
 
 void
 tui_make_invisible (struct tui_gen_win_info *win_info)
 {
-  make_visible (win_info, 0);
+  win_info->make_visible (false);
 }
 
+/* See tui-data.h.  */
+
+void
+tui_source_window_base::make_visible (bool visible)
+{
+  if (execution_info != nullptr)
+    execution_info->make_visible (visible);
+  tui_win_info::make_visible (visible);
+}
 
 /* Makes all windows invisible (except the command and locator
    windows).  */
 static void
-make_all_visible (int visible)
+make_all_visible (bool visible)
 {
   int i;
 
   for (i = 0; i < MAX_MAJOR_WINDOWS; i++)
     {
-      if (tui_win_list[i] != NULL
-	  && ((tui_win_list[i])->generic.type) != CMD_WIN)
-	{
-	  if (tui_win_is_source_type ((tui_win_list[i])->generic.type))
-	    make_visible ((tui_win_list[i])->detail.source_info.execution_info,
-			  visible);
-	  make_visible (&tui_win_list[i]->generic, visible);
-	}
+      if (tui_win_list[i] != NULL)
+	tui_win_list[i]->make_visible (visible);
     }
 
   return;
@@ -237,13 +226,32 @@ make_all_visible (int visible)
 void
 tui_make_all_visible (void)
 {
-  make_all_visible (1);
+  make_all_visible (true);
 }
 
 void
 tui_make_all_invisible (void)
 {
-  make_all_visible (0);
+  make_all_visible (false);
+}
+
+/* See tui-data.h.  */
+
+void
+tui_win_info::refresh ()
+{
+  touchwin (handle);
+  refresh_window ();
+}
+
+/* See tui-data.h.  */
+
+void
+tui_source_window_base::refresh ()
+{
+  touchwin (execution_info->handle);
+  execution_info->refresh_window ();
+  tui_win_info::refresh ();
 }
 
 /* Function to refresh all the windows currently displayed.  */
@@ -252,25 +260,17 @@ void
 tui_refresh_all (struct tui_win_info **list)
 {
   int type;
-  struct tui_gen_win_info *locator = tui_locator_win_info_ptr ();
+  struct tui_locator_window *locator = tui_locator_win_info_ptr ();
 
   for (type = SRC_WIN; (type < MAX_MAJOR_WINDOWS); type++)
     {
-      if (list[type] && list[type]->generic.is_visible)
-	{
-	  if (type == SRC_WIN || type == DISASSEM_WIN)
-	    {
-	      touchwin (list[type]->detail.source_info.execution_info->handle);
-	      tui_refresh_win (list[type]->detail.source_info.execution_info);
-	    }
-	  touchwin (list[type]->generic.handle);
-	  tui_refresh_win (&list[type]->generic);
-	}
+      if (list[type] && list[type]->is_visible)
+	list[type]->refresh ();
     }
   if (locator->is_visible)
     {
       touchwin (locator->handle);
-      tui_refresh_win (locator);
+      locator->refresh_window ();
     }
 }
 

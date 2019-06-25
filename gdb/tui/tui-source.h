@@ -27,7 +27,7 @@
 struct symtab;
 struct tui_win_info;
 
-extern void tui_set_source_content_nil (struct tui_win_info *, 
+extern void tui_set_source_content_nil (struct tui_source_window_base *,
 					const char *);
 
 extern enum tui_status tui_set_source_content (struct symtab *, 
@@ -36,7 +36,5 @@ extern void tui_show_symtab_source (struct gdbarch *, struct symtab *,
 				    struct tui_line_or_address,
 				    int);
 extern int tui_source_is_displayed (const char *);
-extern void tui_vertical_source_scroll (enum tui_scroll_direction,
-					int);
 
 #endif /* TUI_TUI_SOURCE_H */
