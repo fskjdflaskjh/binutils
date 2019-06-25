@@ -209,7 +209,7 @@ test, 2, 0xa8, None, 1, 0, W|No_sSuf|No_ldSuf|Optimize, { Imm8|Imm16|Imm32|Imm32
 test, 2, 0xf6, 0x0, 1, 0, W|Modrm|No_sSuf|No_ldSuf|Optimize, { Imm8|Imm16|Imm32|Imm32S, Reg8|Reg16|Reg32|Reg64|Byte|Word|Dword|Qword|Unspecified|BaseIndex }
 
 and, 2, 0x20, None, 1, 0, D|W|CheckRegSize|Modrm|No_sSuf|No_ldSuf|IsLockable|HLEPrefixOk, { Reg8|Reg16|Reg32|Reg64, Reg8|Reg16|Reg32|Reg64|Byte|Word|Dword|Qword|Unspecified|BaseIndex }
-and, 2, 0x83, 0x4, 1, 0, Modrm|No_bSuf|No_sSuf|No_ldSuf|IsLockable|HLEPrefixOk, { Imm8S, Reg16|Reg32|Reg64|Word|Dword|Qword|Unspecified|BaseIndex }
+and, 2, 0x83, 0x4, 1, 0, Modrm|No_bSuf|No_sSuf|No_ldSuf|IsLockable|HLEPrefixOk|Optimize, { Imm8S, Reg16|Reg32|Reg64|Word|Dword|Qword|Unspecified|BaseIndex }
 and, 2, 0x24, None, 1, 0, W|No_sSuf|No_ldSuf|Optimize, { Imm8|Imm16|Imm32|Imm32S, Acc|Byte|Word|Dword|Qword }
 and, 2, 0x80, 0x4, 1, 0, W|Modrm|No_sSuf|No_ldSuf|IsLockable|HLEPrefixOk|Optimize, { Imm8|Imm16|Imm32|Imm32S, Reg8|Reg16|Reg32|Reg64|Byte|Word|Dword|Qword|Unspecified|BaseIndex }
 
@@ -945,7 +945,7 @@ fucompi, 1, 0xdfe8, None, 2, Cpu687, ShortForm|No_bSuf|No_wSuf|No_lSuf|No_sSuf|N
 
 // Pentium4 extensions.
 
-movnti, 2, 0xfc3, None, 2, CpuSSE2, Modrm|No_bSuf|No_wSuf|No_sSuf|No_ldSuf|NoAVX, { Reg32|Reg64, Dword|Qword|Unspecified|BaseIndex }
+movnti, 2, 0xfc3, None, 2, CpuSSE2, Modrm|IgnoreSize|No_bSuf|No_wSuf|No_sSuf|No_ldSuf|NoAVX, { Reg32|Reg64, Dword|Qword|Unspecified|BaseIndex }
 clflush, 1, 0xfae, 0x7, 2, CpuClflush, Modrm|IgnoreSize|No_bSuf|No_wSuf|No_lSuf|No_sSuf|No_qSuf|No_ldSuf, { Anysize|BaseIndex }
 lfence, 0, 0xfae, 0xe8, 2, CpuSSE2, No_bSuf|No_wSuf|No_lSuf|No_sSuf|No_qSuf|No_ldSuf|ImmExt|NoAVX, { 0 }
 mfence, 0, 0xfae, 0xf0, 2, CpuSSE2, No_bSuf|No_wSuf|No_lSuf|No_sSuf|No_qSuf|No_ldSuf|ImmExt|NoAVX, { 0 }

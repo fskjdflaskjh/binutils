@@ -259,7 +259,6 @@ fetch_data (struct disassemble_info *info, bfd_byte *addr)
 #define Edb { OP_E, db_mode }
 #define Edw { OP_E, dw_mode }
 #define Edqd { OP_E, dqd_mode }
-#define Edqa { OP_E, dqa_mode }
 #define Eq { OP_E, q_mode }
 #define indirEv { OP_indirE, indir_v_mode }
 #define indirEp { OP_indirE, f_mode }
@@ -591,8 +590,6 @@ enum
   dw_mode,
   /* registers like dq_mode, memory like d_mode.  */
   dqd_mode,
-  /* operand size depends on the W bit as well as address mode.  */
-  dqa_mode,
   /* normal vex mode */
   vex_mode,
   /* 128bit vex mode */
@@ -2076,7 +2073,6 @@ enum
   EVEX_W_0F28_P_2,
   EVEX_W_0F29_P_0,
   EVEX_W_0F29_P_2,
-  EVEX_W_0F2A_P_1,
   EVEX_W_0F2A_P_3,
   EVEX_W_0F2B_P_0,
   EVEX_W_0F2B_P_2,
@@ -2149,7 +2145,6 @@ enum
   EVEX_W_0F7A_P_1,
   EVEX_W_0F7A_P_2,
   EVEX_W_0F7A_P_3,
-  EVEX_W_0F7B_P_1,
   EVEX_W_0F7B_P_2,
   EVEX_W_0F7B_P_3,
   EVEX_W_0F7E_P_1,
@@ -3728,9 +3723,9 @@ static const struct dis386 prefix_table[][4] = {
   /* PREFIX_0F2A */
   {
     { "cvtpi2ps", { XM, EMCq }, PREFIX_OPCODE },
-    { "cvtsi2ss%LQ", { XM, Ev }, PREFIX_OPCODE },
+    { "cvtsi2ss%LQ", { XM, Edq }, PREFIX_OPCODE },
     { "cvtpi2pd", { XM, EMCq }, PREFIX_OPCODE },
-    { "cvtsi2sd%LQ", { XM, Ev }, 0 },
+    { "cvtsi2sd%LQ", { XM, Edq }, 0 },
   },
 
   /* PREFIX_0F2B */
@@ -3744,17 +3739,17 @@ static const struct dis386 prefix_table[][4] = {
   /* PREFIX_0F2C */
   {
     { "cvttps2pi", { MXC, EXq }, PREFIX_OPCODE },
-    { "cvttss2si", { Gv, EXd }, PREFIX_OPCODE },
+    { "cvttss2si", { Gdq, EXd }, PREFIX_OPCODE },
     { "cvttpd2pi", { MXC, EXx }, PREFIX_OPCODE },
-    { "cvttsd2si", { Gv, EXq }, PREFIX_OPCODE },
+    { "cvttsd2si", { Gdq, EXq }, PREFIX_OPCODE },
   },
 
   /* PREFIX_0F2D */
   {
     { "cvtps2pi", { MXC, EXq }, PREFIX_OPCODE },
-    { "cvtss2si", { Gv, EXd }, PREFIX_OPCODE },
+    { "cvtss2si", { Gdq, EXd }, PREFIX_OPCODE },
     { "cvtpd2pi", { MXC, EXx }, PREFIX_OPCODE },
-    { "cvtsd2si", { Gv, EXq }, PREFIX_OPCODE },
+    { "cvtsd2si", { Gdq, EXq }, PREFIX_OPCODE },
   },
 
   /* PREFIX_0F2E */
@@ -4063,7 +4058,7 @@ static const struct dis386 prefix_table[][4] = {
 
   /* PREFIX_MOD_0_0FC3 */
   {
-    { "movntiS", { Ev, Gv }, PREFIX_OPCODE },
+    { "movntiS", { Edq, Gdq }, PREFIX_OPCODE },
   },
 
   /* PREFIX_MOD_0_0FC7_REG_6 */
@@ -13522,7 +13517,6 @@ intel_operand_size (int bytemode, int sizeflag)
     case q_swap_mode:
       oappend ("QWORD PTR ");
       break;
-    case dqa_mode:
     case m_mode:
       if (address_mode == mode_64bit)
 	oappend ("QWORD PTR ");
@@ -13881,7 +13875,6 @@ OP_E_register (int bytemode, int sizeflag)
     case dqb_mode:
     case dqd_mode:
     case dqw_mode:
-    case dqa_mode:
       USED_REX (REX_W);
       if (rex & REX_W)
 	names = names64;
@@ -14030,9 +14023,6 @@ OP_E_memory (int bytemode, int sizeflag)
 	case b_scalar_mode:
 	case xmm_mb_mode:
 	  shift = 0;
-	  break;
-	case dqa_mode:
-	  shift = address_mode == mode_64bit ? 3 : 2;
 	  break;
 	default:
 	  abort ();
@@ -14788,53 +14778,16 @@ OP_I (int bytemode, int sizeflag)
 static void
 OP_I64 (int bytemode, int sizeflag)
 {
-  bfd_signed_vma op;
-  bfd_signed_vma mask = -1;
-
-  if (address_mode != mode_64bit)
+  if (bytemode != v_mode || address_mode != mode_64bit || !(rex & REX_W))
     {
       OP_I (bytemode, sizeflag);
       return;
     }
 
-  switch (bytemode)
-    {
-    case b_mode:
-      FETCH_DATA (the_info, codep + 1);
-      op = *codep++;
-      mask = 0xff;
-      break;
-    case v_mode:
-      USED_REX (REX_W);
-      if (rex & REX_W)
-	op = get64 ();
-      else
-	{
-	  if (sizeflag & DFLAG)
-	    {
-	      op = get32 ();
-	      mask = 0xffffffff;
-	    }
-	  else
-	    {
-	      op = get16 ();
-	      mask = 0xfffff;
-	    }
-	  used_prefixes |= (prefixes & PREFIX_DATA);
-	}
-      break;
-    case w_mode:
-      mask = 0xfffff;
-      op = get16 ();
-      break;
-    default:
-      oappend (INTERNAL_DISASSEMBLER_ERROR);
-      return;
-    }
+  USED_REX (REX_W);
 
-  op &= mask;
   scratchbuf[0] = '$';
-  print_operand_value (scratchbuf + 1, 1, op);
+  print_operand_value (scratchbuf + 1, 1, get64 ());
   oappend_maybe_intel (scratchbuf);
   scratchbuf[0] = '\0';
 }

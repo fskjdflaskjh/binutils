@@ -3948,7 +3948,10 @@ optimize_encoding (void)
 				&& i.tm.extension_opcode == 0x4)
 			    || ((i.tm.base_opcode == 0xf6
 				 || i.tm.base_opcode == 0xc6)
-				&& i.tm.extension_opcode == 0x0)))))
+				&& i.tm.extension_opcode == 0x0)))
+		    || (fits_in_imm7 (i.op[0].imms->X_add_number)
+			&& i.tm.base_opcode == 0x83
+			&& i.tm.extension_opcode == 0x4)))
 	       || (i.types[0].bitfield.qword
 		   && ((i.reg_operands == 2
 			&& i.op[0].regs == i.op[1].regs
@@ -3962,6 +3965,7 @@ optimize_encoding (void)
     {
       /* Optimize: -O:
 	   andq $imm31, %r64   -> andl $imm31, %r32
+	   andq $imm7, %r64    -> andl $imm7, %r32
 	   testq $imm31, %r64  -> testl $imm31, %r32
 	   xorq %r64, %r64     -> xorl %r32, %r32
 	   subq %r64, %r64     -> subl %r32, %r32
@@ -6382,9 +6386,7 @@ process_suffix (void)
       else if (i.suffix != QWORD_MNEM_SUFFIX
 	       && !i.tm.opcode_modifier.ignoresize
 	       && !i.tm.opcode_modifier.floatmf
-	       && !i.tm.opcode_modifier.vex
-	       && !i.tm.opcode_modifier.vexopcode
-	       && !is_evex_encoding (&i.tm)
+	       && !is_any_vex_encoding (&i.tm)
 	       && ((i.suffix == LONG_MNEM_SUFFIX) == (flag_code == CODE_16BIT)
 		   || (flag_code == CODE_64BIT
 		       && i.tm.opcode_modifier.jumpbyte)))
