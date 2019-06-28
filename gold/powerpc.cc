@@ -4733,6 +4733,9 @@ class Stub_table : public Output_relaxed_input_section
     return bytes;
   }
 
+  void
+  plt_error(const Plt_stub_key& p);
+
   // Write out stubs.
   void
   do_write(Output_file*);
@@ -5384,6 +5387,19 @@ Stub_table<size, big_endian>::define_stub_syms(Symbol_table* symtab)
     }
 }
 
+template<int size, bool big_endian>
+void
+Stub_table<size, big_endian>::plt_error(const Plt_stub_key& p)
+{
+  if (p.sym_)
+    gold_error(_("linkage table error against `%s'"),
+	       p.sym_->demangled_name().c_str());
+  else
+    gold_error(_("linkage table error against `%s:[local %u]'"),
+	       p.object_->name().c_str(),
+	       p.locsym_);
+}
+
 // Write out plt and long branch stub code.
 
 template<int size, bool big_endian>
@@ -5424,9 +5440,7 @@ Stub_table<size, big_endian>::do_write(Output_file* of)
 	      Address off = plt_addr - got_addr;
 
 	      if (off + 0x80008000 > 0xffffffff || (off & 7) != 0)
-		gold_error(_("%s: linkage table error against `%s'"),
-			   cs->first.object_->name().c_str(),
-			   cs->first.sym_->demangled_name().c_str());
+		this->plt_error(cs->first);
 
 	      bool plt_load_toc = this->targ_->abiversion() < 2;
 	      bool static_chain
@@ -5871,8 +5885,7 @@ Output_data_glink<size, big_endian>::do_write(Output_file* of)
 	  Address off = plt_addr - my_addr;
 
 	  if (off + 0x80008000 > 0xffffffff || (off & 3) != 0)
-	    gold_error(_("%s: linkage table error against `%s'"),
-		       ge->first->object()->name().c_str(),
+	    gold_error(_("linkage table error against `%s'"),
 		       ge->first->demangled_name().c_str());
 
 	  write_insn<big_endian>(p, addis_12_12 + ha(off)),	p += 4;
@@ -6464,6 +6477,12 @@ Target_powerpc<size, big_endian>::Scan::get_reference_flags(
     case elfcpp::R_POWERPC_REL16_LO:
     case elfcpp::R_POWERPC_REL16_HI:
     case elfcpp::R_POWERPC_REL16_HA:
+    case elfcpp::R_PPC64_REL16_HIGH:
+    case elfcpp::R_PPC64_REL16_HIGHA:
+    case elfcpp::R_PPC64_REL16_HIGHER:
+    case elfcpp::R_PPC64_REL16_HIGHERA:
+    case elfcpp::R_PPC64_REL16_HIGHEST:
+    case elfcpp::R_PPC64_REL16_HIGHESTA:
       ref = Symbol::RELATIVE_REF;
       break;
 
@@ -6964,6 +6983,12 @@ Target_powerpc<size, big_endian>::Scan::local(
     case elfcpp::R_POWERPC_REL16_HI:
     case elfcpp::R_POWERPC_REL16_HA:
     case elfcpp::R_POWERPC_REL16DX_HA:
+    case elfcpp::R_PPC64_REL16_HIGH:
+    case elfcpp::R_PPC64_REL16_HIGHA:
+    case elfcpp::R_PPC64_REL16_HIGHER:
+    case elfcpp::R_PPC64_REL16_HIGHERA:
+    case elfcpp::R_PPC64_REL16_HIGHEST:
+    case elfcpp::R_PPC64_REL16_HIGHESTA:
     case elfcpp::R_POWERPC_SECTOFF:
     case elfcpp::R_POWERPC_SECTOFF_LO:
     case elfcpp::R_POWERPC_SECTOFF_HI:
@@ -7604,6 +7629,12 @@ Target_powerpc<size, big_endian>::Scan::global(
     case elfcpp::R_POWERPC_REL16_HI:
     case elfcpp::R_POWERPC_REL16_HA:
     case elfcpp::R_POWERPC_REL16DX_HA:
+    case elfcpp::R_PPC64_REL16_HIGH:
+    case elfcpp::R_PPC64_REL16_HIGHA:
+    case elfcpp::R_PPC64_REL16_HIGHER:
+    case elfcpp::R_PPC64_REL16_HIGHERA:
+    case elfcpp::R_PPC64_REL16_HIGHEST:
+    case elfcpp::R_PPC64_REL16_HIGHESTA:
     case elfcpp::R_POWERPC_SECTOFF:
     case elfcpp::R_POWERPC_SECTOFF_LO:
     case elfcpp::R_POWERPC_SECTOFF_HI:
@@ -8955,7 +8986,7 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
 		  size_t reloc_count = shdr.get_sh_size() / reloc_size;
 		  if (size == 64
 		      && ent->r2save_
-		      && relnum + 1 < reloc_count)
+		      && relnum < reloc_count - 1)
 		    {
 		      Reltype next_rela(preloc + reloc_size);
 		      if (elfcpp::elf_r_type<size>(next_rela.get_r_info())
@@ -9411,6 +9442,12 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
     case elfcpp::R_POWERPC_REL16_HI:
     case elfcpp::R_POWERPC_REL16_HA:
     case elfcpp::R_POWERPC_REL16DX_HA:
+    case elfcpp::R_PPC64_REL16_HIGH:
+    case elfcpp::R_PPC64_REL16_HIGHA:
+    case elfcpp::R_PPC64_REL16_HIGHER:
+    case elfcpp::R_PPC64_REL16_HIGHERA:
+    case elfcpp::R_PPC64_REL16_HIGHEST:
+    case elfcpp::R_PPC64_REL16_HIGHESTA:
     case elfcpp::R_POWERPC_REL14:
     case elfcpp::R_POWERPC_REL14_BRTAKEN:
     case elfcpp::R_POWERPC_REL14_BRNTAKEN:
@@ -9720,7 +9757,7 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
 	  //		addi 2,2,.TOC.@l
 	  // if .TOC. is in range.  */
 	  if (value + address - 4 + 0x80008000 <= 0xffffffff
-	      && relnum != 0
+	      && relnum + 1 > 1
 	      && preloc != NULL
 	      && target->abiversion() >= 2
 	      && !parameters->options().output_is_position_independent()
@@ -9973,6 +10010,7 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
       // Fall through.
     case elfcpp::R_POWERPC_ADDR16_HI:
     case elfcpp::R_POWERPC_REL16_HI:
+    case elfcpp::R_PPC64_REL16_HIGH:
     case elfcpp::R_PPC64_TOC16_HI:
     case elfcpp::R_POWERPC_GOT16_HI:
     case elfcpp::R_POWERPC_PLT16_HI:
@@ -9995,6 +10033,7 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
       // Fall through.
     case elfcpp::R_POWERPC_ADDR16_HA:
     case elfcpp::R_POWERPC_REL16_HA:
+    case elfcpp::R_PPC64_REL16_HIGHA:
     case elfcpp::R_PPC64_TOC16_HA:
     case elfcpp::R_POWERPC_GOT16_HA:
     case elfcpp::R_POWERPC_PLT16_HA:
@@ -10018,6 +10057,7 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
 	goto unsupp;
       // Fall through.
     case elfcpp::R_PPC64_ADDR16_HIGHER:
+    case elfcpp::R_PPC64_REL16_HIGHER:
     case elfcpp::R_PPC64_TPREL16_HIGHER:
       Reloc::addr16_hi2(view, value);
       break;
@@ -10028,6 +10068,7 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
 	goto unsupp;
       // Fall through.
     case elfcpp::R_PPC64_ADDR16_HIGHERA:
+    case elfcpp::R_PPC64_REL16_HIGHERA:
     case elfcpp::R_PPC64_TPREL16_HIGHERA:
       Reloc::addr16_ha2(view, value);
       break;
@@ -10038,6 +10079,7 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
 	goto unsupp;
       // Fall through.
     case elfcpp::R_PPC64_ADDR16_HIGHEST:
+    case elfcpp::R_PPC64_REL16_HIGHEST:
     case elfcpp::R_PPC64_TPREL16_HIGHEST:
       Reloc::addr16_hi3(view, value);
       break;
@@ -10048,6 +10090,7 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
 	goto unsupp;
       // Fall through.
     case elfcpp::R_PPC64_ADDR16_HIGHESTA:
+    case elfcpp::R_PPC64_REL16_HIGHESTA:
     case elfcpp::R_PPC64_TPREL16_HIGHESTA:
       Reloc::addr16_ha3(view, value);
       break;
