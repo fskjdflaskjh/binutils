@@ -1,16 +1,16 @@
   /* PREFIX_EVEX_0F10 */
   {
     { VEX_W_TABLE (EVEX_W_0F10_P_0) },
-    { MOD_TABLE (MOD_EVEX_0F10_PREFIX_1) },
+    { VEX_W_TABLE (EVEX_W_0F10_P_1) },
     { VEX_W_TABLE (EVEX_W_0F10_P_2) },
-    { MOD_TABLE (MOD_EVEX_0F10_PREFIX_3) },
+    { VEX_W_TABLE (EVEX_W_0F10_P_3) },
   },
   /* PREFIX_EVEX_0F11 */
   {
     { VEX_W_TABLE (EVEX_W_0F11_P_0) },
-    { MOD_TABLE (MOD_EVEX_0F11_PREFIX_1) },
+    { VEX_W_TABLE (EVEX_W_0F11_P_1) },
     { VEX_W_TABLE (EVEX_W_0F11_P_2) },
-    { MOD_TABLE (MOD_EVEX_0F11_PREFIX_3) },
+    { VEX_W_TABLE (EVEX_W_0F11_P_3) },
   },
   /* PREFIX_EVEX_0F12 */
   {
@@ -1881,7 +1881,7 @@
   {
     { Bad_Opcode },
     { Bad_Opcode },
-    { "vpclmulqdq",	{ XM, Vex, EXx, Ib }, 0 },
+    { "vpclmulqdq",	{ XM, Vex, EXx, PCLMUL }, 0 },
   },
   /* PREFIX_EVEX_0F3A50 */
   {

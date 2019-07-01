@@ -385,7 +385,6 @@ fetch_data (struct disassemble_info *info, bfd_byte *addr)
 #define EXd { OP_EX, d_mode }
 #define EXdScalar { OP_EX, d_scalar_mode }
 #define EXdS { OP_EX, d_swap_mode }
-#define EXdScalarS { OP_EX, d_scalar_swap_mode }
 #define EXq { OP_EX, q_mode }
 #define EXqScalar { OP_EX, q_scalar_mode }
 #define EXqScalarS { OP_EX, q_scalar_swap_mode }
@@ -425,17 +424,12 @@ fetch_data (struct disassemble_info *info, bfd_byte *addr)
 #define Vex128 { OP_VEX, vex128_mode }
 #define Vex256 { OP_VEX, vex256_mode }
 #define VexGdq { OP_VEX, dq_mode }
-#define EXdVex { OP_EX_Vex, d_mode }
-#define EXdVexS { OP_EX_Vex, d_swap_mode }
 #define EXdVexScalarS { OP_EX_Vex, d_scalar_swap_mode }
-#define EXqVex { OP_EX_Vex, q_mode }
-#define EXqVexS { OP_EX_Vex, q_swap_mode }
 #define EXqVexScalarS { OP_EX_Vex, q_scalar_swap_mode }
 #define EXVexW { OP_EX_VexW, x_mode }
 #define EXdVexW { OP_EX_VexW, d_mode }
 #define EXqVexW { OP_EX_VexW, q_mode }
 #define EXVexImmW { OP_EX_VexImmW, x_mode }
-#define XMVex { OP_XMM_Vex, 0 }
 #define XMVexScalar { OP_XMM_Vex, scalar_mode }
 #define XMVexW { OP_XMM_VexW, 0 }
 #define XMVexI4 { OP_REG_VexI4, x_mode }
@@ -937,10 +931,6 @@ enum
   MOD_VEX_W_0_0F3A33_P_2_LEN_0,
   MOD_VEX_W_1_0F3A33_P_2_LEN_0,
 
-  MOD_EVEX_0F10_PREFIX_1,
-  MOD_EVEX_0F10_PREFIX_3,
-  MOD_EVEX_0F11_PREFIX_1,
-  MOD_EVEX_0F11_PREFIX_3,
   MOD_EVEX_0F12_PREFIX_0,
   MOD_EVEX_0F16_PREFIX_0,
   MOD_EVEX_0F38C6_REG_1,
@@ -2047,17 +2037,13 @@ enum
   VEX_W_0F3ACF_P_2,
 
   EVEX_W_0F10_P_0,
-  EVEX_W_0F10_P_1_M_0,
-  EVEX_W_0F10_P_1_M_1,
+  EVEX_W_0F10_P_1,
   EVEX_W_0F10_P_2,
-  EVEX_W_0F10_P_3_M_0,
-  EVEX_W_0F10_P_3_M_1,
+  EVEX_W_0F10_P_3,
   EVEX_W_0F11_P_0,
-  EVEX_W_0F11_P_1_M_0,
-  EVEX_W_0F11_P_1_M_1,
+  EVEX_W_0F11_P_1,
   EVEX_W_0F11_P_2,
-  EVEX_W_0F11_P_3_M_0,
-  EVEX_W_0F11_P_3_M_1,
+  EVEX_W_0F11_P_3,
   EVEX_W_0F12_P_0_M_0,
   EVEX_W_0F12_P_0_M_1,
   EVEX_W_0F12_P_1,
