@@ -98,6 +98,9 @@
 
 #define END_OF_INSN '\0'
 
+/* This matches the C -> StaticRounding alias in the opcode table.  */
+#define commutative staticrounding
+
 /*
   'templates' is for grouping together 'template' structures for opcodes
   of the same name.  This is only used for storing the insns in the grand
@@ -1912,7 +1915,6 @@ static const i386_operand_type imm64 = OPERAND_TYPE_IMM64;
 static const i386_operand_type imm16_32 = OPERAND_TYPE_IMM16_32;
 static const i386_operand_type imm16_32s = OPERAND_TYPE_IMM16_32S;
 static const i386_operand_type imm16_32_32s = OPERAND_TYPE_IMM16_32_32S;
-static const i386_operand_type vec_imm4 = OPERAND_TYPE_VEC_IMM4;
 
 enum operand_type
 {
@@ -3438,6 +3440,43 @@ build_vex_prefix (const insn_template *t)
 	i.tm = t[1];
     }
 
+  /* Use 2-byte VEX prefix by swapping commutative source operands if there
+     are no memory operands and at least 3 register ones.  */
+  if (i.reg_operands >= 3
+      && i.vec_encoding != vex_encoding_vex3
+      && i.reg_operands == i.operands - i.imm_operands
+      && i.tm.opcode_modifier.vex
+      && i.tm.opcode_modifier.commutative
+      && (i.tm.opcode_modifier.sse2avx || optimize > 1)
+      && i.rex == REX_B
+      && i.vex.register_specifier
+      && !(i.vex.register_specifier->reg_flags & RegRex))
+    {
+      unsigned int xchg = i.operands - i.reg_operands;
+      union i386_op temp_op;
+      i386_operand_type temp_type;
+
+      gas_assert (i.tm.opcode_modifier.vexopcode == VEX0F);
+      gas_assert (!i.tm.opcode_modifier.sae);
+      gas_assert (operand_type_equal (&i.types[i.operands - 2],
+                                      &i.types[i.operands - 3]));
+      gas_assert (i.rm.mode == 3);
+
+      temp_type = i.types[xchg];
+      i.types[xchg] = i.types[xchg + 1];
+      i.types[xchg + 1] = temp_type;
+      temp_op = i.op[xchg];
+      i.op[xchg] = i.op[xchg + 1];
+      i.op[xchg + 1] = temp_op;
+
+      i.rex = 0;
+      xchg = i.rm.regmem | 8;
+      i.rm.regmem = ~register_specifier & 0xf;
+      gas_assert (!(i.rm.regmem & 8));
+      i.vex.register_specifier += xchg - i.rm.regmem;
+      register_specifier = ~xchg & 0xf;
+    }
+
   if (i.tm.opcode_modifier.vex == VEXScalar)
     vector_length = avxscalar;
   else if (i.tm.opcode_modifier.vex == VEX256)
@@ -4000,6 +4039,29 @@ optimize_encoding (void)
 	    }
 	}
     }
+  else if (optimize > 1
+	   && !optimize_for_space
+	   && i.reg_operands == 2
+	   && i.op[0].regs == i.op[1].regs
+	   && ((i.tm.base_opcode & ~(Opcode_D | 1)) == 0x8
+	       || (i.tm.base_opcode & ~(Opcode_D | 1)) == 0x20)
+	   && (flag_code != CODE_64BIT || !i.types[0].bitfield.dword))
+    {
+      /* Optimize: -O2:
+	   andb %rN, %rN  -> testb %rN, %rN
+	   andw %rN, %rN  -> testw %rN, %rN
+	   andq %rN, %rN  -> testq %rN, %rN
+	   orb %rN, %rN   -> testb %rN, %rN
+	   orw %rN, %rN   -> testw %rN, %rN
+	   orq %rN, %rN   -> testq %rN, %rN
+
+	   and outside of 64-bit mode
+
+	   andl %rN, %rN  -> testl %rN, %rN
+	   orl %rN, %rN   -> testl %rN, %rN
+       */
+      i.tm.base_opcode = 0x84 | (i.tm.base_opcode & 1);
+    }
   else if (i.reg_operands == 3
 	   && i.op[0].regs == i.op[1].regs
 	   && !i.types[2].bitfield.xmmword
@@ -4157,6 +4219,9 @@ optimize_encoding (void)
       i.tm.opcode_modifier.vex
 	= i.types[0].bitfield.ymmword ? VEX256 : VEX128;
       i.tm.opcode_modifier.vexw = VEXW0;
+      /* VPAND, VPOR, and VPXOR are commutative.  */
+      if (i.reg_operands == 3 && i.tm.base_opcode != 0x66df)
+	i.tm.opcode_modifier.commutative = 1;
       i.tm.opcode_modifier.evex = 0;
       i.tm.opcode_modifier.masking = 0;
       i.tm.opcode_modifier.broadcast = 0;
@@ -5583,8 +5648,8 @@ VEX_check_operands (const insn_template *t)
       return 0;
     }
 
-  /* Only check VEX_Imm4, which must be the first operand.  */
-  if (t->operand_types[0].bitfield.vec_imm4)
+  /* Check the special Imm4 cases; must be the first operand.  */
+  if (t->cpu_flags.bitfield.cpuxop && t->operands == 5)
     {
       if (i.op[0].imms->X_op != O_constant
 	  || !fits_in_imm4 (i.op[0].imms->X_add_number))
@@ -5593,8 +5658,8 @@ VEX_check_operands (const insn_template *t)
 	  return 1;
 	}
 
-      /* Turn off Imm8 so that update_imm won't complain.  */
-      i.types[0] = vec_imm4;
+      /* Turn off Imm<N> so that update_imm won't complain.  */
+      operand_type_set (&i.types[0], 0);
     }
 
   return 0;
@@ -7032,7 +7097,7 @@ build_modrm_byte (void)
 
       /* There are 2 kinds of instructions:
 	 1. 5 operands: 4 register operands or 3 register operands
-	 plus 1 memory operand plus one Vec_Imm4 operand, VexXDS, and
+	 plus 1 memory operand plus one Imm4 operand, VexXDS, and
 	 VexW0 or VexW1.  The destination must be either XMM, YMM or
 	 ZMM register.
 	 2. 4 operands: 4 register operands or 3 register operands
@@ -7072,28 +7137,15 @@ build_modrm_byte (void)
 	}
       else
 	{
-	  unsigned int imm_slot;
+	  gas_assert (i.imm_operands == 1);
+	  gas_assert (fits_in_imm4 (i.op[0].imms->X_add_number));
+	  gas_assert (!i.tm.opcode_modifier.immext);
 
-	  gas_assert (i.imm_operands == 1 && i.types[0].bitfield.vec_imm4);
-
-	  if (i.tm.opcode_modifier.immext)
-	    {
-	      /* When ImmExt is set, the immediate byte is the last
-		 operand.  */
-	      imm_slot = i.operands - 1;
-	      source--;
-	      reg_slot--;
-	    }
-	  else
-	    {
-	      imm_slot = 0;
-
-	      /* Turn on Imm8 so that output_imm will generate it.  */
-	      i.types[imm_slot].bitfield.imm8 = 1;
-	    }
+	  /* Turn on Imm8 again so that output_imm will generate it.  */
+	  i.types[0].bitfield.imm8 = 1;
 
 	  gas_assert (i.tm.operand_types[reg_slot].bitfield.regsimd);
-	  i.op[imm_slot].imms->X_add_number
+	  i.op[0].imms->X_add_number
 	      |= register_number (i.op[reg_slot].regs) << 4;
 	  gas_assert ((i.op[reg_slot].regs->reg_flags & RegVRex) == 0);
 	}
@@ -8217,7 +8269,7 @@ output_insn (void)
 	 Xfence instructions.  */
       if (i.tm.base_opcode != 0xf18
 	  && i.tm.base_opcode != 0xf0d
-	  && i.tm.base_opcode != 0xfae
+	  && i.tm.base_opcode != 0xfaef8
 	  && (i.has_regmmx
 	      || i.tm.cpu_flags.bitfield.cpummx
 	      || i.tm.cpu_flags.bitfield.cpua3dnow
@@ -8265,12 +8317,9 @@ output_insn (void)
       unsigned int prefix;
 
       if (avoid_fence
-         && i.tm.base_opcode == 0xfae
-         && i.operands == 1
-         && i.imm_operands == 1
-         && (i.op[0].imms->X_add_number == 0xe8
-             || i.op[0].imms->X_add_number == 0xf0
-             || i.op[0].imms->X_add_number == 0xf8))
+	  && (i.tm.base_opcode == 0xfaee8
+	      || i.tm.base_opcode == 0xfaef0
+	      || i.tm.base_opcode == 0xfaef8))
         {
           /* Encode lfence, mfence, and sfence as
              f0 83 04 24 00   lock addl $0x0, (%{re}sp).  */
@@ -8299,17 +8348,17 @@ output_insn (void)
 	      if (i.tm.base_opcode & 0xff000000)
 		{
 		  prefix = (i.tm.base_opcode >> 24) & 0xff;
-		  add_prefix (prefix);
+		  if (!i.tm.cpu_flags.bitfield.cpupadlock
+		      || prefix != REPE_PREFIX_OPCODE
+		      || (i.prefix[REP_PREFIX] != REPE_PREFIX_OPCODE))
+		    add_prefix (prefix);
 		}
 	      break;
 	    case 2:
 	      if ((i.tm.base_opcode & 0xff0000) != 0)
 		{
 		  prefix = (i.tm.base_opcode >> 16) & 0xff;
-		  if (!i.tm.cpu_flags.bitfield.cpupadlock
-		      || prefix != REPE_PREFIX_OPCODE
-		      || (i.prefix[REP_PREFIX] != REPE_PREFIX_OPCODE))
-		    add_prefix (prefix);
+		  add_prefix (prefix);
 		}
 	      break;
 	    case 1:
@@ -9722,7 +9771,7 @@ i386_index_check (const char *operand_string)
   enum flag_code addr_mode = i386_addressing_mode ();
 
   if (current_templates->start->opcode_modifier.isstring
-      && !current_templates->start->opcode_modifier.immext
+      && !current_templates->start->cpu_flags.bitfield.cpupadlock
       && (current_templates->end[-1].opcode_modifier.isstring
 	  || i.mem_operands))
     {
