@@ -1,3 +1,70 @@
+2019-07-02  Barnaby Wilks  <barnaby.wilks@arm.com>
+
+	* config/tc-aarch64.c (parse_operands): Add error check.
+	* testsuite/gas/aarch64/diagnostic.l: New test.
+	* testsuite/gas/aarch64/diagnostic.s: New test.
+	* testsuite/gas/aarch64/illegal.l: New tests.
+	* testsuite/gas/aarch64/illegal.s: New tests.
+
+2019-07-02  Richard Sandiford  <richard.sandiford@arm.com>
+
+	* testsuite/gas/aarch64/sve-movprfx_27.s,
+	* testsuite/gas/aarch64/sve-movprfx_27.d: New test.
+
+2019-07-02  Richard Sandiford  <richard.sandiford@arm.com>
+
+	* testsuite/gas/aarch64/sve-movprfx_26.s: Also test FCVTZS, FCVTZU,
+	SCVTF, UCVTF, LSR and ASR.
+	* testsuite/gas/aarch64/sve-movprfx_26.d: Update accordingly.
+	* testsuite/gas/aarch64/sve-movprfx_26.l: Likewise.
+
+2019-07-02  Richard Sandiford  <richard.sandiford@arm.com>
+
+	* testsuite/gas/aarch64/sve-movprfx_25.s: Allow CPY Z1.D.P1/M,X1
+	to be prefixed by MOVPRFX.
+	* testsuite/gas/aarch64/sve-movprfx_25.d: Update accordingly.
+	* testsuite/gas/aarch64/sve-movprfx_25.l: Likewise.
+
+2019-07-01  Nick Clifton  <nickc@redhat.com>
+
+	PR 24748
+	* write.c (create_note_reloc): Add desc2_offset parameter.  Change
+	name of offset parameter to note_offset.  Only use desc2_offset
+	when placing addend into REL reloc's address space.
+	(maybe_generate_build_notes): Update parameters passed to
+	create_note_reloc.
+
+2019-07-01  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* testsuite/gas/aarch64/illegal-sve2-aes.d: Update tests.
+	* testsuite/gas/aarch64/illegal-sve2.l: Update tests.
+	* doc/c-aarch64.texi: Add special note of pmull{t,b}
+	instructions under the sve2-aes architecture extension.
+	* testsuite/gas/aarch64/illegal-sve2.s: Add small size
+	pmull{t,b} instructions.
+	* testsuite/gas/aarch64/sve2.d: Add small size pmull{t,b}
+	disassembly.
+	* testsuite/gas/aarch64/sve2.s: Add small size pmull{t,b}
+	instructions.
+
+2019-07-01  Nick Clifton  <nickc@redhat.com>
+
+	PR 24738
+	* doc/c-i386.texi (i386-Directives): Add a description of the
+	Value directive.
+
+2019-07-01  Nick Clifton  <nickc@redhat.com>
+
+	PR 24737
+	* doc/as.texi (Align): Add missing word to description of
+	pseudo-op.
+	(P2align): Likewise.
+
+2019-06-28  Nick Clifton  <nickc@redhat.com>
+
+	PR 24735
+	* doc/as.texi (Zero): Fix spelling typo.
+
 2019-07-01  Jan Beulich  <jbeulich@suse.com>
 
 	* config/tc-i386.c (vec_imm4): Delete.

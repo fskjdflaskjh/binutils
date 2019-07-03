@@ -1,3 +1,37 @@
+2019-07-02  Nick Clifton  <nickc@redhat.com>
+
+	PR 24717
+	* elf.c (is_debuginfo_file): New function.
+	(assign_file_positions_for_non_load_sections): Do not warn about
+	allocated sections outside of loadable segments if they are found
+	in a debuginfo file.
+	* elf-bfd.h (is_debuginfo_file): Prototype.
+
+2019-07-02  Nick Clifton  <nickc@redhat.com>
+
+	PR 24753
+	* compress.c (bfd_get_full_section_contents): Do not complain
+	about linker created sections that are larger than the file size.
+
+2019-07-02  Christophe Lyon  <christophe.lyon@linaro.org>
+
+	* bfd/elf32-arm.c (CMSE_STUB_NAME): New define.
+	(elf32_arm_get_stub_entry): Do not try to emit long-branch stubs
+	for CMSE stubs.
+	(arm_dedicated_stub_output_section_name): Use CMSE_STUB_NAME.
+
+2019-07-02  Srinath Parvathaneni  <srinath.parvathaneni@arm.com>
+
+	* elf32-arm.c (elf32_arm_gc_mark_extra_sections): Mark debug
+	sections when .text section contain secure entry functions
+	is marked.
+
+2019-07-01  Nick Clifton  <nickc@redhat.com>
+
+	PR 23839
+	* elf32-arm.c (elf32_arm_update_relocs): Do not include the
+	section VMA in the offset used to update exidx relocs.
+
 2019-06-28  Nick Clifton  <nickc@redhat.com>
 
 	PR 24708

@@ -1,3 +1,41 @@
+2019-07-02  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* breakpoint.h (remove_breakpoints_inf): Change return type to
+	void, move function documentation here.
+	* breakpoint.c (remove_breakpoints_inf): Change return type to
+	void, move function documentation to header.
+
+2019-07-02  Pedro Alves  <palves@redhat.com>
+
+	* NEWS (Completion improvements): Mention "info threads".
+	* thread.c (struct info_threads_opts, info_threads_option_defs)
+	(make_info_threads_options_def_group): New.
+	(info_threads_command): Use gdb::option::process_options.
+	(info_threads_command_completer): New.
+	(_initialize_thread): Use gdb::option::build_help to build the
+	help text for "info threads".
+
+2019-07-02  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* defs.h (generic_load): Move from here...
+	* symfile.h (generic_load): ... to here.  Rename name parameter
+	to args.
+	* symfile.c (generic_load): Add comment.
+
+2019-07-01  Tom Tromey  <tromey@adacore.com>
+
+	* dwarf2read.c
+	(dw2_debug_names_iterator::find_vec_in_debug_names): Hoist
+	declaration of without_params.  Fix formatting.
+
+2019-07-01  Tom Tromey  <tromey@adacore.com>
+
+	* ada-exp.y (find_primitive_type): Update.
+	* ada-lang.h (ada_lookup_symbol): Update.
+	* ada-lang.c (ada_lookup_symbol): Remove "is_a_field_of_this"
+	parameter.
+	(ada_lookup_encoded_symbol, ada_lookup_symbol_nonlocal): Update.
+
 2019-06-28  Sergio Durigan Junior  <sergiodj@redhat.com>
 
 	PR breakpoints/24541

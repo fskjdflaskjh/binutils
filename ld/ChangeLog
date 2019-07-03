@@ -1,3 +1,22 @@
+2019-07-02  Nick Clifton  <nickc@redhat.com>
+
+	PR 24753
+	* emultempl/aarch64elf.em (_aarch64_add_stub_section): Include the
+	LINKER_CREATED section flag when creating the stub section.
+
+2019-07-02  Srinath Parvathaneni  <srinath.parvathaneni@arm.com>
+
+	* testsuite/ld-arm/arm-elf.exp: Add tests.
+	* testsuite/ld-arm/cmse_main.s: New test.
+	* testsuite/ld-arm/cmse_main_sec_debug.d: Likewise.
+	* testsuite/ld-arm/cmse_sec_debug.s: Likewise.
+
+2019-07-01  Nick Clifton  <nickc@redhat.com>
+
+	PR 23839
+	* testsuite/ld-arm/unwind-4.d: Adjust for corrected calculation of
+	exidx relocs.
+
 2019-06-28  Alan Modra  <amodra@gmail.com>
 
 	* testsuite/ld-powerpc/callstub-1.d,
