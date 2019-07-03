@@ -1,5 +1,57 @@
 2019-07-03  Pedro Alves  <palves@redhat.com>
 
+	PR cli/24732
+	* cli/cli-cmds.c (struct pipe_cmd_opts): New.
+	(pipe_cmd_option_defs): New.
+	(make_pipe_cmd_options_def_group): New.
+	(pipe_command): Use gdb::option::process_options.
+	(pipe_command_completer): New function.
+	(_initialize_cli_cmds): Install completer for "pipe" command.
+
+2019-07-03  Pedro Alves  <palves@redhat.com>
+
+	* cli/cli-option.c (union option_value) <string>: New field.
+	(struct option_def_and_value): Add ctor, move ctor, dtor and
+	use DISABLE_COPY_AND_ASSIGN.
+	(option_def_and_value::clear_value): New.
+	(parse_option, save_option_value_in_ctx, get_val_type_str)
+	(add_setshow_cmds_for_options): Handle var_string.
+	* cli-option.h (union option_def::var_address) <string>: New
+	field.
+	(struct string_option_def): New.
+	* maint-test-options.c (struct test_options_opts): Add default
+	ctor and use DISABLE_COPY_AND_ASSIGN.
+	<string_opt>: New field.
+	(test_options_opts::~test_options_opts): New.
+	(test_options_opts::dump): Also dump "-string".
+	(test_options_option_defs): Install "string.
+
+2019-07-03  Pedro Alves  <palves@redhat.com>
+
+	* cli/cli-option.c (parse_option) <var_enum>: Don't return an
+	option_value with a null enumeration.
+	(complete_options): Save the option values in the context.
+	(save_option_value_in_ctx): New, factored out from ...
+	(process_options): ... here.
+	* cli/cli-utils.c (get_ulongest): Don't advance PP until the end
+	of the function.
+	* maint-test-options.c (test_options_opts::dump): New, factored
+	out from ...
+	(maintenance_test_options_command_mode): ... here.
+	(maintenance_test_options_command_completion_result): Delete.
+	(maintenance_test_options_command_completion_text): Update
+	comment.
+	(maintenance_show_test_options_completion_result): Change
+	prototype.  Just print
+	maintenance_test_options_command_completion_text.
+	(save_completion_result): New.
+	(maintenance_test_options_completer_mode): Pass options context to
+	complete_options, and then save a dump.
+	(_initialize_maint_test_options): Use add_cmd to install "maint
+	show test-options-completion-result".
+
+2019-07-03  Pedro Alves  <palves@redhat.com>
+
 	* NEWS (New commands): Mention "with" and "maint with".
 	* cli/cli-cmds.c (with_command_1, with_command_completer_1)
 	(with_command, with_command_completer): New.
