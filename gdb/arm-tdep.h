@@ -32,15 +32,6 @@ struct gdb_get_next_pcs;
 
 #include <vector>
 
-/* Say how long FP registers are.  Used for documentation purposes and
-   code readability in this header.  IEEE extended doubles are 80
-   bits.  DWORD aligned they use 96 bits.  */
-#define FP_REGISTER_SIZE	12
-
-/* Say how long VFP double precision registers are.  Used for documentation
-   purposes and code readability.  These are fixed at 64 bits.  */
-#define VFP_REGISTER_SIZE	8
-
 /* Number of machine registers.  The only define actually required 
    is gdbarch_num_regs.  The other definitions are used for documentation
    purposes and code readability.  */
@@ -152,7 +143,7 @@ struct gdbarch_tdep
 /* The maximum number of modified instructions generated for one single-stepped
    instruction, including the breakpoint (usually at the end of the instruction
    sequence) and any scratch words, etc.  */
-#define DISPLACED_MODIFIED_INSNS	8
+#define ARM_DISPLACED_MODIFIED_INSNS	8
 
 struct arm_displaced_step_closure : public displaced_step_closure
 {
@@ -215,7 +206,7 @@ struct arm_displaced_step_closure : public displaced_step_closure
      - ARM instruction occupies one slot,
      - Thumb 16 bit instruction occupies one slot,
      - Thumb 32-bit instruction occupies *two* slots, one part for each.  */
-  unsigned long modinsn[DISPLACED_MODIFIED_INSNS];
+  unsigned long modinsn[ARM_DISPLACED_MODIFIED_INSNS];
   int numinsns;
   CORE_ADDR insn_addr;
   CORE_ADDR scratch_base;
