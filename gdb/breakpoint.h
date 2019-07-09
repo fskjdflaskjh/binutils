@@ -316,7 +316,12 @@ class bp_location
 public:
   bp_location () = default;
 
-  bp_location (breakpoint *owner);
+  /* Construct a bp_location with the type inferred from OWNER's
+     type.  */
+  explicit bp_location (breakpoint *owner);
+
+  /* Construct a bp_location with type TYPE.  */
+  bp_location (breakpoint *owner, bp_loc_type type);
 
   virtual ~bp_location ();
 
@@ -866,6 +871,11 @@ extern int is_breakpoint (const struct breakpoint *bpt);
 /* Returns true if BPT is really a watchpoint.  */
 
 extern int is_watchpoint (const struct breakpoint *bpt);
+
+/* Return true if BPT is a C++ exception catchpoint (catch
+   catch/throw/rethrow).  */
+
+extern bool is_exception_catchpoint (breakpoint *bp);
 
 /* An instance of this type is used to represent all kinds of
    tracepoints.  */
