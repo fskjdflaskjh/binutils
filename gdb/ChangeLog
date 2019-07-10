@@ -1,5 +1,91 @@
 2019-07-10  Tom Tromey  <tromey@adacore.com>
 
+	* arm-tdep.c (arm_exidx_entry_s): Remove typedef.  Don't define
+	VEC.
+	(struct arm_exidx_entry): New method operator<.
+	(struct arm_exidx_data) <section_maps>: Change type.
+	(arm_exidx_data_free): Remove.
+	(arm_exidx_data_key): Change type.  Move lower.
+	(arm_exidx_new_objfile): Update.
+	(arm_compare_exidx_entries): Remove.
+	(arm_find_exidx_entry, _initialize_arm_tdep)
+
+2019-07-10  Tom Tromey  <tromey@adacore.com>
+
+	* solib-spu.c (ocl_program_data_key): Change type.
+	(append_ocl_sos, ocl_enable_break, _initialize_spu_solib):
+	Update.
+
+2019-07-10  Tom Tromey  <tromey@adacore.com>
+
+	* solib-aix.c (lm_info_aix_p): Remove typedef.  Don't define VEC.
+	(struct solib_aix_inferior_data) <library_list>: Change type.
+	(solib_aix_inferior_data_handle): Change type.
+	(get_solib_aix_inferior_data): Update.
+	(solib_aix_free_library_list): Remove.
+	(library_list_start_library): Update.
+	(solib_aix_parse_libraries, solib_aix_get_library_list): Change
+	return type.
+	(solib_aix_get_library_list)
+	(solib_aix_solib_create_inferior_hook, solib_aix_current_sos)
+	(solib_aix_normal_stop_observer, _initialize_solib_aix): Update.
+
+2019-07-10  Tom Tromey  <tromey@adacore.com>
+
+	* solib-dsbt.c (struct dsbt_info): Add initializers.
+	(solib_dsbt_pspace_data): Change type.
+	(dsbt_pspace_data_cleanup): Remove.
+	(get_dsbt_info, _initialize_dsbt_solib): Update.
+
+2019-07-10  Tom Tromey  <tromey@adacore.com>
+
+	* spu-tdep.c (spu_overlay_data): Change type.
+	(spu_get_overlay_table, spu_overlay_new_objfile)
+	(_initialize_spu_tdep): Update.
+
+2019-07-10  Tom Tromey  <tromey@adacore.com>
+
+	* gdb-stabs.h (struct dbx_symfile_info): Add initializers and
+	destructor.
+	(dbx_objfile_data_key): Change type and declare later.
+	(DBX_SYMFILE_INFO): Rewrite.
+	* dbxread.c (dbx_objfile_data_key): Change type.
+	(dbx_symfile_init): Update.
+	(~dbx_symfile_info): Rename from dbx_free_symfile_info.  Update.
+	(coffstab_build_psymtabs, elfstab_build_psymtabs)
+	(stabsect_build_psymtabs, _initialize_dbxread): Update.
+
+2019-07-10  Tom Tromey  <tromey@adacore.com>
+
+	* jit.c (jit_program_space_key): Change type.  Move lower.
+	(get_jit_program_space_data): Update.
+	(jit_program_space_data_cleanup): Remove.
+	(jit_breakpoint_deleted, free_objfile_data, _initialize_jit):
+	Update.
+	(struct jit_program_space_data): Add initializers.
+
+2019-07-10  Tom Tromey  <tromey@adacore.com>
+
+	* solib-darwin.c (struct darwin_info): Add initializers.
+	(solib_darwin_pspace_data): Change type.
+	(darwin_pspace_data_cleanup): Remove.
+	(get_darwin_info, _initialize_darwin_solib): Update.
+
+2019-07-10  Tom Tromey  <tromey@adacore.com>
+
+	* remote-sim.c (struct sim_inferior_data): Add initializers,
+	constructor, and destructor.
+	(sim_inferior_data_key): Change type.  Move lower.
+	(check_for_duplicate_sim_descriptor): Update.
+	(get_sim_inferior_data): Use new.  Update.
+	(~sim_inferior_data_cleanup): Rename from
+	sim_inferior_data_cleanup.  Simplify.
+	(gdbsim_close_inferior, simulator_command)
+	(sim_command_completer, _initialize_remote_sim): Update.
+	(next_pid, INITIAL_PID): Move earlier.
+
+2019-07-10  Tom Tromey  <tromey@adacore.com>
+
 	* python/python-internal.h (create_thread_object): Return
 	gdbpy_ref.
 	* python/py-infthread.c (create_thread_object): Return gdbpy_ref.
