@@ -98,10 +98,17 @@ void
 mi_ui_out::do_field_int (int fldno, int width, ui_align alignment,
 			 const char *fldname, int value)
 {
-  char buffer[20];	/* FIXME: how many chars long a %d can become? */
+  do_field_string (fldno, width, alignment, fldname, plongest (value),
+		   ui_out_style_kind::DEFAULT);
+}
 
-  xsnprintf (buffer, sizeof (buffer), "%d", value);
-  do_field_string (fldno, width, alignment, fldname, buffer,
+/* Output an unsigned field.  */
+
+void
+mi_ui_out::do_field_unsigned (int fldno, int width, ui_align alignment,
+			      const char *fldname, ULONGEST value)
+{
+  do_field_string (fldno, width, alignment, fldname, pulongest (value),
 		   ui_out_style_kind::DEFAULT);
 }
 
