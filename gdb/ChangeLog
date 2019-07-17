@@ -1,3 +1,580 @@
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_update_source_window)
+	(tui_update_source_window_as_is)
+	(tui_update_source_windows_with_line): Remove return.
+	* tui/tui-disasm.c (tui_show_disassem)
+	(tui_show_disassem_and_update_source): Remove return.
+	* tui/tui.c (tui_reset): Remove return.
+	* tui/tui-wingeneral.c
+	(tui_check_and_display_highlight_if_needed): Remove return.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (parse_scrolling_args): Throw separate errors.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_exec_info_window)
+	(struct tui_source_window_base): Move from tui-data.h.
+	* tui/tui-winsource.c: Move many method definitions from
+	elsewhere.  Remove "structuring" comments.
+	* tui/tui-wingeneral.c (tui_source_window_base::make_visible)
+	(tui_source_window_base::refresh_window): Move to
+	tui-winsource.c.
+	* tui/tui-win.c (tui_source_window_base::refresh_all)
+	(tui_source_window_base::update_tab_width)
+	(tui_source_window_base::set_new_height)
+	(tui_source_window_base::do_make_visible_with_new_height): Move to
+	tui-winsource.c.
+	* tui/tui-source.h: Update.
+	* tui/tui-source.c (tui_source_window_base::reset): Move to
+	tui-winsource.c.
+	* tui/tui-disasm.h: Update.
+	* tui/tui-data.h (struct tui_exec_info_window): Move to
+	tui-winsource.h.
+	(struct tui_source_window_base): Likewise.
+	* tui/tui-data.c (tui_source_window_base::clear_detail)
+	(tui_source_window_base, ~tui_source_window_base): Move to
+	tui-winsource.c.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_resize_all)
+	(tui_source_window_base::update_tab_width)
+	(tui_adjust_win_heights): Update.
+	(tui_win_info::make_invisible_and_set_new_height): Rename from
+	make_invisible_and_set_new_height.
+	* tui/tui-data.h (struct tui_win_info)
+	<make_invisible_and_set_new_height>: New method.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui.c: Update.
+	* tui/tui-source.h (struct tui_source_window): Move from
+	tui-data.h.
+	* tui/tui-layout.c: Update.
+	* tui/tui-disasm.c: Update.
+	* tui/tui-data.h (struct tui_source_window): Move to
+	tui-source.h.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-disasm.h (struct tui_disasm_window): Move from
+	tui-data.h.
+	* tui/tui-data.h (struct tui_disasm_window): Move to
+	tui-disasm.h.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_item_window): Move from
+	tui-data.h.
+	* tui/tui-regs.c (tui_data_item_window): Move from tui-data.c.
+	* tui/tui-data.h (struct tui_data_item_window): Move to
+	tui-regs.h.
+	* tui/tui-data.c (~tui_data_item_window): Move to tui-regs.c.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui.c: Update.
+	* tui/tui-win.c (tui_cmd_window::do_make_visible_with_new_height)
+	(tui_cmd_window::max_height): Move to tui-command.c.
+	* tui/tui-layout.c: Update.
+	* tui/tui-data.h (struct tui_cmd_window): Move to tui-command.h.
+	* tui/tui-data.c (tui_cmd_window::clear_detail): Move to
+	tui-command.c.
+	* tui/tui-command.h (struct tui_cmd_window): Move from
+	tui-data.h.
+	* tui/tui-command.c: Remove "structuring" comments.
+	(tui_cmd_window::clear_detail)
+	(tui_cmd_window::do_make_visible_with_new_height)
+	(tui_cmd_window::max_height): Move from elsewhere.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-io.c (tui_dispatch_ctrl_char): Move from tui-command.c.
+	Now static.
+	* tui/tui-command.h (tui_dispatch_ctrl_char): Don't declare.
+	* tui/tui-command.c (tui_dispatch_ctrl_char): Move to tui-io.c.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui.c: Update.
+	* tui/tui-wingeneral.c (tui_data_window::refresh_window): Move to
+	tui-regs.c.
+	* tui/tui-windata.h: Remove file.
+	* tui/tui-windata.c: Remove file.
+	* tui/tui-win.c (tui_data_window::set_new_height)
+	(tui_data_window::do_make_visible_with_new_height): Move to
+	tui-regs.c.
+	* tui/tui-regs.h (struct tui_data_window): Move from tui-data.h.
+	* tui/tui-regs.c: Remove "structuring" comments.
+	(tui_data_window::first_data_item_displayed)
+	(tui_data_window::delete_data_content_windows)
+	(tui_data_window::erase_data_content)
+	(tui_data_window::display_all_data)
+	(tui_data_window::refresh_all)
+	(tui_data_window::do_scroll_vertical)
+	(tui_data_window::clear_detail, tui_data_window::set_new_height)
+	(tui_data_window::do_make_visible_with_new_height)
+	(tui_data_window::refresh_window): Move from elsewhere.
+	(_initialize_tui_regs): Move to end of file.
+	* tui/tui-layout.c: Update.
+	* tui/tui-hooks.c: Update.
+	* tui/tui-data.h (struct tui_data_window): Move to tui-regs.h.
+	* tui/tui-data.c (tui_data_window::clear_detail): Move to
+	tui-regs.c.
+	* Makefile.in (SUBDIR_TUI_SRCS): Remove tui-windata.c.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-io.c (tui_puts_internal): Call wrefresh if newline is
+	seen.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_source_window_base::set_new_height)
+	(tui_source_window_base::do_make_visible_with_new_height): Use
+	m_has_locator field directly.
+	* tui/tui-data.h (struct tui_win_info) <has_locator>: Remove
+	method.
+	(struct tui_source_window_base) <has_locator>: Likewise.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.h (tui_make_visible, tui_make_invisible):
+	Don't declare.
+	* tui/tui-wingeneral.c (tui_make_visible, tui_make_invisible):
+	Remove.
+	* tui/tui-win.c (tui_source_window_base::set_new_height)
+	(tui_source_window_base::set_new_height)
+	(make_invisible_and_set_new_height)
+	(tui_source_window_base::do_make_visible_with_new_height)
+	(tui_source_window_base::do_make_visible_with_new_height):
+	Update.
+	* tui/tui-layout.c (show_source_disasm_command, show_data)
+	(show_source_or_disasm_and_command): Update.
+	* tui/tui-layout.c (show_layout): Update.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (make_data_window): Remove.
+	(show_data): Unify creation and re-initialization cases.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (make_source_window, make_disasm_window):
+	Remove.
+	(show_data): Unify creation and re-initialization cases.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (make_command_window): Remove.
+	(show_source_disasm_command, show_source_or_disasm_and_command):
+	Unify creation and re-initialization cases.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (show_source_or_disasm_and_command): Unify
+	creation and re-initialization cases.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_get_register): Return void.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.c (tui_gen_win_info::make_visible):
+	Simplify.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (show_source_disasm_command): Simplify window
+	resetting.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui.h (tui_set_layout_by_name): Don't declare.
+	* tui/tui-regs.c (tui_reg_layout): New function.
+	(tui_show_registers, tui_reg_command): Use it.
+	* tui/tui-layout.c (LAYOUT_USAGE): Remove.
+	(tui_layout_command): Rename from tui_set_layout_by_name.  Change
+	parameters.
+	(tui_layout_command): Remove.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.h (tui/tui-layout): Return void.
+	* tui/tui-layout.c (tui_set_layout): Return void.  Add assert.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (show_source_disasm_command, show_data):
+	Update.
+	(reset_locator): Remove.
+	(show_source_or_disasm_and_command): Update.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-source.c (tui_source_window_base::reset): Remove
+	win_type parameter.
+	* tui/tui-layout.c (make_command_window, make_source_window)
+	(make_disasm_window, make_data_window)
+	(show_source_disasm_command, show_data, tui_gen_win_info::reset)
+	(reset_locator, show_source_or_disasm_and_command): Update.
+	* tui/tui-data.h (struct tui_gen_win_info) <reset>: Remove
+	win_type parameter.
+	(struct tui_source_window_base) <reset>: Likewise.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (show_source_disasm_command): Use
+	reset_locator.
+	(reset_locator): New function.
+	(init_and_make_win): Remove.
+	(show_source_or_disasm_and_command): Use reset_locator.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_set_exec_info_content): Remove
+	condition.
+	* tui/tui-wingeneral.c (tui_source_window_base::make_visible):
+	Remove condition.
+	* tui/tui-source.c (tui_source_window_base::reset): New method.
+	* tui/tui-layout.c (make_command_window): Don't call
+	init_and_make_win.
+	(make_source_window, make_disasm_window): Don't call
+	make_source_or_disasm_window.
+	(make_data_window): Don't call init_and_make_win.  Change calling
+	convention.
+	(show_source_disasm_command, show_data): Simplify.
+	(make_source_or_disasm_window): Remove.
+	(show_source_or_disasm_and_command): Simplify.
+	* tui/tui-data.h (struct tui_gen_win_info) <reset>: Now virtual.
+	(struct tui_source_window_base) <reset>: Likewise.
+	<execution_info>: Remove initializer.
+	* tui/tui-data.c (tui_source_window_base): Initialize
+	execution_info.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (tui_set_layout): Remove regs_populate
+	variable.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui.c (tui_rl_other_window): Update.
+	* tui/tui-wingeneral.c (tui_data_window::refresh_window): Call
+	superclass method first.  Always iterate over regs_content.
+	(tui_unhighlight_win, tui_highlight_win): Use refresh_window
+	method.
+	* tui/tui-win.c (tui_set_focus_command): Update.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_set_focus_command): Rename from
+	tui_set_focus.  Call tui_enable.
+	(tui_set_focus_command): Remove.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_show_exec_info_content): Don't call
+	refresh_window.
+	* tui/tui-wingeneral.c (tui_gen_win_info::refresh_window): Call
+	touchwin.
+	(tui_data_window::refresh_window): Call refresh_window on data
+	items.  Always call superclass refresh_window.
+	(tui_win_info::refresh): Remove.
+	(tui_source_window_base::refresh_window): Update.
+	(tui_refresh_all): Update.
+	* tui/tui-layout.c (show_source_disasm_command): Remove call to
+	refresh_window.
+	(show_source_or_disasm_and_command): Likewise.
+	* tui/tui-data.h (struct tui_win_info) <refresh>: Remove.
+	(struct tui_source_window_base) <refresh>: Likewise.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_clear_source_content)
+	(tui_show_source_content): Update.
+	* tui/tui-source.c (tui_source_window::showing_source_p): Check
+	whether content is empty.
+	* tui/tui-data.h (struct tui_source_window_base) <content_in_use>:
+	Remove.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_erase_source_content): Clear the
+	window's contents.
+	* tui/tui-source.h (tui_set_source_content_nil): Don't declare.
+	* tui/tui-source.c (tui_set_source_content_nil): Remove.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.h (UNDEFINED_ITEM): Remove define.
+	(struct tui_data_item_window): Update.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.h (MAX_CONTENT_COUNT, TUI_NULL_STR)
+	(DEFAULT_HISTORY_COUNT, WITH_LOCATOR, NO_LOCATOR): Remove
+	defines.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (tui_erase_source_content)
+	(tui_clear_source_content): Remove "display_prompt" parameter.
+	* tui/tui-winsource.c (tui_update_source_window_as_is)
+	(tui_update_source_windows_with_addr): Update.
+	(tui_clear_source_content): Remove "display_prompt" parameter.
+	(tui_erase_source_content): Likewise.  Simplify.
+	(tui_show_source_content): Update.
+	* tui/tui-win.c (tui_resize_all, tui_adjust_win_heights): Update.
+	* tui/tui-stack.c (tui_show_frame_info): Update.
+	* tui/tui-data.h (EMPTY_SOURCE_PROMPT, NO_EMPTY_SOURCE_PROMPT):
+	Remove defines.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_update_source_window_as_is): Update.
+	* tui/tui-disasm.h (tui_set_disassem_content): Add win_info
+	parameter.
+	* tui/tui-disasm.c (tui_set_disassem_content): Add win_info
+	parameter.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_clear_source_content)
+	(tui_show_source_content, tui_show_exec_info_content)
+	(tui_clear_exec_info_content): Update.
+	* tui/tui-stack.c (tui_show_locator_content): Update.
+	(tui_show_frame_info): Update.
+	* tui/tui-source.h (tui_source_window): Don't declare.
+	* tui/tui-source.c (tui_source_window::showing_source_p): Rename
+	from tui_source_is_displayed.
+	* tui/tui-data.h (struct tui_gen_win_info) <content_in_use>:
+	Remove field.
+	(struct tui_source_window_base) <content_in_use>: New field.  Now
+	bool.
+	(struct tui_source_window) <showing_source_p>: New method.
+	(TUI_SRC_WIN): Change cast.
+	* tui/tui-data.c (tui_initialize_static_data): Update.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_update_breakpoint_info): Use
+	location_matches_p.
+	* tui/tui-source.c (tui_source_window::location_matches_p): New
+	method.
+	* tui/tui-disasm.c (tui_disasm_window::location_matches_p): New
+	method.
+	* tui/tui-data.h (struct tui_source_window_base)
+	<location_matches_p>: New method.
+	(struct tui_source_window, struct tui_disasm_window)
+	<location_matches_p>: Likewise.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_set_win_height_command): Rename from
+	tui_set_win_height.
+	(tui_set_win_height_command): Remove.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-source.c (tui_source_window): New constructor.  Add
+	observer.
+	(~tui_source_window): New destructor.
+	(tui_source_window::style_changed): New method.
+	* tui/tui-hooks.c (tui_redisplay_source): Remove.
+	(tui_attach_detach_observers): Update.
+	* tui/tui-data.h (struct tui_source_window): Make constructor not
+	inline.  Add destructor.
+	(struct tui_source_window) <style_changed>: New method.
+	<m_observable>: New member.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.c (tui_clear_source_windows_detail): Fix typo.
+	* tui/tui-win.c (tui_resize_all): Fix typo.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.h (tui_refresh_all): Update.
+	* tui/tui-wingeneral.c (make_all_visible): Use foreach.
+	(tui_refresh_all): Remove "list" parameter.  Use foreach.
+	* tui/tui-win.c (window_name_completer): Use foreach.
+	(tui_refresh_all_win, tui_rehighlight_all, tui_all_windows_info)
+	(update_tab_width): Likewise.
+	* tui/tui-layout.c (show_layout): Update.
+	* tui/tui-data.h (class tui_window_iterator): New.
+	(struct all_tui_windows): New.
+	* tui/tui-data.c (tui_partial_win_by_name): Use foreach.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_reg_next, tui_reg_prev): Add "current_group"
+	parameter.  Don't reference globals.
+	(tui_reg_command): Update.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_show_registers): Simplify.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_show_registers): Update.
+	(tui_show_register_group): Add win_info parameter.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_data_window::display_reg_element_at_line):
+	Rename from tui_display_reg_element_at_line.
+	(tui_data_window::display_registers_from_line): Update.
+	* tui/tui-data.h (struct tui_data_window)
+	<display_reg_element_at_line>: New method.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (tui_display_registers_from)
+	(tui_display_registers_from_line): Don't declare.
+	* tui/tui-windata.c (tui_data_window::display_all_data)
+	(tui_data_window::refresh_all)
+	(tui_data_window::do_scroll_vertical): Update.
+	* tui/tui-regs.c (tui_data_window::display_registers_from): Rename
+	from tui_display_registers_from.
+	(tui_display_reg_element_at_line): Update.
+	(tui_data_window::display_registers_from_line): Rename from
+	tui_display_registers_from_line.
+	* tui/tui-data.h (struct tui_data_window) <display_registers_from,
+	display_registers_from_line>: New methods.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-windata.h (tui_erase_data_content): Don't declare.
+	* tui/tui-windata.c (tui_data_window::erase_data_content): Rename
+	from tui_erase_data_content.
+	(tui_data_window::display_all_data)
+	(tui_data_window::refresh_all)
+	(tui_data_window::do_scroll_vertical): Update.
+	* tui/tui-regs.c (tui_show_registers): Update.
+	* tui/tui-data.h (struct tui_data_window) <erase_data_content>:
+	New method.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-windata.h (tui_delete_data_content_windows): Don't
+	declare.
+	* tui/tui-windata.c
+	(tui_data_window::delete_data_content_windows): Rename from
+	tui_delete_data_content_windows.
+	(tui_data_window::display_all_data)
+	(tui_data_window::do_scroll_vertical): Update.
+	* tui/tui-data.h (struct tui_data_window)
+	<delete_data_content_windows>: New method.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-windata.h (tui_refresh_data_win): Don't declare.
+	* tui/tui-regs.h (tui_first_reg_element_inline): Don't declare.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-windata.h (tui_display_all_data): Don't declare.
+	* tui/tui-windata.c (tui_data_window::display_all_data): Rename
+	from tui_display_all_data.
+	* tui/tui-win.c
+	(tui_data_window::do_make_visible_with_new_height): Update.
+	* tui/tui-regs.c (tui_show_registers): Update.
+	* tui/tui-layout.c (tui_set_layout): Update.
+	* tui/tui-data.h (struct tui_data_window) <display_all_data>: New
+	method.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-windata.h (tui_display_data_from): Don't declare.
+	* tui/tui-windata.c (tui_display_data_from): Remove.
+	(tui_data_window::refresh_all): Update.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-windata.h (tui_display_data_from_line): Don't declare.
+	* tui/tui-windata.c (tui_display_data_from_line): Remove.
+	(tui_display_data_from, tui_data_window::do_scroll_vertical): Call
+	tui_display_registers_from_line.
+	* tui/tui-regs.h (tui_display_registers_from_line): Update.
+	* tui/tui-regs.c (tui_display_registers_from_line): Remove
+	"force_display" parameter.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (tui_first_reg_element_no_inline): Don't
+	declare.
+	* tui/tui-regs.c (tui_data_window::first_reg_element_no_inline):
+	Rename from tui_first_reg_element_no_inline.
+	(tui_display_reg_element_at_line)
+	(tui_display_registers_from_line): Update.
+	* tui/tui-data.h (struct tui_data_window)
+	<first_reg_element_no_inline>: New method.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-windata.c (tui_display_data_from)
+	(tui_data_window::do_scroll_vertical): Update.
+	* tui/tui-regs.h (tui_line_from_reg_element_no): Don't declare.
+	* tui/tui-regs.c (tui_data_window::line_from_reg_element_no):
+	Rename from tui_line_from_reg_element_no.
+	(tui_display_registers_from_line): Update.
+	* tui/tui-data.h (struct tui_data_window)
+	<line_from_reg_element_no>: New method.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (tui_last_regs_line_no): Don't declare.
+	* tui/tui-regs.c (tui_data_window::last_regs_line_no): Rename from
+	tui_last_regs_line_no.
+	(tui_display_reg_element_at_line)
+	(tui_display_registers_from_line): Update.
+	* tui/tui-data.h (struct tui_data_window) <last_regs_line_no>: New
+	method.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	PR tui/24722:
+	* tui/tui-winsource.h (tui_update_all_breakpoint_info)
+	(tui_update_breakpoint_info): Add "being_deleted" parameter.
+	* tui/tui-winsource.c (tui_update_source_window_as_is): Update.
+	(tui_update_all_breakpoint_info): Add "being_deleted" parameter.
+	(tui_update_breakpoint_info): Likewise.
+	* tui/tui-hooks.c (tui_event_create_breakpoint)
+	(tui_event_delete_breakpoint, tui_event_modify_breakpoint):
+	Update.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.c (tui_show_frame_info): Consolidate "if"s.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_update_source_window_as_is)
+	(tui_update_source_windows_with_addr): Update.
+	* tui/tui-source.h (tui_set_source_content)
+	(tui_show_symtab_source): Add "win_info" parameter.
+	* tui/tui-source.c (tui_set_source_content): Add "win_info"
+	parameter.
+	(tui_show_symtab_source): Likewise.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.c
+	(tui_check_and_display_highlight_if_needed): Check can_highlight.
+
+2019-07-17  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.h (struct tui_win_info) <can_scroll>: New method.
+	(struct tui_cmd_window) <can_scroll>: New method.
+	* tui/tui-command.c (tui_dispatch_ctrl_char): Use can_scroll
+	method.
+
 2019-07-17  Tom Tromey  <tromey@adacore.com>
 
 	* ui-out.h (class ui_out) <field_signed, field_fmt_signed,

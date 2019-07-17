@@ -461,9 +461,13 @@ tui_puts_internal (WINDOW *w, const char *string, int *height)
 {
   char c;
   int prev_col = 0;
+  bool saw_nl = false;
 
   while ((c = *string++) != 0)
     {
+      if (c == '\n')
+	saw_nl = true;
+
       if (c == '\1' || c == '\2')
 	{
 	  /* Ignore these, they are readline escape-marking
@@ -492,6 +496,8 @@ tui_puts_internal (WINDOW *w, const char *string, int *height)
 	}
     }
   update_cmdwin_start_line ();
+  if (saw_nl)
+    wrefresh (w);
 }
 
 /* Print a string in the curses command window.  The output is
@@ -904,6 +910,57 @@ tui_initialize_io (void)
       && GetConsoleScreenBufferInfo (hstdout, &csbi))
     ncurses_norm_attr = csbi.wAttributes;
 #endif
+}
+
+/* Dispatch the correct tui function based upon the control
+   character.  */
+static unsigned int
+tui_dispatch_ctrl_char (unsigned int ch)
+{
+  struct tui_win_info *win_info = tui_win_with_focus ();
+
+  /* Handle the CTRL-L refresh for each window.  */
+  if (ch == '\f')
+    tui_refresh_all_win ();
+
+  /* If no window has the focus, or if the focus window can't scroll,
+     just pass the character through.  */
+  if (win_info == NULL || !win_info->can_scroll ())
+    return ch;
+
+  switch (ch)
+    {
+    case KEY_NPAGE:
+      win_info->forward_scroll (0);
+      break;
+    case KEY_PPAGE:
+      win_info->backward_scroll (0);
+      break;
+    case KEY_DOWN:
+    case KEY_SF:
+      win_info->forward_scroll (1);
+      break;
+    case KEY_UP:
+    case KEY_SR:
+      win_info->backward_scroll (1);
+      break;
+    case KEY_RIGHT:
+      win_info->left_scroll (1);
+      break;
+    case KEY_LEFT:
+      win_info->right_scroll (1);
+      break;
+    case '\f':
+      break;
+    default:
+      /* We didn't recognize the character as a control character, so pass it
+         through.  */
+      return ch;
+    }
+
+  /* We intercepted the control character, so return 0 (which readline
+     will interpret as a no-op).  */
+  return 0;
 }
 
 /* Get a character from the command window.  This is called from the

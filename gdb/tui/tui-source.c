@@ -123,7 +123,8 @@ copy_source_line (const char **ptr, int line_no, int first_col,
 
 /* Function to display source in the source window.  */
 enum tui_status
-tui_set_source_content (struct symtab *s, 
+tui_set_source_content (tui_source_window_base *win_info,
+			struct symtab *s, 
 			int line_no,
 			int noerror)
 {
@@ -134,11 +135,11 @@ tui_set_source_content (struct symtab *s,
       int line_width, nlines;
 
       ret = TUI_SUCCESS;
-      tui_alloc_source_buffer (TUI_SRC_WIN);
-      line_width = TUI_SRC_WIN->width - 1;
+      tui_alloc_source_buffer (win_info);
+      line_width = win_info->width - 1;
       /* Take hilite (window border) into account, when
 	 calculating the number of lines.  */
-      nlines = (line_no + (TUI_SRC_WIN->height - 2)) - line_no;
+      nlines = (line_no + (win_info->height - 2)) - line_no;
 
       std::string srclines;
       if (!g_source_cache.get_source_lines (s, line_no, line_no + nlines,
@@ -159,32 +160,30 @@ tui_set_source_content (struct symtab *s,
 	  int cur_line_no, cur_line;
 	  struct tui_locator_window *locator
 	    = tui_locator_win_info_ptr ();
-	  struct tui_source_window_base *src
-	    = (struct tui_source_window_base *) TUI_SRC_WIN;
 	  const char *s_filename = symtab_to_filename_for_display (s);
 
-	  xfree (TUI_SRC_WIN->title);
-	  TUI_SRC_WIN->title = xstrdup (s_filename);
+	  xfree (win_info->title);
+	  win_info->title = xstrdup (s_filename);
 
-	  xfree (src->fullname);
-	  src->fullname = xstrdup (symtab_to_fullname (s));
+	  xfree (win_info->fullname);
+	  win_info->fullname = xstrdup (symtab_to_fullname (s));
 
 	  cur_line = 0;
-	  src->gdbarch = get_objfile_arch (SYMTAB_OBJFILE (s));
-	  src->start_line_or_addr.loa = LOA_LINE;
-	  cur_line_no = src->start_line_or_addr.u.line_no = line_no;
+	  win_info->gdbarch = get_objfile_arch (SYMTAB_OBJFILE (s));
+	  win_info->start_line_or_addr.loa = LOA_LINE;
+	  cur_line_no = win_info->start_line_or_addr.u.line_no = line_no;
 
 	  const char *iter = srclines.c_str ();
-	  TUI_SRC_WIN->content.resize (nlines);
+	  win_info->content.resize (nlines);
 	  while (cur_line < nlines)
 	    {
 	      struct tui_source_element *element
-		= &TUI_SRC_WIN->content[cur_line];
+		= &win_info->content[cur_line];
 
 	      std::string text;
 	      if (*iter != '\0')
 		text = copy_source_line (&iter, cur_line_no,
-					 src->horizontal_offset,
+					 win_info->horizontal_offset,
 					 line_width);
 
 	      /* Set whether element is the execution point
@@ -196,8 +195,8 @@ tui_set_source_content (struct symtab *s,
 				 symtab_to_fullname (s)) == 0
 		   && cur_line_no == locator->line_no);
 
-	      xfree (TUI_SRC_WIN->content[cur_line].line);
-	      TUI_SRC_WIN->content[cur_line].line
+	      xfree (win_info->content[cur_line].line);
+	      win_info->content[cur_line].line
 		= xstrdup (text.c_str ());
 
 	      cur_line++;
@@ -210,88 +209,25 @@ tui_set_source_content (struct symtab *s,
 }
 
 
-/* elz: This function sets the contents of the source window to empty
-   except for a line in the middle with a warning message about the
-   source not being available.  This function is called by
-   tui_erase_source_contents(), which in turn is invoked when the
-   source files cannot be accessed.  */
-
-void
-tui_set_source_content_nil (struct tui_source_window_base *win_info,
-			    const char *warning_string)
-{
-  int line_width;
-  int n_lines;
-  int curr_line = 0;
-
-  line_width = win_info->width - 1;
-  n_lines = win_info->height - 2;
-
-  /* Set to empty each line in the window, except for the one which
-     contains the message.  */
-  while (curr_line < win_info->content.size ())
-    {
-      /* Set the information related to each displayed line to null:
-         i.e. the line number is 0, there is no bp, it is not where
-         the program is stopped.  */
-
-      struct tui_source_element *element = &win_info->content[curr_line];
-
-      element->line_or_addr.loa = LOA_LINE;
-      element->line_or_addr.u.line_no = 0;
-      element->is_exec_point = false;
-      element->break_mode = 0;
-
-      /* Set the contents of the line to blank.  */
-      element->line[0] = (char) 0;
-
-      /* If the current line is in the middle of the screen, then we
-         want to display the 'no source available' message in it.
-         Note: the 'weird' arithmetic with the line width and height
-         comes from the function tui_erase_source_content().  We need
-         to keep the screen and the window's actual contents in
-         synch.  */
-
-      if (curr_line == (n_lines / 2 + 1))
-	{
-	  int xpos;
-	  int warning_length = strlen (warning_string);
-	  char *src_line;
-
-	  if (warning_length >= ((line_width - 1) / 2))
-	    xpos = 1;
-	  else
-	    xpos = (line_width - 1) / 2 - warning_length;
-
-	  src_line = xstrprintf ("%s%s", n_spaces (xpos), warning_string);
-	  xfree (element->line);
-	  element->line = src_line;
-	}
-
-      curr_line++;
-    }
-}
-
-
 /* Function to display source in the source window.  This function
    initializes the horizontal scroll to 0.  */
 void
-tui_show_symtab_source (struct gdbarch *gdbarch, struct symtab *s,
+tui_show_symtab_source (tui_source_window_base *win_info,
+			struct gdbarch *gdbarch, struct symtab *s,
 			struct tui_line_or_address line, 
 			int noerror)
 {
-  TUI_SRC_WIN->horizontal_offset = 0;
-  tui_update_source_window_as_is (TUI_SRC_WIN, gdbarch, s, line, noerror);
+  win_info->horizontal_offset = 0;
+  tui_update_source_window_as_is (win_info, gdbarch, s, line, noerror);
 }
 
 
 /* Answer whether the source is currently displayed in the source
    window.  */
-int
-tui_source_is_displayed (const char *fullname)
+bool
+tui_source_window::showing_source_p (const char *fullname) const
 {
-  return (TUI_SRC_WIN != NULL
-	  && TUI_SRC_WIN->content_in_use 
+  return (!content.empty ()
 	  && (filename_cmp (tui_locator_win_info_ptr ()->full_name,
 			    fullname) == 0));
 }
@@ -324,4 +260,34 @@ tui_source_window::do_scroll_vertical (int num_to_scroll)
 
       print_source_lines (s, l.u.line_no, l.u.line_no + 1, 0);
     }
+}
+
+tui_source_window::tui_source_window ()
+  : tui_source_window_base (SRC_WIN)
+{
+  gdb::observers::source_styling_changed.attach
+    (std::bind (&tui_source_window::style_changed, this),
+     m_observable);
+}
+
+tui_source_window::~tui_source_window ()
+{
+  gdb::observers::source_styling_changed.detach (m_observable);
+}
+
+void
+tui_source_window::style_changed ()
+{
+  if (tui_active && is_visible)
+    refill ();
+}
+
+bool
+tui_source_window::location_matches_p (struct bp_location *loc, int line_no)
+{
+  return (content[line_no].line_or_addr.loa == LOA_LINE
+	  && content[line_no].line_or_addr.u.line_no == loc->line_number
+	  && loc->symtab != NULL
+	  && filename_cmp (fullname,
+			   symtab_to_fullname (loc->symtab)) == 0);
 }

@@ -37,24 +37,10 @@ void
 tui_gen_win_info::refresh_window ()
 {
   if (handle != NULL)
-    wrefresh (handle);
-}
-
-/* See tui-data.h.  */
-
-void
-tui_data_window::refresh_window ()
-{
-  if (!regs_content.empty ())
     {
-      for (auto &&win : regs_content)
-	{
-	  if (win != NULL && win->handle != NULL)
-	    wrefresh (win->handle);
-	}
+      touchwin (handle);
+      wrefresh (handle);
     }
-  else
-    tui_gen_win_info::refresh_window ();
 }
 
 /* Function to delete the curses window, checking for NULL.  */
@@ -106,7 +92,7 @@ tui_unhighlight_win (struct tui_win_info *win_info)
       && win_info->handle != NULL)
     {
       box_win (win_info, NO_HILITE);
-      wrefresh (win_info->handle);
+      win_info->refresh_window ();
       win_info->set_highlight (false);
     }
 }
@@ -120,7 +106,7 @@ tui_highlight_win (struct tui_win_info *win_info)
       && win_info->handle != NULL)
     {
       box_win (win_info, HILITE);
-      wrefresh (win_info->handle);
+      win_info->refresh_window ();
       win_info->set_highlight (true);
     }
 }
@@ -128,7 +114,7 @@ tui_highlight_win (struct tui_win_info *win_info)
 void
 tui_check_and_display_highlight_if_needed (struct tui_win_info *win_info)
 {
-  if (win_info != NULL && win_info->type != CMD_WIN)
+  if (win_info != NULL && win_info->can_highlight)
     {
       if (win_info->is_highlighted)
 	tui_highlight_win (win_info);
@@ -136,7 +122,6 @@ tui_check_and_display_highlight_if_needed (struct tui_win_info *win_info)
 	tui_unhighlight_win (win_info);
 
     }
-  return;
 }
 
 
@@ -166,45 +151,18 @@ tui_make_window (struct tui_gen_win_info *win_info, enum tui_box box_it)
 void
 tui_gen_win_info::make_visible (bool visible)
 {
+  if (is_visible == visible)
+    return;
+  is_visible = visible;
+
   if (visible)
+    tui_make_window (this, (tui_win_is_auxiliary (type)
+			    ? DONT_BOX_WINDOW : BOX_WINDOW));
+  else
     {
-      if (!is_visible)
-	{
-	  tui_make_window (this, (tui_win_is_auxiliary (type)
-				  ? DONT_BOX_WINDOW : BOX_WINDOW));
-	  is_visible = true;
-	}
-    }
-  else if (!visible
-	   && is_visible
-	   && handle != NULL)
-    {
-      is_visible = false;
       tui_delete_win (handle);
       handle = NULL;
     }
-}
-
-void
-tui_make_visible (struct tui_gen_win_info *win_info)
-{
-  win_info->make_visible (true);
-}
-
-void
-tui_make_invisible (struct tui_gen_win_info *win_info)
-{
-  win_info->make_visible (false);
-}
-
-/* See tui-data.h.  */
-
-void
-tui_source_window_base::make_visible (bool visible)
-{
-  if (execution_info != nullptr)
-    execution_info->make_visible (visible);
-  tui_win_info::make_visible (visible);
 }
 
 /* Makes all windows invisible (except the command and locator
@@ -212,15 +170,8 @@ tui_source_window_base::make_visible (bool visible)
 static void
 make_all_visible (bool visible)
 {
-  int i;
-
-  for (i = 0; i < MAX_MAJOR_WINDOWS; i++)
-    {
-      if (tui_win_list[i] != NULL)
-	tui_win_list[i]->make_visible (visible);
-    }
-
-  return;
+  for (tui_win_info *win_info : all_tui_windows ())
+    win_info->make_visible (visible);
 }
 
 void
@@ -235,43 +186,20 @@ tui_make_all_invisible (void)
   make_all_visible (false);
 }
 
-/* See tui-data.h.  */
-
-void
-tui_win_info::refresh ()
-{
-  touchwin (handle);
-  refresh_window ();
-}
-
-/* See tui-data.h.  */
-
-void
-tui_source_window_base::refresh ()
-{
-  touchwin (execution_info->handle);
-  execution_info->refresh_window ();
-  tui_win_info::refresh ();
-}
-
 /* Function to refresh all the windows currently displayed.  */
 
 void
-tui_refresh_all (struct tui_win_info **list)
+tui_refresh_all ()
 {
-  int type;
   struct tui_locator_window *locator = tui_locator_win_info_ptr ();
 
-  for (type = SRC_WIN; (type < MAX_MAJOR_WINDOWS); type++)
+  for (tui_win_info *win_info : all_tui_windows ())
     {
-      if (list[type] && list[type]->is_visible)
-	list[type]->refresh ();
+      if (win_info->is_visible)
+	win_info->refresh_window ();
     }
   if (locator->is_visible)
-    {
-      touchwin (locator->handle);
-      locator->refresh_window ();
-    }
+    locator->refresh_window ();
 }
 
 

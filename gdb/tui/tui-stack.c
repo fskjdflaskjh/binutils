@@ -266,7 +266,6 @@ tui_show_locator_content (void)
       locator->refresh_window ();
       wmove (locator->handle, 0, 0);
       xfree (string);
-      locator->content_in_use = TRUE;
     }
 }
 
@@ -341,22 +340,25 @@ tui_show_frame_info (struct frame_info *fi)
 
   if (fi)
     {
-      int start_line;
-      CORE_ADDR low;
       struct tui_locator_window *locator = tui_locator_win_info_ptr ();
       int source_already_displayed;
       CORE_ADDR pc;
 
       symtab_and_line sal = find_frame_sal (fi);
 
-      source_already_displayed = sal.symtab != 0
-        && tui_source_is_displayed (symtab_to_fullname (sal.symtab));
+      const char *fullname = nullptr;
+      if (sal.symtab != nullptr)
+	fullname = symtab_to_fullname (sal.symtab);
+
+      source_already_displayed = (sal.symtab != 0
+				  && TUI_SRC_WIN != nullptr
+				  && TUI_SRC_WIN->showing_source_p (fullname));
 
       if (get_frame_pc_if_available (fi, &pc))
 	locator_changed_p
 	  = tui_set_locator_info (get_frame_arch (fi),
 				  (sal.symtab == 0
-				   ? "??" : symtab_to_fullname (sal.symtab)),
+				   ? "??" : fullname),
 				  tui_get_function_from_frame (fi),
 				  sal.line,
 				  pc);
@@ -372,32 +374,15 @@ tui_show_frame_info (struct frame_info *fi)
 	return 0;
 
       tui_show_locator_content ();
-      start_line = 0;
       for (struct tui_source_window_base *win_info : tui_source_windows ())
 	{
 	  if (win_info == TUI_SRC_WIN)
 	    {
-	      start_line = (locator->line_no -
-			   (win_info->viewport_height / 2)) + 1;
+	      int start_line = (locator->line_no -
+				(win_info->viewport_height / 2)) + 1;
 	      if (start_line <= 0)
 		start_line = 1;
-	    }
-	  else
-	    {
-	      if (find_pc_partial_function (get_frame_pc (fi),
-					    NULL, &low, NULL) == 0)
-		{
-		  /* There is no symbol available for current PC.  There is no
-		     safe way how to "disassemble backwards".  */
-		  low = get_frame_pc (fi);
-		}
-	      else
-		low = tui_get_low_disassembly_address (get_frame_arch (fi),
-						       low, get_frame_pc (fi));
-	    }
 
-	  if (win_info == TUI_SRC_WIN)
-	    {
 	      struct tui_line_or_address l;
 
 	      l.loa = LOA_LINE;
@@ -415,23 +400,34 @@ tui_show_frame_info (struct frame_info *fi)
 	    }
 	  else
 	    {
-	      if (win_info == TUI_DISASM_WIN)
-		{
-		  struct tui_line_or_address a;
+	      CORE_ADDR low;
 
-		  a.loa = LOA_ADDRESS;
-		  a.u.addr = low;
-		  if (!tui_addr_is_displayed (locator->addr,
-					      win_info, TRUE))
-		    tui_update_source_window (win_info, get_frame_arch (fi),
-					      sal.symtab, a, TRUE);
-		  else
-		    {
-		      a.u.addr = locator->addr;
-		      win_info->set_is_exec_point_at (a);
-		    }
+	      if (find_pc_partial_function (get_frame_pc (fi),
+					    NULL, &low, NULL) == 0)
+		{
+		  /* There is no symbol available for current PC.  There is no
+		     safe way how to "disassemble backwards".  */
+		  low = get_frame_pc (fi);
+		}
+	      else
+		low = tui_get_low_disassembly_address (get_frame_arch (fi),
+						       low, get_frame_pc (fi));
+
+	      struct tui_line_or_address a;
+
+	      a.loa = LOA_ADDRESS;
+	      a.u.addr = low;
+	      if (!tui_addr_is_displayed (locator->addr,
+					  win_info, TRUE))
+		tui_update_source_window (win_info, get_frame_arch (fi),
+					  sal.symtab, a, TRUE);
+	      else
+		{
+		  a.u.addr = locator->addr;
+		  win_info->set_is_exec_point_at (a);
 		}
 	    }
+
 	  tui_update_exec_info (win_info);
 	}
 
@@ -448,7 +444,7 @@ tui_show_frame_info (struct frame_info *fi)
       tui_show_locator_content ();
       for (struct tui_source_window_base *win_info : tui_source_windows ())
 	{
-	  tui_clear_source_content (win_info, EMPTY_SOURCE_PROMPT);
+	  tui_clear_source_content (win_info);
 	  tui_update_exec_info (win_info);
 	}
 

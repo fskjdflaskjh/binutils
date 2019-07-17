@@ -32,7 +32,6 @@
 #include "target.h"
 #include "tui/tui-layout.h"
 #include "tui/tui-win.h"
-#include "tui/tui-windata.h"
 #include "tui/tui-wingeneral.h"
 #include "tui/tui-file.h"
 #include "tui/tui-regs.h"
@@ -43,58 +42,55 @@
 
 #include "gdb_curses.h"
 
-
-/*****************************************
-** STATIC LOCAL FUNCTIONS FORWARD DECLS    **
-******************************************/
 static void tui_display_register (struct tui_data_item_window *data);
 
-static void tui_show_register_group (struct reggroup *group,
+static void tui_show_register_group (tui_data_window *win_info,
+				     struct reggroup *group,
 				     struct frame_info *frame,
 				     int refresh_values_only);
 
-static enum tui_status tui_get_register (struct frame_info *frame,
-					 struct tui_data_item_window *data,
-					 int regnum, bool *changedp);
+static void tui_get_register (struct frame_info *frame,
+			      struct tui_data_item_window *data,
+			      int regnum, bool *changedp);
 
 
+/* See tui-regs.h.  */
 
-/*****************************************
-** PUBLIC FUNCTIONS                     **
-******************************************/
+tui_data_item_window::~tui_data_item_window ()
+{
+  xfree (value);
+  xfree (content);
+}
 
-/* Answer the number of the last line in the regs display.  If there
-   are no registers (-1) is returned.  */
+/* See tui-regs.h.  */
+
 int
-tui_last_regs_line_no (void)
+tui_data_window::last_regs_line_no () const
 {
   int num_lines = (-1);
 
-  if (!TUI_DATA_WIN->regs_content.empty ())
+  if (!regs_content.empty ())
     {
-      num_lines = (TUI_DATA_WIN->regs_content.size ()
-		   / TUI_DATA_WIN->regs_column_count);
-      if (TUI_DATA_WIN->regs_content.size () % TUI_DATA_WIN->regs_column_count)
+      num_lines = regs_content.size () / regs_column_count;
+      if (regs_content.size () % regs_column_count)
 	num_lines++;
     }
   return num_lines;
 }
 
+/* See tui-regs.h.  */
 
-/* Answer the line number that the register element at element_no is
-   on.  If element_no is greater than the number of register elements
-   there are, -1 is returned.  */
 int
-tui_line_from_reg_element_no (int element_no)
+tui_data_window::line_from_reg_element_no (int element_no) const
 {
-  if (element_no < TUI_DATA_WIN->regs_content.size ())
+  if (element_no < regs_content.size ())
     {
       int i, line = (-1);
 
       i = 1;
       while (line == (-1))
 	{
-	  if (element_no < TUI_DATA_WIN->regs_column_count * i)
+	  if (element_no < regs_column_count * i)
 	    line = i - 1;
 	  else
 	    i++;
@@ -106,35 +102,44 @@ tui_line_from_reg_element_no (int element_no)
     return (-1);
 }
 
+/* See tui-regs.h.  */
 
-/* Answer the index of the first element in line_no.  If line_no is
-   past the register area (-1) is returned.  */
 int
-tui_first_reg_element_no_inline (int line_no)
+tui_data_window::first_reg_element_no_inline (int line_no) const
 {
-  if ((line_no * TUI_DATA_WIN->regs_column_count)
-      <= TUI_DATA_WIN->regs_content.size ())
-    return (((line_no + 1) * TUI_DATA_WIN->regs_column_count) 
-	    - TUI_DATA_WIN->regs_column_count);
+  if (line_no * regs_column_count <= regs_content.size ())
+    return ((line_no + 1) * regs_column_count) - regs_column_count;
   else
     return (-1);
 }
 
+/* A helper function to display the register window in the appropriate
+   way.  */
+
+static void
+tui_reg_layout ()
+{
+  enum tui_layout_type cur_layout = tui_current_layout ();
+  enum tui_layout_type new_layout;
+  if (cur_layout == SRC_COMMAND || cur_layout == SRC_DATA_COMMAND)
+    new_layout = SRC_DATA_COMMAND;
+  else
+    new_layout = DISASSEM_DATA_COMMAND;
+  tui_set_layout (new_layout);
+}
 
 /* Show the registers of the given group in the data window
    and refresh the window.  */
 void
 tui_show_registers (struct reggroup *group)
 {
-  enum tui_status ret = TUI_FAILURE;
-
   /* Make sure the curses mode is enabled.  */
   tui_enable ();
 
   /* Make sure the register window is visible.  If not, select an
      appropriate layout.  */
   if (TUI_DATA_WIN == NULL || !TUI_DATA_WIN->is_visible)
-    tui_set_layout_by_name (DATA_NAME);
+    tui_reg_layout ();
 
   if (group == 0)
     group = general_reggroup;
@@ -145,17 +150,9 @@ tui_show_registers (struct reggroup *group)
 
   if (target_has_registers && target_has_stack && target_has_memory)
     {
-      tui_show_register_group (group, get_selected_frame (NULL),
+      tui_show_register_group (TUI_DATA_WIN, group, get_selected_frame (NULL),
 			       group == TUI_DATA_WIN->current_group);
-      ret = TUI_SUCCESS;
-    }
-  if (ret == TUI_FAILURE)
-    {
-      TUI_DATA_WIN->current_group = 0;
-      tui_erase_data_content (NO_REGS_STRING);
-    }
-  else
-    {
+
       /* Clear all notation of changed values.  */
       for (auto &&data_item_win : TUI_DATA_WIN->regs_content)
 	{
@@ -163,7 +160,12 @@ tui_show_registers (struct reggroup *group)
 	    data_item_win->highlight = false;
 	}
       TUI_DATA_WIN->current_group = group;
-      tui_display_all_data ();
+      TUI_DATA_WIN->display_all_data ();
+    }
+  else
+    {
+      TUI_DATA_WIN->current_group = 0;
+      TUI_DATA_WIN->erase_data_content (NO_REGS_STRING);
     }
 }
 
@@ -173,7 +175,8 @@ tui_show_registers (struct reggroup *group)
    refresh_values_only is TRUE.  */
 
 static void
-tui_show_register_group (struct reggroup *group,
+tui_show_register_group (tui_data_window *win_info,
+			 struct reggroup *group,
                          struct frame_info *frame, 
 			 int refresh_values_only)
 {
@@ -185,8 +188,8 @@ tui_show_register_group (struct reggroup *group,
   /* Make a new title showing which group we display.  */
   snprintf (title, sizeof (title) - 1, "Register group: %s",
             reggroup_name (group));
-  xfree (TUI_DATA_WIN->title);
-  TUI_DATA_WIN->title = xstrdup (title);
+  xfree (win_info->title);
+  win_info->title = xstrdup (title);
 
   /* See how many registers must be displayed.  */
   nr_regs = 0;
@@ -208,14 +211,14 @@ tui_show_register_group (struct reggroup *group,
     }
 
   if (!refresh_values_only)
-    TUI_DATA_WIN->regs_content.clear ();
+    win_info->regs_content.clear ();
 
-  if (nr_regs < TUI_DATA_WIN->regs_content.size ())
-    TUI_DATA_WIN->regs_content.resize (nr_regs);
+  if (nr_regs < win_info->regs_content.size ())
+    win_info->regs_content.resize (nr_regs);
   else
     {
-      for (int i = TUI_DATA_WIN->regs_content.size (); i < nr_regs; ++i)
-	TUI_DATA_WIN->regs_content.emplace_back (new tui_data_item_window ());
+      for (int i = win_info->regs_content.size (); i < nr_regs; ++i)
+	win_info->regs_content.emplace_back (new tui_data_item_window ());
     }
 
   /* Now set the register names and values.  */
@@ -235,7 +238,7 @@ tui_show_register_group (struct reggroup *group,
       if (name == 0 || *name == '\0')
 	continue;
 
-      data_item_win = TUI_DATA_WIN->regs_content[pos].get ();
+      data_item_win = win_info->regs_content[pos].get ();
       if (data_item_win)
 	{
 	  if (!refresh_values_only)
@@ -250,19 +253,17 @@ tui_show_register_group (struct reggroup *group,
     }
 }
 
-/* Function to display the registers in the content from
-   'start_element_no' until the end of the register content or the end
-   of the display height.  No checking for displaying past the end of
-   the registers is done here.  */
+/* See tui-regs.h.  */
+
 void
-tui_display_registers_from (int start_element_no)
+tui_data_window::display_registers_from (int start_element_no)
 {
-  if (!TUI_DATA_WIN->regs_content.empty ())
+  if (!regs_content.empty ())
     {
       int j, item_win_width, cur_y;
 
       int max_len = 0;
-      for (auto &&data_item_win : TUI_DATA_WIN->regs_content)
+      for (auto &&data_item_win : regs_content)
         {
           char *p;
           int len;
@@ -284,28 +285,25 @@ tui_display_registers_from (int start_element_no)
       item_win_width = max_len + 1;
       int i = start_element_no;
 
-      TUI_DATA_WIN->regs_column_count =
-        (TUI_DATA_WIN->width - 2) / item_win_width;
-      if (TUI_DATA_WIN->regs_column_count == 0)
-        TUI_DATA_WIN->regs_column_count = 1;
-      item_win_width =
-        (TUI_DATA_WIN->width - 2) / TUI_DATA_WIN->regs_column_count;
+      regs_column_count = (width - 2) / item_win_width;
+      if (regs_column_count == 0)
+        regs_column_count = 1;
+      item_win_width = (width - 2) / regs_column_count;
 
       /* Now create each data "sub" window, and write the display into
 	 it.  */
       cur_y = 1;
-      while (i < TUI_DATA_WIN->regs_content.size ()
-	     && cur_y <= TUI_DATA_WIN->viewport_height)
+      while (i < regs_content.size ()
+	     && cur_y <= viewport_height)
 	{
 	  for (j = 0;
-	       j < TUI_DATA_WIN->regs_column_count
-		 && i < TUI_DATA_WIN->regs_content.size ();
+	       j < regs_column_count && i < regs_content.size ();
 	       j++)
 	    {
 	      struct tui_data_item_window *data_item_win;
 
 	      /* Create the window if necessary.  */
-	      data_item_win = TUI_DATA_WIN->regs_content[i].get ();
+	      data_item_win = regs_content[i].get ();
               if (data_item_win->handle != NULL
                   && (data_item_win->height != 1
                       || data_item_win->width != item_win_width
@@ -337,16 +335,13 @@ tui_display_registers_from (int start_element_no)
     }
 }
 
+/* See tui-regs.h.  */
 
-/* Function to display the registers in the content from
-   'start_element_no' on 'start_line_no' until the end of the register
-   content or the end of the display height.  This function checks
-   that we won't display off the end of the register display.  */
-static void
-tui_display_reg_element_at_line (int start_element_no,
-				 int start_line_no)
+void
+tui_data_window::display_reg_element_at_line (int start_element_no,
+					      int start_line_no)
 {
-  if (!TUI_DATA_WIN->regs_content.empty ())
+  if (!regs_content.empty ())
     {
       int element_no = start_element_no;
 
@@ -354,9 +349,8 @@ tui_display_reg_element_at_line (int start_element_no,
 	{
 	  int last_line_no, first_line_on_last_page;
 
-	  last_line_no = tui_last_regs_line_no ();
-	  first_line_on_last_page
-	    = last_line_no - (TUI_DATA_WIN->height - 2);
+	  last_line_no = last_regs_line_no ();
+	  first_line_on_last_page = last_line_no - (height - 2);
 	  if (first_line_on_last_page < 0)
 	    first_line_on_last_page = 0;
 
@@ -364,56 +358,209 @@ tui_display_reg_element_at_line (int start_element_no,
 	     registers, adjust what element to really start the
 	     display at.  */
 	  if (start_line_no > first_line_on_last_page)
-	    element_no
-	      = tui_first_reg_element_no_inline (first_line_on_last_page);
+	    element_no = first_reg_element_no_inline (first_line_on_last_page);
 	}
-      tui_display_registers_from (element_no);
+      display_registers_from (element_no);
     }
 }
 
+/* See tui-regs.h.  */
 
-
-/* Function to display the registers starting at line line_no in the
-   data window.  Answers the line number that the display actually
-   started from.  If nothing is displayed (-1) is returned.  */
 int
-tui_display_registers_from_line (int line_no, 
-				 int force_display)
+tui_data_window::display_registers_from_line (int line_no)
 {
-  if (!TUI_DATA_WIN->regs_content.empty ())
+  tui_check_and_display_highlight_if_needed (this);
+  if (!regs_content.empty ())
     {
-      int line, element_no;
+      int element_no;
 
       if (line_no < 0)
-	line = 0;
-      else if (force_display)
-	{ /* If we must display regs (force_display is true), then
-	     make sure that we don't display off the end of the
+	line_no = 0;
+      else
+	{
+	  /* Make sure that we don't display off the end of the
 	     registers.  */
-	  if (line_no >= tui_last_regs_line_no ())
+	  if (line_no >= last_regs_line_no ())
 	    {
-	      if ((line = tui_line_from_reg_element_no (
-		 TUI_DATA_WIN->regs_content.size () - 1)) < 0)
-		line = 0;
+	      line_no = line_from_reg_element_no (regs_content.size () - 1);
+	      if (line_no < 0)
+		line_no = 0;
 	    }
-	  else
-	    line = line_no;
 	}
-      else
-	line = line_no;
 
-      element_no = tui_first_reg_element_no_inline (line);
-      if (element_no < TUI_DATA_WIN->regs_content.size ())
-	tui_display_reg_element_at_line (element_no, line);
+      element_no = first_reg_element_no_inline (line_no);
+      if (element_no < regs_content.size ())
+	display_reg_element_at_line (element_no, line_no);
       else
-	line = (-1);
+	line_no = (-1);
 
-      return line;
+      return line_no;
     }
 
   return (-1);			/* Nothing was displayed.  */
 }
 
+
+/* Answer the index first element displayed.  If none are displayed,
+   then return (-1).  */
+int
+tui_data_window::first_data_item_displayed ()
+{
+  for (int i = 0; i < regs_content.size (); i++)
+    {
+      struct tui_gen_win_info *data_item_win;
+
+      data_item_win = regs_content[i].get ();
+      if (data_item_win->handle != NULL && data_item_win->is_visible)
+	return i;
+    }
+
+  return -1;
+}
+
+/* See tui-regs.h.  */
+
+void
+tui_data_window::delete_data_content_windows ()
+{
+  for (auto &&win : regs_content)
+    {
+      tui_delete_win (win->handle);
+      win->handle = NULL;
+      win->is_visible = false;
+    }
+}
+
+
+void
+tui_data_window::erase_data_content (const char *prompt)
+{
+  werase (handle);
+  tui_check_and_display_highlight_if_needed (this);
+  if (prompt != NULL)
+    {
+      int half_width = (width - 2) / 2;
+      int x_pos;
+
+      if (strlen (prompt) >= half_width)
+	x_pos = 1;
+      else
+	x_pos = half_width - strlen (prompt);
+      mvwaddstr (handle, (height / 2), x_pos, (char *) prompt);
+    }
+  wrefresh (handle);
+}
+
+/* See tui-regs.h.  */
+
+void
+tui_data_window::display_all_data ()
+{
+  if (regs_content.empty ())
+    erase_data_content (NO_DATA_STRING);
+  else
+    {
+      erase_data_content (NULL);
+      delete_data_content_windows ();
+      tui_check_and_display_highlight_if_needed (this);
+      display_registers_from (0);
+    }
+}
+
+
+/* Function to redisplay the contents of the data window.  */
+void
+tui_data_window::refresh_all ()
+{
+  erase_data_content (NULL);
+  if (!regs_content.empty ())
+    {
+      int first_element = first_data_item_displayed ();
+
+      if (first_element >= 0)	/* Re-use existing windows.  */
+	{
+	  int first_line = (-1);
+
+	  if (first_element < regs_content.size ())
+	    first_line = line_from_reg_element_no (first_element);
+
+	  if (first_line >= 0)
+	    {
+	      erase_data_content (NULL);
+	      display_registers_from_line (first_line);
+	    }
+	}
+    }
+}
+
+
+/* Scroll the data window vertically forward or backward.  */
+void
+tui_data_window::do_scroll_vertical (int num_to_scroll)
+{
+  int first_element_no;
+  int first_line = (-1);
+
+  first_element_no = first_data_item_displayed ();
+  if (first_element_no < regs_content.size ())
+    first_line = line_from_reg_element_no (first_element_no);
+  else
+    { /* Calculate the first line from the element number which is in
+        the general data content.  */
+    }
+
+  if (first_line >= 0)
+    {
+      first_line += num_to_scroll;
+      erase_data_content (NULL);
+      delete_data_content_windows ();
+      display_registers_from_line (first_line);
+    }
+}
+
+/* See tui-regs.h.  */
+
+void
+tui_data_window::clear_detail ()
+{
+  regs_content.clear ();
+  regs_column_count = 1;
+  display_regs = false;
+}
+
+/* See tui-regs.h.  */
+
+void
+tui_data_window::set_new_height (int height)
+{
+  /* Delete all data item windows.  */
+  for (auto &&win : regs_content)
+    {
+      tui_delete_win (win->handle);
+      win->handle = NULL;
+    }
+}
+
+/* See tui-regs.h.  */
+
+void
+tui_data_window::do_make_visible_with_new_height ()
+{
+  display_all_data ();
+}
+
+/* See tui-regs.h.  */
+
+void
+tui_data_window::refresh_window ()
+{
+  tui_gen_win_info::refresh_window ();
+  for (auto &&win : regs_content)
+    {
+      if (win != NULL)
+	win->refresh_window ();
+    }
+}
 
 /* This function check all displayed registers for changes in values,
    given a particular frame.  If the values have changed, they are
@@ -486,14 +633,13 @@ tui_display_register (struct tui_data_item_window *data)
    register window is not currently being displayed.  */
 
 static struct reggroup *
-tui_reg_next (struct gdbarch *gdbarch)
+tui_reg_next (struct reggroup *current_group, struct gdbarch *gdbarch)
 {
   struct reggroup *group = NULL;
 
-  if (TUI_DATA_WIN != NULL)
+  if (current_group != NULL)
     {
-      group = TUI_DATA_WIN->current_group;
-      group = reggroup_next (gdbarch, group);
+      group = reggroup_next (gdbarch, current_group);
       if (group == NULL)
         group = reggroup_next (gdbarch, NULL);
     }
@@ -505,14 +651,13 @@ tui_reg_next (struct gdbarch *gdbarch)
    register window is not currently being displayed.  */
 
 static struct reggroup *
-tui_reg_prev (struct gdbarch *gdbarch)
+tui_reg_prev (struct reggroup *current_group, struct gdbarch *gdbarch)
 {
   struct reggroup *group = NULL;
 
-  if (TUI_DATA_WIN != NULL)
+  if (current_group != NULL)
     {
-      group = TUI_DATA_WIN->current_group;
-      group = reggroup_prev (gdbarch, group);
+      group = reggroup_prev (gdbarch, current_group);
       if (group == NULL)
 	group = reggroup_prev (gdbarch, NULL);
     }
@@ -540,12 +685,15 @@ tui_reg_command (const char *args, int from_tty)
 	 appropriate layout.  We need to do this before trying to run the
 	 'next' or 'prev' commands.  */
       if (TUI_DATA_WIN == NULL || !TUI_DATA_WIN->is_visible)
-	tui_set_layout_by_name (DATA_NAME);
+	tui_reg_layout ();
 
+      struct reggroup *current_group = NULL;
+      if (TUI_DATA_WIN != NULL)
+	current_group = TUI_DATA_WIN->current_group;
       if (strncmp (args, "next", len) == 0)
-	match = tui_reg_next (gdbarch);
+	match = tui_reg_next (current_group, gdbarch);
       else if (strncmp (args, "prev", len) == 0)
-	match = tui_reg_prev (gdbarch);
+	match = tui_reg_prev (current_group, gdbarch);
 
       /* This loop matches on the initial part of a register group
 	 name.  If this initial part in ARGS matches only one register
@@ -611,23 +759,6 @@ tui_reggroup_completer (struct cmd_list_element *ignore,
     }
 }
 
-void
-_initialize_tui_regs (void)
-{
-  struct cmd_list_element **tuicmd, *cmd;
-
-  tuicmd = tui_get_cmd_list ();
-
-  cmd = add_cmd ("reg", class_tui, tui_reg_command, _("\
-TUI command to control the register window."), tuicmd);
-  set_cmd_completer (cmd, tui_reggroup_completer);
-}
-
-
-/*****************************************
-** STATIC LOCAL FUNCTIONS                 **
-******************************************/
-
 /* Get the register from the frame and return a printable
    representation of it.  */
 
@@ -657,13 +788,11 @@ tui_register_format (struct frame_info *frame, int regnum)
 /* Get the register value from the given frame and format it for the
    display.  When changep is set, check if the new register value has
    changed with respect to the previous call.  */
-static enum tui_status
+static void
 tui_get_register (struct frame_info *frame,
                   struct tui_data_item_window *data, 
 		  int regnum, bool *changedp)
 {
-  enum tui_status ret = TUI_FAILURE;
-
   if (changedp)
     *changedp = false;
   if (target_has_registers)
@@ -677,8 +806,17 @@ tui_get_register (struct frame_info *frame,
 	*changedp = true;
 
       xfree (prev_content);
-
-      ret = TUI_SUCCESS;
     }
-  return ret;
+}
+
+void
+_initialize_tui_regs (void)
+{
+  struct cmd_list_element **tuicmd, *cmd;
+
+  tuicmd = tui_get_cmd_list ();
+
+  cmd = add_cmd ("reg", class_tui, tui_reg_command, _("\
+TUI command to control the register window."), tuicmd);
+  set_cmd_completer (cmd, tui_reggroup_completer);
 }

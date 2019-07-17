@@ -24,6 +24,7 @@
 #include "tui/tui.h"
 #include "tui/tui-data.h"
 #include "tui/tui-wingeneral.h"
+#include "tui/tui-winsource.h"
 #include "gdb_curses.h"
 
 /****************************
@@ -120,7 +121,7 @@ tui_clear_source_windows ()
 }
 
 
-/* Clear the pertinant detail in the source windows.  */
+/* Clear the pertinent detail in the source windows.  */
 void
 tui_clear_source_windows_detail ()
 {
@@ -137,35 +138,6 @@ tui_add_to_source_windows (struct tui_source_window_base *win_info)
 {
   if (source_windows.size () < 2)
     source_windows.push_back (win_info);
-}
-
-/* See tui-data.h.  */
-
-void
-tui_source_window_base::clear_detail ()
-{
-  gdbarch = NULL;
-  start_line_or_addr.loa = LOA_ADDRESS;
-  start_line_or_addr.u.addr = 0;
-  horizontal_offset = 0;
-}
-
-/* See tui-data.h.  */
-
-void
-tui_cmd_window::clear_detail ()
-{
-  wmove (handle, 0, 0);
-}
-
-/* See tui-data.h.  */
-
-void
-tui_data_window::clear_detail ()
-{
-  regs_content.clear ();
-  regs_column_count = 1;
-  display_regs = false;
 }
 
 /* Accessor for the locator win info.  Answers a pointer to the static
@@ -294,27 +266,19 @@ tui_prev_win (struct tui_win_info *cur_win)
 struct tui_win_info *
 tui_partial_win_by_name (const char *name)
 {
-  struct tui_win_info *win_info = NULL;
-
   if (name != NULL)
     {
-      int i = 0;
-
-      while (i < MAX_MAJOR_WINDOWS && win_info == NULL)
+      for (tui_win_info *item : all_tui_windows ())
 	{
-          if (tui_win_list[i] != 0)
-            {
-              const char *cur_name = tui_win_list[i]->name ();
+	  const char *cur_name = item->name ();
 
-              if (strlen (name) <= strlen (cur_name)
-		  && startswith (cur_name, name))
-                win_info = tui_win_list[i];
-            }
-	  i++;
+	  if (strlen (name) <= strlen (cur_name)
+	      && startswith (cur_name, name))
+	    return item;
 	}
     }
 
-  return win_info;
+  return NULL;
 }
 
 
@@ -329,7 +293,6 @@ tui_initialize_static_data ()
     win->viewport_height =
     win->last_visible_line = 0;
   win->handle = NULL;
-  win->content_in_use = FALSE;
   win->is_visible = false;
   win->title = 0;
 }
@@ -340,33 +303,8 @@ tui_win_info::tui_win_info (enum tui_win_type type)
 {
 }
 
-tui_source_window_base::tui_source_window_base (enum tui_win_type type)
-  : tui_win_info (type)
-{
-  gdb_assert (type == SRC_WIN || type == DISASSEM_WIN);
-  start_line_or_addr.loa = LOA_ADDRESS;
-  start_line_or_addr.u.addr = 0;
-}
-
 tui_gen_win_info::~tui_gen_win_info ()
 {
   tui_delete_win (handle);
   xfree (title);
-}
-
-tui_source_window_base::~tui_source_window_base ()
-{
-  xfree (fullname);
-  delete execution_info;
-}  
-
-/**********************************
-** LOCAL STATIC FUNCTIONS        **
-**********************************/
-
-
-tui_data_item_window::~tui_data_item_window ()
-{
-  xfree (value);
-  xfree (content);
 }

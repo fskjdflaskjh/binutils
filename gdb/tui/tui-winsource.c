@@ -77,8 +77,6 @@ tui_update_source_window (struct tui_source_window_base *win_info,
 {
   win_info->horizontal_offset = 0;
   tui_update_source_window_as_is (win_info, gdbarch, s, line_or_addr, noerror);
-
-  return;
 }
 
 
@@ -94,18 +92,19 @@ tui_update_source_window_as_is (struct tui_source_window_base *win_info,
   enum tui_status ret;
 
   if (win_info->type == SRC_WIN)
-    ret = tui_set_source_content (s, line_or_addr.u.line_no, noerror);
+    ret = tui_set_source_content (win_info, s, line_or_addr.u.line_no,
+				  noerror);
   else
-    ret = tui_set_disassem_content (gdbarch, line_or_addr.u.addr);
+    ret = tui_set_disassem_content (win_info, gdbarch, line_or_addr.u.addr);
 
   if (ret == TUI_FAILURE)
     {
-      tui_clear_source_content (win_info, EMPTY_SOURCE_PROMPT);
+      tui_clear_source_content (win_info);
       tui_clear_exec_info_content (win_info);
     }
   else
     {
-      tui_update_breakpoint_info (win_info, 0);
+      tui_update_breakpoint_info (win_info, nullptr, false);
       tui_show_source_content (win_info);
       tui_update_exec_info (win_info);
       if (win_info->type == SRC_WIN)
@@ -121,12 +120,9 @@ tui_update_source_window_as_is (struct tui_source_window_base *win_info,
 	     we don't have a split layout.  */
 	  if (tui_win_with_focus () == TUI_DISASM_WIN
 	      && tui_current_layout () != SRC_DISASSEM_COMMAND)
-	    tui_set_win_focus_to (TUI_SRC_WIN);
+	    tui_set_win_focus_to (win_info);
 	}
     }
-
-
-  return;
 }
 
 
@@ -153,7 +149,7 @@ tui_update_source_windows_with_addr (struct gdbarch *gdbarch, CORE_ADDR addr)
 	  sal = find_pc_line (addr, 0);
 	  l.loa = LOA_LINE;
 	  l.u.line_no = sal.line;
-	  tui_show_symtab_source (gdbarch, sal.symtab, l, FALSE);
+	  tui_show_symtab_source (TUI_SRC_WIN, gdbarch, sal.symtab, l, FALSE);
 	  break;
 	}
     }
@@ -161,7 +157,7 @@ tui_update_source_windows_with_addr (struct gdbarch *gdbarch, CORE_ADDR addr)
     {
       for (struct tui_source_window_base *win_info : tui_source_windows ())
 	{
-	  tui_clear_source_content (win_info, EMPTY_SOURCE_PROMPT);
+	  tui_clear_source_content (win_info);
 	  tui_clear_exec_info_content (win_info);
 	}
     }
@@ -191,7 +187,7 @@ tui_update_source_windows_with_line (struct symtab *s, int line)
     default:
       l.loa = LOA_LINE;
       l.u.line_no = line;
-      tui_show_symtab_source (gdbarch, s, l, FALSE);
+      tui_show_symtab_source (TUI_SRC_WIN, gdbarch, s, l, FALSE);
       if (tui_current_layout () == SRC_DISASSEM_COMMAND)
 	{
 	  find_line_pc (s, line, &pc);
@@ -199,20 +195,16 @@ tui_update_source_windows_with_line (struct symtab *s, int line)
 	}
       break;
     }
-
-  return;
 }
 
 void
-tui_clear_source_content (struct tui_source_window_base *win_info,
-			  int display_prompt)
+tui_clear_source_content (struct tui_source_window_base *win_info)
 {
   if (win_info != NULL)
     {
       int i;
 
-      win_info->content_in_use = FALSE;
-      tui_erase_source_content (win_info, display_prompt);
+      tui_erase_source_content (win_info);
       for (i = 0; i < win_info->content.size (); i++)
 	{
 	  struct tui_source_element *element = &win_info->content[i];
@@ -225,8 +217,7 @@ tui_clear_source_content (struct tui_source_window_base *win_info,
 
 
 void
-tui_erase_source_content (struct tui_source_window_base *win_info,
-			  int display_prompt)
+tui_erase_source_content (struct tui_source_window_base *win_info)
 {
   int x_pos;
   int half_width = (win_info->width - 2) / 2;
@@ -235,30 +226,23 @@ tui_erase_source_content (struct tui_source_window_base *win_info,
     {
       werase (win_info->handle);
       tui_check_and_display_highlight_if_needed (win_info);
-      if (display_prompt == EMPTY_SOURCE_PROMPT)
-	{
-	  const char *no_src_str;
 
-	  if (win_info->type == SRC_WIN)
-	    no_src_str = NO_SRC_STRING;
-	  else
-	    no_src_str = NO_DISASSEM_STRING;
-	  if (strlen (no_src_str) >= half_width)
-	    x_pos = 1;
-	  else
-	    x_pos = half_width - strlen (no_src_str);
-	  mvwaddstr (win_info->handle,
-		     (win_info->height / 2),
-		     x_pos,
-		     (char *) no_src_str);
+      const char *no_src_str;
 
-	  /* elz: Added this function call to set the real contents of
-	     the window to what is on the screen, so that later calls
-	     to refresh, do display the correct stuff, and not the old
-	     image.  */
+      if (win_info->type == SRC_WIN)
+	no_src_str = NO_SRC_STRING;
+      else
+	no_src_str = NO_DISASSEM_STRING;
+      if (strlen (no_src_str) >= half_width)
+	x_pos = 1;
+      else
+	x_pos = half_width - strlen (no_src_str);
+      mvwaddstr (win_info->handle,
+		 (win_info->height / 2),
+		 x_pos,
+		 (char *) no_src_str);
 
-	  tui_set_source_content_nil (win_info, no_src_str);
-	}
+      win_info->content.clear ();
       win_info->refresh_window ();
     }
 }
@@ -301,11 +285,154 @@ tui_show_source_content (struct tui_source_window_base *win_info)
         tui_show_source_line (win_info, lineno);
     }
   else
-    tui_erase_source_content (win_info, TRUE);
+    tui_erase_source_content (win_info);
 
   tui_check_and_display_highlight_if_needed (win_info);
   win_info->refresh_window ();
-  win_info->content_in_use = TRUE;
+}
+
+/* See tui-data.h.  */
+
+void
+tui_source_window_base::clear_detail ()
+{
+  gdbarch = NULL;
+  start_line_or_addr.loa = LOA_ADDRESS;
+  start_line_or_addr.u.addr = 0;
+  horizontal_offset = 0;
+}
+
+tui_source_window_base::tui_source_window_base (enum tui_win_type type)
+  : tui_win_info (type),
+    execution_info (new tui_exec_info_window ())
+{
+  gdb_assert (type == SRC_WIN || type == DISASSEM_WIN);
+  start_line_or_addr.loa = LOA_ADDRESS;
+  start_line_or_addr.u.addr = 0;
+}
+
+
+tui_source_window_base::~tui_source_window_base ()
+{
+  xfree (fullname);
+  delete execution_info;
+}  
+
+void
+tui_source_window_base::reset (int height, int width,
+			       int origin_x, int origin_y)
+{
+  tui_gen_win_info::reset (height, width - 3,
+			   origin_x + 3, origin_y);
+  execution_info->reset (height, 3, origin_x, origin_y);
+}
+
+/* See tui-data.h.  */
+
+void
+tui_source_window_base::refresh_all ()
+{
+  tui_show_source_content (this);
+  tui_check_and_display_highlight_if_needed (this);
+  tui_erase_exec_info_content (this);
+  tui_update_exec_info (this);
+}
+
+/* See tui-data.h.  */
+
+void
+tui_source_window_base::update_tab_width ()
+{
+  /* We don't really change the height of any windows, but
+     calling these 2 functions causes a complete regeneration
+     and redisplay of the window's contents, which will take
+     the new tab width into account.  */
+  make_invisible_and_set_new_height (height);
+  make_visible_with_new_height ();
+}
+
+/* See tui-data.h.  */
+
+void
+tui_source_window_base::set_new_height (int height)
+{
+  execution_info->make_visible (false);
+  execution_info->height = height;
+  execution_info->origin.y = origin.y;
+  if (height > 1)
+    execution_info->viewport_height = height - 1;
+  else
+    execution_info->viewport_height = height;
+  execution_info->viewport_height--;
+
+  if (m_has_locator)
+    {
+      tui_locator_window *gen_win_info = tui_locator_win_info_ptr ();
+      gen_win_info->make_visible (false);
+      gen_win_info->origin.y = origin.y + height;
+    }
+}
+
+/* See tui-data.h.  */
+
+void
+tui_source_window_base::do_make_visible_with_new_height ()
+{
+  execution_info->make_visible (true);
+  if (!content.empty ())
+    {
+      struct tui_line_or_address line_or_addr;
+      struct symtab_and_line cursal
+	= get_current_source_symtab_and_line ();
+
+      line_or_addr = start_line_or_addr;
+      tui_update_source_window (this, gdbarch,
+				cursal.symtab, line_or_addr, TRUE);
+    }
+  else if (deprecated_safe_get_selected_frame () != NULL)
+    {
+      struct tui_line_or_address line;
+      struct symtab_and_line cursal
+	= get_current_source_symtab_and_line ();
+      struct frame_info *frame = deprecated_safe_get_selected_frame ();
+      struct gdbarch *gdbarch = get_frame_arch (frame);
+
+      struct symtab *s = find_pc_line_symtab (get_frame_pc (frame));
+      if (type == SRC_WIN)
+	{
+	  line.loa = LOA_LINE;
+	  line.u.line_no = cursal.line;
+	}
+      else
+	{
+	  line.loa = LOA_ADDRESS;
+	  find_line_pc (s, cursal.line, &line.u.addr);
+	}
+      tui_update_source_window (this, gdbarch, s, line, TRUE);
+    }
+  if (m_has_locator)
+    {
+      tui_locator_win_info_ptr ()->make_visible (true);
+      tui_show_locator_content ();
+    }
+}
+
+/* See tui-data.h.  */
+
+void
+tui_source_window_base::make_visible (bool visible)
+{
+  execution_info->make_visible (visible);
+  tui_win_info::make_visible (visible);
+}
+
+/* See tui-data.h.  */
+
+void
+tui_source_window_base::refresh_window ()
+{
+  execution_info->refresh_window ();
+  tui_win_info::refresh_window ();
 }
 
 /* See tui-data.h.  */
@@ -381,15 +508,14 @@ tui_source_window_base::set_is_exec_point_at (struct tui_line_or_address l)
     refill ();
 }
 
-/* Update the execution windows to show the active breakpoints.
-   This is called whenever a breakpoint is inserted, removed or
-   has its state changed.  */
+/* See tui-winsource.h.  */
+
 void
-tui_update_all_breakpoint_info ()
+tui_update_all_breakpoint_info (struct breakpoint *being_deleted)
 {
   for (tui_source_window_base *win : tui_source_windows ())
     {
-      if (tui_update_breakpoint_info (win, FALSE))
+      if (tui_update_breakpoint_info (win, being_deleted, false))
         {
           tui_update_exec_info (win);
         }
@@ -397,19 +523,19 @@ tui_update_all_breakpoint_info ()
 }
 
 
-/* Scan the source window and the breakpoints to update the has_break
+/* Scan the source window and the breakpoints to update the break_mode
    information for each line.
 
-   Returns 1 if something changed and the execution window must be
+   Returns true if something changed and the execution window must be
    refreshed.  */
 
-int
-tui_update_breakpoint_info (struct tui_source_window_base *win, 
-			    int current_only)
+bool
+tui_update_breakpoint_info (struct tui_source_window_base *win,
+			    struct breakpoint *being_deleted,
+			    bool current_only)
 {
   int i;
-  int need_refresh = 0;
-  tui_source_window_base *src = (tui_source_window_base *) win;
+  bool need_refresh = false;
 
   for (i = 0; i < win->content.size (); i++)
     {
@@ -434,17 +560,12 @@ tui_update_breakpoint_info (struct tui_source_window_base *win,
 	  gdb_assert (line->line_or_addr.loa == LOA_LINE
 		      || line->line_or_addr.loa == LOA_ADDRESS);
 
+	  if (bp == being_deleted)
+	    continue;
+
 	  for (loc = bp->loc; loc != NULL; loc = loc->next)
 	    {
-	      if ((win == TUI_SRC_WIN
-		   && loc->symtab != NULL
-		   && filename_cmp (src->fullname,
-				    symtab_to_fullname (loc->symtab)) == 0
-		   && line->line_or_addr.loa == LOA_LINE
-		   && loc->line_number == line->line_or_addr.u.line_no)
-		  || (win == TUI_DISASM_WIN
-		      && line->line_or_addr.loa == LOA_ADDRESS
-		      && loc->address == line->line_or_addr.u.addr))
+	      if (win->location_matches_p (loc, i))
 		{
 		  if (bp->enable_state == bp_disabled)
 		    mode |= TUI_BP_DISABLED;
@@ -485,39 +606,36 @@ tui_exec_info_window::maybe_allocate_content (int n_elements)
 void
 tui_set_exec_info_content (struct tui_source_window_base *win_info)
 {
-  if (win_info->execution_info != NULL)
+  tui_exec_info_content *content
+    = win_info->execution_info->maybe_allocate_content (win_info->height);
+
+  tui_update_breakpoint_info (win_info, nullptr, true);
+  for (int i = 0; i < win_info->content.size (); i++)
     {
-      tui_exec_info_content *content
-	= win_info->execution_info->maybe_allocate_content (win_info->height);
+      tui_exec_info_content &element = content[i];
+      struct tui_source_element *src_element;
+      tui_bp_flags mode;
 
-      tui_update_breakpoint_info (win_info, 1);
-      for (int i = 0; i < win_info->content.size (); i++)
-	{
-	  tui_exec_info_content &element = content[i];
-	  struct tui_source_element *src_element;
-	  tui_bp_flags mode;
+      src_element = &win_info->content[i];
 
-	  src_element = &win_info->content[i];
+      memset (element, ' ', sizeof (tui_exec_info_content));
+      element[TUI_EXECINFO_SIZE - 1] = 0;
 
-	  memset (element, ' ', sizeof (tui_exec_info_content));
-	  element[TUI_EXECINFO_SIZE - 1] = 0;
+      /* Now update the exec info content based upon the state
+	 of each line as indicated by the source content.  */
+      mode = src_element->break_mode;
+      if (mode & TUI_BP_HIT)
+	element[TUI_BP_HIT_POS] = (mode & TUI_BP_HARDWARE) ? 'H' : 'B';
+      else if (mode & (TUI_BP_ENABLED | TUI_BP_DISABLED))
+	element[TUI_BP_HIT_POS] = (mode & TUI_BP_HARDWARE) ? 'h' : 'b';
 
-	  /* Now update the exec info content based upon the state
-	     of each line as indicated by the source content.  */
-	  mode = src_element->break_mode;
-	  if (mode & TUI_BP_HIT)
-	    element[TUI_BP_HIT_POS] = (mode & TUI_BP_HARDWARE) ? 'H' : 'B';
-	  else if (mode & (TUI_BP_ENABLED | TUI_BP_DISABLED))
-	    element[TUI_BP_HIT_POS] = (mode & TUI_BP_HARDWARE) ? 'h' : 'b';
+      if (mode & TUI_BP_ENABLED)
+	element[TUI_BP_BREAK_POS] = '+';
+      else if (mode & TUI_BP_DISABLED)
+	element[TUI_BP_BREAK_POS] = '-';
 
-	  if (mode & TUI_BP_ENABLED)
-	    element[TUI_BP_BREAK_POS] = '+';
-	  else if (mode & TUI_BP_DISABLED)
-	    element[TUI_BP_BREAK_POS] = '-';
-
-	  if (src_element->is_exec_point)
-	    element[TUI_EXEC_POS] = '>';
-	}
+      if (src_element->is_exec_point)
+	element[TUI_EXEC_POS] = '>';
     }
 }
 
@@ -529,14 +647,12 @@ tui_show_exec_info_content (struct tui_source_window_base *win_info)
   const tui_exec_info_content *content = exec_info->get_content ();
 
   werase (exec_info->handle);
-  exec_info->refresh_window ();
   for (int cur_line = 1; cur_line <= win_info->content.size (); cur_line++)
     mvwaddstr (exec_info->handle,
 	       cur_line,
 	       0,
 	       content[cur_line - 1]);
   exec_info->refresh_window ();
-  exec_info->content_in_use = TRUE;
 }
 
 
@@ -552,7 +668,6 @@ tui_erase_exec_info_content (struct tui_source_window_base *win_info)
 void
 tui_clear_exec_info_content (struct tui_source_window_base *win_info)
 {
-  win_info->execution_info->content_in_use = FALSE;
   tui_erase_exec_info_content (win_info);
 }
 
@@ -638,8 +753,3 @@ tui_addr_is_displayed (CORE_ADDR addr,
 
   return is_displayed;
 }
-
-
-/*****************************************
-** STATIC LOCAL FUNCTIONS               **
-******************************************/

@@ -23,6 +23,7 @@
 #include "gdbcmd.h"
 #include "tui/tui.h"
 #include "tui/tui-hooks.h"
+#include "tui/tui-command.h"
 #include "tui/tui-data.h"
 #include "tui/tui-layout.h"
 #include "tui/tui-io.h"
@@ -30,7 +31,7 @@
 #include "tui/tui-stack.h"
 #include "tui/tui-win.h"
 #include "tui/tui-winsource.h"
-#include "tui/tui-windata.h"
+#include "tui/tui-source.h"
 #include "target.h"
 #include "frame.h"
 #include "breakpoint.h"
@@ -236,8 +237,6 @@ tui_rl_other_window (int count, int key)
   if (win_info)
     {
       tui_set_win_focus_to (win_info);
-      if (TUI_DATA_WIN && TUI_DATA_WIN->is_visible)
-	TUI_DATA_WIN->refresh_all ();
       keypad (TUI_CMD_WIN->handle, (win_info != TUI_CMD_WIN));
     }
   return 0;
@@ -631,8 +630,6 @@ tui_reset (void)
 #endif /* CBREAK */
 		     | VTDELAY | ALLDELAY);
   mode.sg_flags |= XTABS | ECHO | CRMOD | ANYP;
-
-  return;
 }
 #endif
 
