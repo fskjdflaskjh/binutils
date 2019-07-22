@@ -4343,13 +4343,13 @@ search_symbols (const char *regexp, enum search_domain kind,
   struct symbol *sym;
   int found_misc = 0;
   static const enum minimal_symbol_type types[]
-    = {mst_data, mst_text, mst_abs};
+    = {mst_data, mst_text, mst_unknown};
   static const enum minimal_symbol_type types2[]
-    = {mst_bss, mst_file_text, mst_abs};
+    = {mst_bss, mst_file_text, mst_unknown};
   static const enum minimal_symbol_type types3[]
-    = {mst_file_data, mst_solib_trampoline, mst_abs};
+    = {mst_file_data, mst_solib_trampoline, mst_unknown};
   static const enum minimal_symbol_type types4[]
-    = {mst_file_bss, mst_text_gnu_ifunc, mst_abs};
+    = {mst_file_bss, mst_text_gnu_ifunc, mst_unknown};
   enum minimal_symbol_type ourtype;
   enum minimal_symbol_type ourtype2;
   enum minimal_symbol_type ourtype3;
@@ -4632,7 +4632,23 @@ print_symbol_info (enum search_domain kind,
   /* Typedef that is not a C++ class.  */
   if (kind == TYPES_DOMAIN
       && SYMBOL_DOMAIN (sym) != STRUCT_DOMAIN)
-    typedef_print (SYMBOL_TYPE (sym), sym, gdb_stdout);
+    {
+      /* FIXME: For C (and C++) we end up with a difference in output here
+	 between how a typedef is printed, and non-typedefs are printed.
+	 The TYPEDEF_PRINT code places a ";" at the end in an attempt to
+	 appear C-like, while TYPE_PRINT doesn't.
+
+	 For the struct printing case below, things are worse, we force
+	 printing of the ";" in this function, which is going to be wrong
+	 for languages that don't require a ";" between statements.  */
+      if (TYPE_CODE (SYMBOL_TYPE (sym)) == TYPE_CODE_TYPEDEF)
+	typedef_print (SYMBOL_TYPE (sym), sym, gdb_stdout);
+      else
+	{
+	  type_print (SYMBOL_TYPE (sym), "", gdb_stdout, -1);
+	  printf_filtered ("\n");
+	}
+    }
   /* variable, func, or typedef-that-is-c++-class.  */
   else if (kind < TYPES_DOMAIN
 	   || (kind == TYPES_DOMAIN
@@ -4773,11 +4789,62 @@ info_functions_command (const char *args, int from_tty)
 		      opts.type_regexp, from_tty);
 }
 
+/* Holds the -q option for the 'info types' command.  */
+
+struct info_types_options
+{
+  int quiet = false;
+};
+
+/* The options used by the 'info types' command.  */
+
+static const gdb::option::option_def info_types_options_defs[] = {
+  gdb::option::boolean_option_def<info_types_options> {
+    "q",
+    [] (info_types_options *opt) { return &opt->quiet; },
+    nullptr, /* show_cmd_cb */
+    nullptr /* set_doc */
+  }
+};
+
+/* Returns the option group used by 'info types'.  */
+
+static gdb::option::option_def_group
+make_info_types_options_def_group (info_types_options *opts)
+{
+  return {{info_types_options_defs}, opts};
+}
+
+/* Implement the 'info types' command.  */
 
 static void
-info_types_command (const char *regexp, int from_tty)
+info_types_command (const char *args, int from_tty)
 {
-  symtab_symbol_info (false, regexp, TYPES_DOMAIN, NULL, from_tty);
+  info_types_options opts;
+
+  auto grp = make_info_types_options_def_group (&opts);
+  gdb::option::process_options
+    (&args, gdb::option::PROCESS_OPTIONS_UNKNOWN_IS_OPERAND, grp);
+  if (args != nullptr && *args == '\0')
+    args = nullptr;
+  symtab_symbol_info (opts.quiet, args, TYPES_DOMAIN, NULL, from_tty);
+}
+
+/* Command completer for 'info types' command.  */
+
+static void
+info_types_command_completer (struct cmd_list_element *ignore,
+			      completion_tracker &tracker,
+			      const char *text, const char * /* word */)
+{
+  const auto group
+    = make_info_types_options_def_group (nullptr);
+  if (gdb::option::complete_options
+      (tracker, &text, gdb::option::PROCESS_OPTIONS_UNKNOWN_IS_OPERAND, group))
+    return;
+
+  const char *word = advance_to_expression_complete_word_point (tracker, text);
+  symbol_completer (ignore, tracker, text, word);
 }
 
 /* Breakpoint all functions matching regular expression.  */
@@ -6033,16 +6100,12 @@ Prints the functions.\n"),
 				  _("functions")));
   set_cmd_completer_handle_brkchars (c, info_print_command_completer);
 
-  /* FIXME:  This command has at least the following problems:
-     1.  It prints builtin types (in a very strange and confusing fashion).
-     2.  It doesn't print right, e.g. with
-     typedef struct foo *FOO
-     type_print prints "FOO" when we want to make it (in this situation)
-     print "struct foo *".
-     I also think "ptype" or "whatis" is more likely to be useful (but if
-     there is much disagreement "info types" can be fixed).  */
-  add_info ("types", info_types_command,
-	    _("All type names, or those matching REGEXP."));
+  c = add_info ("types", info_types_command, _("\
+All type names, or those matching REGEXP.\n\
+Usage: info types [-q] [REGEXP]\n\
+Print information about all types matching REGEXP, or all types if no\n\
+REGEXP is given.  The optional flag -q disables printing of headers."));
+  set_cmd_completer_handle_brkchars (c, info_types_command_completer);
 
   add_info ("sources", info_sources_command,
 	    _("Source files in the program."));
