@@ -1,3 +1,40 @@
+2019-07-27  Tom Tromey  <tom@tromey.com>
+
+	* gdb.tui/main.exp: New file.
+
+2019-07-27  Tom Tromey  <tom@tromey.com>
+
+	* lib/tuiterm.exp (Term::clean_restart): Make "executable"
+	optional.
+	* gdb.tui/empty.exp: New file.
+
+2019-07-27  Tom Tromey  <tom@tromey.com>
+
+	* lib/tuiterm.exp (spawn): New proc.
+	(Term::resize): New proc.
+	* gdb.tui/resize.exp: New file.
+
+2019-07-27  Tom Tromey  <tom@tromey.com>
+
+	* gdb.tui/list.exp: New file.
+
+2019-07-27  Tom Tromey  <tom@tromey.com>
+
+	* gdb.tui/regs.exp: New file.
+
+2019-07-27  Tom Tromey  <tom@tromey.com>
+
+	* gdb.tui/basic.exp: Add "layout split" test.
+
+2019-07-27  Tom Tromey  <tom@tromey.com>
+
+	* gdb.tui/basic.exp: Add "layout asm" test.
+
+2019-07-27  Tom Tromey  <tom@tromey.com>
+
+	* lib/tuiterm.exp: New file.
+	* gdb.tui/basic.exp: New file.
+
 2019-07-27  Kevin Buettner  <kevinb@redhat.com>
 
 	* gdb.dwarf2/dw2-ranges-func.exp (enable_foo_cold_stepping):
