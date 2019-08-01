@@ -1,3 +1,24 @@
+2019-08-01  Alan Modra  <amodra@gmail.com>
+
+	PR 24806
+	* ldlang.c (process_insert_statements): Add start of list
+	parameter.  Use rather than lang_os_list.head.  Process insert
+	statements inside group statements with a recursive call.
+	(lang_process): Adjust process_insert_statements call.
+	* lexsup.c (parse_args): Warn when adding missing --end-group.
+
+2019-08-01  Alan Modra  <amodra@gmail.com>
+
+	* ldlang.h (lang_os_list): Rename from lang_output_section_statement.
+	* ldlang.c: Likewise throughout file.
+	* emultempl/alphaelf.em: Likewise.
+	* emultempl/elf32.em: Likewise.
+	* emultempl/mmo.em: Likewise.
+	* emultempl/pe.em: Likewise.
+	* emultempl/pep.em: Likewise.
+	* emultempl/ppc32elf.em: Likewise.
+	* emultempl/spuelf.em: Likewise.
+
 2019-07-26  Alan Modra  <amodra@gmail.com>
 
 	* testsuite/ld-plugin/lto-3r.d: Accept D for powerpc64 descriptors.
