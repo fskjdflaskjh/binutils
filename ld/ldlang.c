@@ -3444,6 +3444,7 @@ enum open_bfd_mode
   };
 #ifdef ENABLE_PLUGINS
 static lang_input_statement_type *plugin_insert = NULL;
+static struct bfd_link_hash_entry *plugin_undefs = NULL;
 #endif
 
 static void
@@ -3471,6 +3472,9 @@ open_input_bfds (lang_statement_union_type *s, enum open_bfd_mode mode)
 	case lang_group_statement_enum:
 	  {
 	    struct bfd_link_hash_entry *undefs;
+#ifdef ENABLE_PLUGINS
+	    lang_input_statement_type *plugin_insert_save;
+#endif
 
 	    /* We must continually search the entries in the group
 	       until no new symbols are added to the list of undefined
@@ -3478,11 +3482,21 @@ open_input_bfds (lang_statement_union_type *s, enum open_bfd_mode mode)
 
 	    do
 	      {
+#ifdef ENABLE_PLUGINS
+		plugin_insert_save = plugin_insert;
+#endif
 		undefs = link_info.hash->undefs_tail;
 		open_input_bfds (s->group_statement.children.head,
 				 mode | OPEN_BFD_FORCE);
 	      }
-	    while (undefs != link_info.hash->undefs_tail);
+	    while (undefs != link_info.hash->undefs_tail
+#ifdef ENABLE_PLUGINS
+		   /* Objects inserted by a plugin, which are loaded
+		      before we hit this loop, may have added new
+		      undefs.  */
+		   || (plugin_insert != plugin_insert_save && plugin_undefs)
+#endif
+		   );
 	  }
 	  break;
 	case lang_target_statement_enum:
@@ -7212,7 +7226,7 @@ lang_relax_sections (bfd_boolean need_layout)
    inserted at the head of the file_chain.  */
 
 static lang_input_statement_type *
-find_replacements_insert_point (void)
+find_replacements_insert_point (bfd_boolean *before)
 {
   lang_input_statement_type *claim1, *lastobject;
   lastobject = &input_file_chain.head->input_statement;
@@ -7221,7 +7235,10 @@ find_replacements_insert_point (void)
        claim1 = &claim1->next->input_statement)
     {
       if (claim1->flags.claimed)
-	return claim1->flags.claim_archive ? lastobject : claim1;
+	{
+	  *before = claim1->flags.claim_archive;
+	  return claim1->flags.claim_archive ? lastobject : claim1;
+	}
       /* Update lastobject if this is a real object file.  */
       if (claim1->the_bfd != NULL && claim1->the_bfd->my_archive == NULL)
 	lastobject = claim1;
@@ -7229,6 +7246,7 @@ find_replacements_insert_point (void)
   /* No files were claimed by the plugin.  Choose the last object
      file found on the list (maybe the first, dummy entry) as the
      insert point.  */
+  *before = FALSE;
   return lastobject;
 }
 
@@ -7308,6 +7326,35 @@ lang_list_remove_tail (lang_statement_list_type *destlist,
   origlist->tail = destlist->tail;
   destlist->tail = savetail;
   *savetail = NULL;
+}
+
+static lang_statement_union_type **
+find_next_input_statement (lang_statement_union_type **s)
+{
+  for ( ; *s; s = &(*s)->header.next)
+    {
+      lang_statement_union_type **t;
+      switch ((*s)->header.type)
+	{
+	case lang_input_statement_enum:
+	  return s;
+	case lang_wild_statement_enum:
+	  t = &(*s)->wild_statement.children.head;
+	  break;
+	case lang_group_statement_enum:
+	  t = &(*s)->group_statement.children.head;
+	  break;
+	case lang_output_section_statement_enum:
+	  t = &(*s)->output_section_statement.children.head;
+	  break;
+	default:
+	  continue;
+	}
+      t = find_next_input_statement (t);
+      if (*t)
+	return t;
+    }
+  return s;
 }
 #endif /* ENABLE_PLUGINS */
 
@@ -7420,7 +7467,10 @@ lang_process (void)
 	einfo (_("%F%P: %s: plugin reported error after all symbols read\n"),
 	       plugin_error_plugin ());
       /* Open any newly added files, updating the file chains.  */
+      plugin_undefs = link_info.hash->undefs_tail;
       open_input_bfds (*added.tail, OPEN_BFD_NORMAL);
+      if (plugin_undefs == link_info.hash->undefs_tail)
+	plugin_undefs = NULL;
       /* Restore the global list pointer now they have all been added.  */
       lang_list_remove_tail (stat_ptr, &added);
       /* And detach the fresh ends of the file lists.  */
@@ -7430,16 +7480,30 @@ lang_process (void)
       if (added.head != NULL)
 	{
 	  /* If so, we will insert them into the statement list immediately
-	     after the first input file that was claimed by the plugin.  */
-	  plugin_insert = find_replacements_insert_point ();
+	     after the first input file that was claimed by the plugin,
+	     unless that file was an archive in which case it is inserted
+	     immediately before.  */
+	  bfd_boolean before;
+	  lang_statement_union_type **prev;
+	  plugin_insert = find_replacements_insert_point (&before);
 	  /* If a plugin adds input files without having claimed any, we
 	     don't really have a good idea where to place them.  Just putting
 	     them at the start or end of the list is liable to leave them
 	     outside the crtbegin...crtend range.  */
 	  ASSERT (plugin_insert != NULL);
 	  /* Splice the new statement list into the old one.  */
-	  lang_list_insert_after (stat_ptr, &added,
-				  &plugin_insert->header.next);
+	  prev = &plugin_insert->header.next;
+	  if (before)
+	    {
+	      prev = find_next_input_statement (prev);
+	      if (*prev != plugin_insert->next_real_file)
+		{
+		  /* Huh?  We didn't find the expected input statement.  */
+		  ASSERT (0);
+		  prev = &plugin_insert->header.next;
+		}
+	    }
+	  lang_list_insert_after (stat_ptr, &added, prev);
 	  /* Likewise for the file chains.  */
 	  lang_list_insert_after (&input_file_chain, &inputfiles,
 				  &plugin_insert->next_real_file);
