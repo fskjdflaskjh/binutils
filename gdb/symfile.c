@@ -2596,9 +2596,7 @@ reread_symbols (void)
 	  set_objfile_per_bfd (objfile);
 
 	  objfile->original_name
-	    = (char *) obstack_copy0 (&objfile->objfile_obstack,
-				      original_name.c_str (),
-				      original_name.size ());
+	    = obstack_strdup (&objfile->objfile_obstack, original_name);
 
 	  /* Reset the sym_fns pointer.  The ELF reader can change it
 	     based on whether .gdb_index is present, and we need it to
@@ -2882,9 +2880,7 @@ allocate_compunit_symtab (struct objfile *objfile, const char *name)
      Just save the basename to avoid path issues (too long for display,
      relative vs absolute, etc.).  */
   saved_name = lbasename (name);
-  cu->name
-    = (const char *) obstack_copy0 (&objfile->objfile_obstack, saved_name,
-				    strlen (saved_name));
+  cu->name = obstack_strdup (&objfile->objfile_obstack, saved_name);
 
   COMPUNIT_DEBUGFORMAT (cu) = "unknown";
 
