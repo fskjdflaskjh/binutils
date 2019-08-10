@@ -1026,6 +1026,15 @@ lang_list_init (lang_statement_list_type *list)
   list->tail = &list->head;
 }
 
+static void
+lang_statement_append (lang_statement_list_type *list,
+		       void *element,
+		       void *field)
+{
+  *(list->tail) = element;
+  list->tail = field;
+}
+
 void
 push_stat_ptr (lang_statement_list_type *new_ptr)
 {
@@ -1052,7 +1061,7 @@ new_statement (enum statement_enum type,
 {
   lang_statement_union_type *new_stmt;
 
-  new_stmt = (lang_statement_union_type *) stat_alloc (size);
+  new_stmt = stat_alloc (size);
   new_stmt->header.type = type;
   new_stmt->header.next = NULL;
   lang_statement_append (list, new_stmt, &new_stmt->header.next);
@@ -1079,11 +1088,10 @@ new_afile (const char *name,
   lang_has_input_file = TRUE;
 
   if (add_to_list)
-    p = (lang_input_statement_type *) new_stat (lang_input_statement, stat_ptr);
+    p = new_stat (lang_input_statement, stat_ptr);
   else
     {
-      p = (lang_input_statement_type *)
-	  stat_alloc (sizeof (lang_input_statement_type));
+      p = stat_alloc (sizeof (lang_input_statement_type));
       p->header.type = lang_input_statement_enum;
       p->header.next = NULL;
     }
@@ -1142,9 +1150,7 @@ new_afile (const char *name,
       FAIL ();
     }
 
-  lang_statement_append (&input_file_chain,
-			 (lang_statement_union_type *) p,
-			 &p->next_real_file);
+  lang_statement_append (&input_file_chain, p, &p->next_real_file);
   return p;
 }
 
@@ -1234,9 +1240,7 @@ output_section_statement_newfunc (struct bfd_hash_entry *entry,
      address, so we store the pointer in a variable and cast that
      instead.  */
   nextp = &ret->s.output_section_statement.next;
-  lang_statement_append (&lang_os_list,
-			 &ret->s,
-			 (lang_statement_union_type **) nextp);
+  lang_statement_append (&lang_os_list, &ret->s, nextp);
   return &ret->root;
 }
 
@@ -1340,8 +1344,7 @@ lang_memory_region_lookup (const char *const name, bfd_boolean create)
     einfo (_("%P:%pS: warning: memory region `%s' not declared\n"),
 	   NULL, name);
 
-  new_region = (lang_memory_region_type *)
-      stat_alloc (sizeof (lang_memory_region_type));
+  new_region = stat_alloc (sizeof (lang_memory_region_type));
 
   new_region->name_list.name = xstrdup (name);
   new_region->name_list.next = NULL;
@@ -1397,7 +1400,7 @@ lang_memory_region_alias (const char *alias, const char *region_name)
 	   NULL, region_name, alias);
 
   /* Add alias to region name list.  */
-  n = (lang_memory_region_name *) stat_alloc (sizeof (lang_memory_region_name));
+  n = stat_alloc (sizeof (lang_memory_region_name));
   n->name = xstrdup (alias);
   n->next = region->name_list.next;
   region->name_list.next = n;
@@ -2336,7 +2339,7 @@ sort_def_symbol (struct bfd_link_hash_entry *hash_entry,
 	    get_userdata (hash_entry->u.def.section));
       if (!ud)
 	{
-	  ud = (input_section_userdata_type *) stat_alloc (sizeof (*ud));
+	  ud = stat_alloc (sizeof (*ud));
 	  get_userdata (hash_entry->u.def.section) = ud;
 	  ud->map_symbol_def_tail = &ud->map_symbol_def_head;
 	  ud->map_symbol_def_count = 0;
@@ -2843,9 +2846,9 @@ lookup_name (const char *name)
 {
   lang_input_statement_type *search;
 
-  for (search = (lang_input_statement_type *) input_file_chain.head;
+  for (search = &input_file_chain.head->input_statement;
        search != NULL;
-       search = (lang_input_statement_type *) search->next_real_file)
+       search = search->next_real_file)
     {
       /* Use the local_sym_name as the name of the file that has
 	 already been loaded as filename might have been transformed
@@ -3601,7 +3604,7 @@ ldlang_add_undef (const char *const name, bfd_boolean cmdline)
   ldlang_undef_chain_list_type *new_undef;
 
   undef_from_cmdline = undef_from_cmdline || cmdline;
-  new_undef = (ldlang_undef_chain_list_type *) stat_alloc (sizeof (*new_undef));
+  new_undef = stat_alloc (sizeof (*new_undef));
   new_undef->next = ldlang_undef_chain_list_head;
   ldlang_undef_chain_list_head = new_undef;
 
@@ -3667,7 +3670,7 @@ ldlang_add_require_defined (const char *const name)
   struct require_defined_symbol *ptr;
 
   ldlang_add_undef (name, TRUE);
-  ptr = (struct require_defined_symbol *) stat_alloc (sizeof (*ptr));
+  ptr = stat_alloc (sizeof (*ptr));
   ptr->next = require_defined_symbol_list;
   ptr->name = strdup (name);
   require_defined_symbol_list = ptr;
@@ -3701,7 +3704,7 @@ check_input_sections
   (lang_statement_union_type *s,
    lang_output_section_statement_type *output_section_statement)
 {
-  for (; s != (lang_statement_union_type *) NULL; s = s->header.next)
+  for (; s != NULL; s = s->header.next)
     {
       switch (s->header.type)
 	{
@@ -4889,8 +4892,7 @@ insert_pad (lang_statement_union_type **ptr,
   else
     {
       /* Make a new padding statement, linked into existing chain.  */
-      pad = (lang_statement_union_type *)
-	  stat_alloc (sizeof (lang_padding_statement_type));
+      pad = stat_alloc (sizeof (lang_padding_statement_type));
       pad->header.next = *ptr;
       *ptr = pad;
       pad->header.type = lang_padding_statement_enum;
@@ -6522,18 +6524,20 @@ ignore_bfd_errors (const char *fmt ATTRIBUTE_UNUSED,
 static void
 lang_check (void)
 {
-  lang_statement_union_type *file;
+  lang_input_statement_type *file;
   bfd *input_bfd;
   const bfd_arch_info_type *compatible;
 
-  for (file = file_chain.head; file != NULL; file = file->input_statement.next)
+  for (file = &file_chain.head->input_statement;
+       file != NULL;
+       file = file->next)
     {
 #ifdef ENABLE_PLUGINS
       /* Don't check format of files claimed by plugin.  */
-      if (file->input_statement.flags.claimed)
+      if (file->flags.claimed)
 	continue;
 #endif /* ENABLE_PLUGINS */
-      input_bfd = file->input_statement.the_bfd;
+      input_bfd = file->the_bfd;
       compatible
 	= bfd_arch_get_compatible (input_bfd, link_info.output_bfd,
 				   command_line.accept_unknown_input_arch);
@@ -6868,7 +6872,7 @@ lang_for_each_input_file (void (*func) (lang_input_statement_type *))
 
   for (f = &input_file_chain.head->input_statement;
        f != NULL;
-       f = &f->next_real_file->input_statement)
+       f = f->next_real_file)
     func (f);
 }
 
@@ -6888,9 +6892,7 @@ lang_for_each_file (void (*func) (lang_input_statement_type *))
 void
 ldlang_add_file (lang_input_statement_type *entry)
 {
-  lang_statement_append (&file_chain,
-			 (lang_statement_union_type *) entry,
-			 &entry->next);
+  lang_statement_append (&file_chain, entry, &entry->next);
 
   /* The BFD linker needs to have a list of all input BFDs involved in
      a link.  */
@@ -7232,7 +7234,7 @@ find_replacements_insert_point (bfd_boolean *before)
   lastobject = &input_file_chain.head->input_statement;
   for (claim1 = &file_chain.head->input_statement;
        claim1 != NULL;
-       claim1 = &claim1->next->input_statement)
+       claim1 = claim1->next)
     {
       if (claim1->flags.claimed)
 	{
@@ -7253,14 +7255,14 @@ find_replacements_insert_point (bfd_boolean *before)
 /* Find where to insert ADD, an archive element or shared library
    added during a rescan.  */
 
-static lang_statement_union_type **
+static lang_input_statement_type **
 find_rescan_insertion (lang_input_statement_type *add)
 {
   bfd *add_bfd = add->the_bfd;
   lang_input_statement_type *f;
   lang_input_statement_type *last_loaded = NULL;
   lang_input_statement_type *before = NULL;
-  lang_statement_union_type **iter = NULL;
+  lang_input_statement_type **iter = NULL;
 
   if (add_bfd->my_archive != NULL)
     add_bfd = add_bfd->my_archive;
@@ -7274,13 +7276,13 @@ find_rescan_insertion (lang_input_statement_type *add)
      then their input_statement->next points at it.  */
   for (f = &input_file_chain.head->input_statement;
        f != NULL;
-       f = &f->next_real_file->input_statement)
+       f = f->next_real_file)
     {
       if (f->the_bfd == add_bfd)
 	{
 	  before = last_loaded;
 	  if (f->next != NULL)
-	    return &f->next->input_statement.next;
+	    return &f->next->next;
 	}
       if (f->the_bfd != NULL && f->next != NULL)
 	last_loaded = f;
@@ -7288,9 +7290,9 @@ find_rescan_insertion (lang_input_statement_type *add)
 
   for (iter = before ? &before->next : &file_chain.head->input_statement.next;
        *iter != NULL;
-       iter = &(*iter)->input_statement.next)
-    if (!(*iter)->input_statement.flags.claim_archive
-	&& (*iter)->input_statement.the_bfd->my_archive == NULL)
+       iter = &(*iter)->next)
+    if (!(*iter)->flags.claim_archive
+	&& (*iter)->the_bfd->my_archive == NULL)
       break;
 
   return iter;
@@ -7368,7 +7370,7 @@ lang_add_gc_name (const char *name)
   if (name == NULL)
     return;
 
-  sym = (struct bfd_sym_chain *) stat_alloc (sizeof (*sym));
+  sym = stat_alloc (sizeof (*sym));
 
   sym->next = link_info.gc_sym_list;
   sym->name = name;
@@ -7496,7 +7498,7 @@ lang_process (void)
 	  if (before)
 	    {
 	      prev = find_next_input_statement (prev);
-	      if (*prev != plugin_insert->next_real_file)
+	      if (*prev != (void *) plugin_insert->next_real_file)
 		{
 		  /* Huh?  We didn't find the expected input statement.  */
 		  ASSERT (0);
@@ -7506,12 +7508,13 @@ lang_process (void)
 	  lang_list_insert_after (stat_ptr, &added, prev);
 	  /* Likewise for the file chains.  */
 	  lang_list_insert_after (&input_file_chain, &inputfiles,
-				  &plugin_insert->next_real_file);
+				  (void *) &plugin_insert->next_real_file);
 	  /* We must be careful when relinking file_chain; we may need to
 	     insert the new files at the head of the list if the insert
 	     point chosen is the dummy first input file.  */
 	  if (plugin_insert->filename)
-	    lang_list_insert_after (&file_chain, &files, &plugin_insert->next);
+	    lang_list_insert_after (&file_chain, &files,
+				    (void *) &plugin_insert->next);
 	  else
 	    lang_list_insert_after (&file_chain, &files, &file_chain.head);
 
@@ -7522,8 +7525,8 @@ lang_process (void)
 	  lang_list_remove_tail (&file_chain, &files);
 	  while (files.head != NULL)
 	    {
-	      lang_statement_union_type **insert;
-	      lang_statement_union_type **iter, *temp;
+	      lang_input_statement_type **insert;
+	      lang_input_statement_type **iter, *temp;
 	      bfd *my_arch;
 
 	      insert = find_rescan_insertion (&files.head->input_statement);
@@ -7531,18 +7534,18 @@ lang_process (void)
 	      iter = &files.head->input_statement.next;
 	      my_arch = files.head->input_statement.the_bfd->my_archive;
 	      if (my_arch != NULL)
-		for (; *iter != NULL; iter = &(*iter)->input_statement.next)
-		  if ((*iter)->input_statement.the_bfd->my_archive != my_arch)
+		for (; *iter != NULL; iter = &(*iter)->next)
+		  if ((*iter)->the_bfd->my_archive != my_arch)
 		    break;
 	      temp = *insert;
-	      *insert = files.head;
-	      files.head = *iter;
+	      *insert = &files.head->input_statement;
+	      files.head = (lang_statement_union_type *) *iter;
 	      *iter = temp;
 	      if (my_arch != NULL)
 		{
 		  lang_input_statement_type *parent = my_arch->usrdata;
 		  if (parent != NULL)
-		    parent->next = (lang_statement_union_type *)
+		    parent->next = (lang_input_statement_type *)
 		      ((char *) iter
 		       - offsetof (lang_input_statement_type, next));
 		}
@@ -7954,15 +7957,6 @@ lang_leave_output_section_statement (fill_type *fill, const char *memspec,
   pop_stat_ptr ();
 }
 
-void
-lang_statement_append (lang_statement_list_type *list,
-		       lang_statement_union_type *element,
-		       lang_statement_union_type **field)
-{
-  *(list->tail) = element;
-  list->tail = field;
-}
-
 /* Set the output format type.  -oformat overrides scripts.  */
 
 void
@@ -8033,7 +8027,7 @@ lang_new_phdr (const char *name,
   struct lang_phdr *n, **pp;
   bfd_boolean hdrs;
 
-  n = (struct lang_phdr *) stat_alloc (sizeof (struct lang_phdr));
+  n = stat_alloc (sizeof (struct lang_phdr));
   n->next = NULL;
   n->name = name;
   n->type = exp_get_vma (type, 0, "program header type");
