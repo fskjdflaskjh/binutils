@@ -98,15 +98,12 @@ tui_update_source_window_as_is (struct tui_source_window_base *win_info,
     ret = tui_set_disassem_content (win_info, gdbarch, line_or_addr.u.addr);
 
   if (ret == TUI_FAILURE)
-    {
-      tui_clear_source_content (win_info);
-      tui_clear_exec_info_content (win_info);
-    }
+    tui_clear_source_content (win_info);
   else
     {
       tui_update_breakpoint_info (win_info, nullptr, false);
-      tui_show_source_content (win_info);
-      tui_update_exec_info (win_info);
+      win_info->show_source_content ();
+      win_info->update_exec_info ();
       if (win_info->type == SRC_WIN)
 	{
 	  symtab_and_line sal;
@@ -156,10 +153,7 @@ tui_update_source_windows_with_addr (struct gdbarch *gdbarch, CORE_ADDR addr)
   else
     {
       for (struct tui_source_window_base *win_info : tui_source_windows ())
-	{
-	  tui_clear_source_content (win_info);
-	  tui_clear_exec_info_content (win_info);
-	}
+	tui_clear_source_content (win_info);
     }
 }
 
@@ -225,7 +219,7 @@ tui_erase_source_content (struct tui_source_window_base *win_info)
   if (win_info->handle != NULL)
     {
       werase (win_info->handle);
-      tui_check_and_display_highlight_if_needed (win_info);
+      win_info->check_and_display_highlight_if_needed ();
 
       const char *no_src_str;
 
@@ -244,6 +238,11 @@ tui_erase_source_content (struct tui_source_window_base *win_info)
 
       win_info->content.clear ();
       win_info->refresh_window ();
+
+      struct tui_gen_win_info *exec_info = win_info->execution_info;
+
+      werase (exec_info->handle);
+      exec_info->refresh_window ();
     }
 }
 
@@ -275,20 +274,20 @@ tui_show_source_line (struct tui_source_window_base *win_info, int lineno)
 }
 
 void
-tui_show_source_content (struct tui_source_window_base *win_info)
+tui_source_window_base::show_source_content ()
 {
-  if (!win_info->content.empty ())
+  if (!content.empty ())
     {
       int lineno;
 
-      for (lineno = 1; lineno <= win_info->content.size (); lineno++)
-        tui_show_source_line (win_info, lineno);
+      for (lineno = 1; lineno <= content.size (); lineno++)
+        tui_show_source_line (this, lineno);
     }
   else
-    tui_erase_source_content (win_info);
+    tui_erase_source_content (this);
 
-  tui_check_and_display_highlight_if_needed (win_info);
-  win_info->refresh_window ();
+  check_and_display_highlight_if_needed ();
+  refresh_window ();
 }
 
 /* See tui-data.h.  */
@@ -332,10 +331,9 @@ tui_source_window_base::reset (int height, int width,
 void
 tui_source_window_base::refresh_all ()
 {
-  tui_show_source_content (this);
-  tui_check_and_display_highlight_if_needed (this);
-  tui_erase_exec_info_content (this);
-  tui_update_exec_info (this);
+  show_source_content ();
+  check_and_display_highlight_if_needed ();
+  update_exec_info ();
 }
 
 /* See tui-data.h.  */
@@ -517,7 +515,7 @@ tui_update_all_breakpoint_info (struct breakpoint *being_deleted)
     {
       if (tui_update_breakpoint_info (win, being_deleted, false))
         {
-          tui_update_exec_info (win);
+          win->update_exec_info ();
         }
     }
 }
@@ -589,41 +587,22 @@ tui_update_breakpoint_info (struct tui_source_window_base *win,
   return need_refresh;
 }
 
-/* See tui-data.h.  */
-
-tui_exec_info_content *
-tui_exec_info_window::maybe_allocate_content (int n_elements)
-{
-  if (m_content == nullptr)
-    m_content = XNEWVEC (tui_exec_info_content, n_elements);
-  return m_content;
-}
-
-
 /* Function to initialize the content of the execution info window,
    based upon the input window which is either the source or
    disassembly window.  */
 void
-tui_set_exec_info_content (struct tui_source_window_base *win_info)
+tui_source_window_base::update_exec_info ()
 {
-  tui_exec_info_content *content
-    = win_info->execution_info->maybe_allocate_content (win_info->height);
-
-  tui_update_breakpoint_info (win_info, nullptr, true);
-  for (int i = 0; i < win_info->content.size (); i++)
+  werase (execution_info->handle);
+  tui_update_breakpoint_info (this, nullptr, true);
+  for (int i = 0; i < content.size (); i++)
     {
-      tui_exec_info_content &element = content[i];
-      struct tui_source_element *src_element;
-      tui_bp_flags mode;
-
-      src_element = &win_info->content[i];
-
-      memset (element, ' ', sizeof (tui_exec_info_content));
-      element[TUI_EXECINFO_SIZE - 1] = 0;
+      struct tui_source_element *src_element = &content[i];
+      char element[TUI_EXECINFO_SIZE] = "   ";
 
       /* Now update the exec info content based upon the state
 	 of each line as indicated by the source content.  */
-      mode = src_element->break_mode;
+      tui_bp_flags mode = src_element->break_mode;
       if (mode & TUI_BP_HIT)
 	element[TUI_BP_HIT_POS] = (mode & TUI_BP_HARDWARE) ? 'H' : 'B';
       else if (mode & (TUI_BP_ENABLED | TUI_BP_DISABLED))
@@ -636,48 +615,12 @@ tui_set_exec_info_content (struct tui_source_window_base *win_info)
 
       if (src_element->is_exec_point)
 	element[TUI_EXEC_POS] = '>';
+
+      mvwaddstr (execution_info->handle, i + 1, 0, element);
     }
+  execution_info->refresh_window ();
 }
 
-
-void
-tui_show_exec_info_content (struct tui_source_window_base *win_info)
-{
-  struct tui_exec_info_window *exec_info = win_info->execution_info;
-  const tui_exec_info_content *content = exec_info->get_content ();
-
-  werase (exec_info->handle);
-  for (int cur_line = 1; cur_line <= win_info->content.size (); cur_line++)
-    mvwaddstr (exec_info->handle,
-	       cur_line,
-	       0,
-	       content[cur_line - 1]);
-  exec_info->refresh_window ();
-}
-
-
-void
-tui_erase_exec_info_content (struct tui_source_window_base *win_info)
-{
-  struct tui_gen_win_info *exec_info = win_info->execution_info;
-
-  werase (exec_info->handle);
-  exec_info->refresh_window ();
-}
-
-void
-tui_clear_exec_info_content (struct tui_source_window_base *win_info)
-{
-  tui_erase_exec_info_content (win_info);
-}
-
-/* Function to update the execution info window.  */
-void
-tui_update_exec_info (struct tui_source_window_base *win_info)
-{
-  tui_set_exec_info_content (win_info);
-  tui_show_exec_info_content (win_info);
-}
 
 void
 tui_alloc_source_buffer (struct tui_source_window_base *win_info)

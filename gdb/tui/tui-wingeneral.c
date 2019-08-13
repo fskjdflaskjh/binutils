@@ -112,15 +112,14 @@ tui_highlight_win (struct tui_win_info *win_info)
 }
 
 void
-tui_check_and_display_highlight_if_needed (struct tui_win_info *win_info)
+tui_win_info::check_and_display_highlight_if_needed ()
 {
-  if (win_info != NULL && win_info->can_highlight)
+  if (can_highlight)
     {
-      if (win_info->is_highlighted)
-	tui_highlight_win (win_info);
+      if (is_highlighted)
+	tui_highlight_win (this);
       else
-	tui_unhighlight_win (win_info);
-
+	tui_unhighlight_win (this);
     }
 }
 
@@ -165,25 +164,13 @@ tui_gen_win_info::make_visible (bool visible)
     }
 }
 
-/* Makes all windows invisible (except the command and locator
-   windows).  */
-static void
-make_all_visible (bool visible)
-{
-  for (tui_win_info *win_info : all_tui_windows ())
-    win_info->make_visible (visible);
-}
-
-void
-tui_make_all_visible (void)
-{
-  make_all_visible (true);
-}
+/* See tui-wingeneral.h.  */
 
 void
 tui_make_all_invisible (void)
 {
-  make_all_visible (false);
+  for (tui_win_info *win_info : all_tui_windows ())
+    win_info->make_visible (false);
 }
 
 /* Function to refresh all the windows currently displayed.  */

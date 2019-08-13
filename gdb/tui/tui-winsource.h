@@ -24,6 +24,26 @@
 
 #include "tui/tui-data.h"
 
+/* Flags to tell what kind of breakpoint is at current line.  */
+enum tui_bp_flag
+{
+  TUI_BP_ENABLED = 0x01,
+  TUI_BP_DISABLED = 0x02,
+  TUI_BP_HIT = 0x04,
+  TUI_BP_CONDITIONAL = 0x08,
+  TUI_BP_HARDWARE = 0x10
+};
+
+DEF_ENUM_FLAGS_TYPE (enum tui_bp_flag, tui_bp_flags);
+
+/* Position of breakpoint markers in the exec info string.  */
+#define TUI_BP_HIT_POS      0
+#define TUI_BP_BREAK_POS    1
+#define TUI_EXEC_POS        2
+#define TUI_EXECINFO_SIZE   4
+
+typedef char tui_exec_info_content[TUI_EXECINFO_SIZE];
+
 /* Execution info window class.  */
 
 struct tui_exec_info_window : public tui_gen_win_info
@@ -32,25 +52,28 @@ struct tui_exec_info_window : public tui_gen_win_info
     : tui_gen_win_info (EXEC_INFO_WIN)
   {
   }
-
-  ~tui_exec_info_window () override
-  {
-    xfree (m_content);
-  }
-
-  /* Get or allocate contents.  */
-  tui_exec_info_content *maybe_allocate_content (int n_elements);
-
-  /* Return the contents.  */
-  const tui_exec_info_content *get_content () const
-  {
-    return m_content;
-  }
-
-private:
-
-  tui_exec_info_content *m_content = nullptr;
 };
+
+/* Elements in the Source/Disassembly Window.  */
+struct tui_source_element
+{
+  tui_source_element ()
+  {
+    line_or_addr.loa = LOA_LINE;
+    line_or_addr.u.line_no = 0;
+  }
+
+  ~tui_source_element ()
+  {
+    xfree (line);
+  }
+
+  char *line = nullptr;
+  struct tui_line_or_address line_or_addr;
+  bool is_exec_point = false;
+  tui_bp_flags break_mode = 0;
+};
+
 
 /* The base class for all source-like windows, namely the source and
    disassembly windows.  */
@@ -67,7 +90,7 @@ protected:
 
 public:
 
-  void clear_detail () override;
+  void clear_detail ();
 
   void make_visible (bool visible) override;
   void refresh_window () override;
@@ -88,6 +111,10 @@ public:
 
   void reset (int height, int width,
 	      int origin_x, int origin_y) override;
+
+  void show_source_content ();
+
+  void update_exec_info ();
 
   /* Does the locator belong to this window?  */
   bool m_has_locator = false;
@@ -139,12 +166,6 @@ extern void tui_update_source_windows_with_line (struct symtab *,
 						 int);
 extern void tui_clear_source_content (struct tui_source_window_base *);
 extern void tui_erase_source_content (struct tui_source_window_base *);
-extern void tui_show_source_content (struct tui_source_window_base *);
-extern void tui_set_exec_info_content (struct tui_source_window_base *);
-extern void tui_show_exec_info_content (struct tui_source_window_base *);
-extern void tui_erase_exec_info_content (struct tui_source_window_base *);
-extern void tui_clear_exec_info_content (struct tui_source_window_base *);
-extern void tui_update_exec_info (struct tui_source_window_base *);
 
 extern void tui_alloc_source_buffer (struct tui_source_window_base *);
 extern int tui_line_is_displayed (int,

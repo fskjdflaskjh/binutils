@@ -79,8 +79,6 @@ public:
   struct tui_point origin = {0, 0};
   /* Viewport height.  */
   int viewport_height = 0;
-  /* Index of last visible line.  */
-  int last_visible_line = 0;
   /* Whether the window is visible or not.  */
   bool is_visible = false;
   /* Window title to display.  */
@@ -151,58 +149,11 @@ struct tui_line_or_address
     } u;
 };
 
-/* Current Layout definition.  */
-struct tui_layout_def
-{
-  enum tui_win_type display_mode;
-};
-
-/* Flags to tell what kind of breakpoint is at current line.  */
-enum tui_bp_flag
-{
-  TUI_BP_ENABLED = 0x01,
-  TUI_BP_DISABLED = 0x02,
-  TUI_BP_HIT = 0x04,
-  TUI_BP_CONDITIONAL = 0x08,
-  TUI_BP_HARDWARE = 0x10
-};
-
-DEF_ENUM_FLAGS_TYPE (enum tui_bp_flag, tui_bp_flags);
-
-/* Elements in the Source/Disassembly Window.  */
-struct tui_source_element
-{
-  tui_source_element ()
-  {
-    line_or_addr.loa = LOA_LINE;
-    line_or_addr.u.line_no = 0;
-  }
-
-  ~tui_source_element ()
-  {
-    xfree (line);
-  }
-
-  char *line = nullptr;
-  struct tui_line_or_address line_or_addr;
-  bool is_exec_point = false;
-  tui_bp_flags break_mode = 0;
-};
-
-
 #ifdef PATH_MAX
 # define MAX_LOCATOR_ELEMENT_LEN        PATH_MAX
 #else
 # define MAX_LOCATOR_ELEMENT_LEN        1024
 #endif
-
-/* Position of breakpoint markers in the exec info string.  */
-#define TUI_BP_HIT_POS      0
-#define TUI_BP_BREAK_POS    1
-#define TUI_EXEC_POS        2
-#define TUI_EXECINFO_SIZE   4
-
-typedef char tui_exec_info_content[TUI_EXECINFO_SIZE];
 
 /* Locator window class.  */
 
@@ -248,9 +199,6 @@ public:
   ~tui_win_info () override
   {
   }
-
-  /* Clear the pertinent detail in the window.  */
-  virtual void clear_detail () = 0;
 
   /* Called after all the TUI windows are refreshed, to let this
      window have a chance to update itself further.  */
@@ -299,6 +247,8 @@ public:
   {
     return true;
   }
+
+  void check_and_display_highlight_if_needed ();
 
   /* Can this window ever be highlighted?  */
   bool can_highlight = true;
@@ -391,7 +341,6 @@ struct all_tui_windows
 extern void tui_initialize_static_data (void);
 extern struct tui_win_info *tui_partial_win_by_name (const char *);
 extern enum tui_layout_type tui_current_layout (void);
-extern void tui_set_current_layout_to (enum tui_layout_type);
 extern int tui_term_height (void);
 extern void tui_set_term_height_to (int);
 extern int tui_term_width (void);
@@ -403,12 +352,16 @@ extern void tui_clear_source_windows_detail (void);
 extern void tui_add_to_source_windows (struct tui_source_window_base *);
 extern struct tui_win_info *tui_win_with_focus (void);
 extern void tui_set_win_with_focus (struct tui_win_info *);
-extern struct tui_layout_def *tui_layout_def (void);
 extern int tui_win_resized (void);
 extern void tui_set_win_resized_to (int);
 
 extern struct tui_win_info *tui_next_win (struct tui_win_info *);
 extern struct tui_win_info *tui_prev_win (struct tui_win_info *);
+
+/* Delete all the invisible windows.  Note that it is an error to call
+   this when the command window is invisible -- we don't allow the
+   command window to be removed from the layout.  */
+extern void tui_delete_invisible_windows ();
 
 extern unsigned int tui_tab_width;
 

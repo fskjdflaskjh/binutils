@@ -35,14 +35,10 @@ struct tui_win_info *tui_win_list[MAX_MAJOR_WINDOWS];
 /***************************
 ** Private data
 ****************************/
-static enum tui_layout_type current_layout = UNDEFINED_LAYOUT;
 static int term_height, term_width;
 static struct tui_locator_window _locator;
 static std::vector<tui_source_window_base *> source_windows;
 static struct tui_win_info *win_with_focus = NULL;
-static struct tui_layout_def layout_def = {
-  SRC_WIN,			/* DISPLAY_MODE */
-};
 
 static int win_resized = FALSE;
 
@@ -74,14 +70,6 @@ void
 tui_set_win_resized_to (int resized)
 {
   win_resized = resized;
-}
-
-
-/* Answer a pointer to the current layout definition.  */
-struct tui_layout_def *
-tui_layout_def (void)
-{
-  return &layout_def;
 }
 
 
@@ -181,22 +169,6 @@ tui_set_term_width_to (int w)
 }
 
 
-/* Accessor for the current layout.  */
-enum tui_layout_type
-tui_current_layout (void)
-{
-  return current_layout;
-}
-
-
-/* Mutator for the current layout.  */
-void
-tui_set_current_layout_to (enum tui_layout_type new_layout)
-{
-  current_layout = new_layout;
-}
-
-
 /*****************************
 ** OTHER PUBLIC FUNCTIONS
 *****************************/
@@ -290,13 +262,34 @@ tui_initialize_static_data ()
     win->height =
     win->origin.x =
     win->origin.y =
-    win->viewport_height =
-    win->last_visible_line = 0;
+    win->viewport_height = 0;
   win->handle = NULL;
   win->is_visible = false;
   win->title = 0;
 }
 
+/* See tui-data.h.  */
+
+void
+tui_delete_invisible_windows ()
+{
+  for (int win_type = SRC_WIN; (win_type < MAX_MAJOR_WINDOWS); win_type++)
+    {
+      if (tui_win_list[win_type] != NULL
+	  && !tui_win_list[win_type]->is_visible)
+	{
+	  /* This should always be made visible before a call to this
+	     function.  */
+	  gdb_assert (win_type != CMD_WIN);
+
+	  if (win_with_focus == tui_win_list[win_type])
+	    win_with_focus = nullptr;
+
+	  delete tui_win_list[win_type];
+	  tui_win_list[win_type] = NULL;
+	}
+    }
+}
 
 tui_win_info::tui_win_info (enum tui_win_type type)
   : tui_gen_win_info (type)

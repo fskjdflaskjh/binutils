@@ -1,3 +1,185 @@
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.h (struct tui_gen_win_info) <last_visible_line>:
+	Remove.
+	* tui/tui-data.c (tui_initialize_static_data): Update.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_exec_info_window)
+	<~tui_exec_info_window, maybe_allocate_content, get_content,
+	m_content>: Remove.
+	(struct tui_source_window_base) <set_exec_info_content,
+	show_exec_info_content>: Don't declare.
+	* tui/tui-winsource.c
+	(tui_exec_info_window::maybe_allocate_content): Remove.
+	(tui_source_window_base::update_exec_info): Rename from
+	set_exec_info_content.
+	(tui_source_window_base::show_exec_info_content)
+	(tui_source_window_base::update_exec_info): Remove.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (tui_clear_exec_info_content): Don't
+	declare.
+	* tui/tui-winsource.c (tui_update_source_window_as_is)
+	(tui_update_source_windows_with_addr, tui_erase_source_content):
+	Update.
+	(tui_clear_exec_info_content): Remove.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (tui_erase_exec_info_content): Don't
+	declare.
+	* tui/tui-winsource.c (tui_source_window_base::refresh_all): Don't
+	call tui_erase_exec_info_content.
+	(tui_clear_exec_info_content): Rename from
+	tui_erase_exec_info_content.
+	(tui_clear_exec_info_content): Delete.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<show_exec_info_content>: Declare.
+	(tui_show_exec_info_content): Don't declare.
+	* tui/tui-winsource.c
+	(tui_source_window_base::show_exec_info_content): Rename from
+	tui_show_exec_info_content.
+	(tui_source_window_base::update_exec_info): Update.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.h (enum tui_bp_flag, tui_bp_flags, struct tui_source_element)
+	(TUI_BP_HIT_POS, TUI_BP_BREAK_POS, TUI_EXEC_POS)
+	(TUI_EXECINFO_SIZE, tui_exec_info_content): Move ...
+	* tui/tui-winsource.h (enum tui_bp_flag, tui_bp_flags, struct
+	tui_source_element, TUI_BP_HIT_POS, TUI_BP_BREAK_POS)
+	(TUI_EXEC_POS, TUI_EXECINFO_SIZE, tui_exec_info_content):
+	... here.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<update_exec_info>: Declare.
+	(tui_update_exec_info): Don't declare.
+	* tui/tui-winsource.c (tui_update_source_window_as_is)
+	(tui_source_window_base::refresh_all)
+	(tui_update_all_breakpoint_info): Update.
+	(tui_source_window_base::update_exec_info): Rename from
+	tui_update_exec_info.
+	* tui/tui-stack.c (tui_show_frame_info): Update.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<set_exec_info_content>: Declare.
+	(tui_set_exec_info_content): Don't declare.
+	* tui/tui-winsource.c
+	(tui_source_window_base::set_exec_info_content): Rename from
+	tui_set_exec_info_content.
+	(tui_update_exec_info): Update.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<show_source_content>: Declare.
+	(tui_show_source_content): Don't declare.
+	* tui/tui-winsource.c (tui_update_source_window_as_is): Update.
+	(tui_source_window_base::show_source_content): Rename from
+	tui_show_source_content.
+	(tui_source_window_base::refresh_all): Update.
+	* tui/tui-layout.c (show_source_disasm_command)
+	(show_source_or_disasm_and_command): Update.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.c (tui_erase_source_content)
+	(tui_show_source_content, tui_source_window_base::refresh_all):
+	Update.
+	* tui/tui-wingeneral.h
+	(tui_check_and_display_highlight_if_needed): Don't declare.
+	* tui/tui-wingeneral.c
+	(tui_win_info::check_and_display_highlight_if_needed): Rename from
+	check_and_display_highlight_if_needed.
+	* tui/tui-win.c (tui_rehighlight_all)
+	(tui_win_info::make_visible_with_new_height): Update.
+	* tui/tui-regs.c (tui_data_window::display_registers_from_line)
+	(tui_data_window::erase_data_content)
+	(tui_data_window::display_all_data): Update.
+	* tui/tui-data.h (struct tui_win_info)
+	<check_and_display_highlight_if_needed>: Declare.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_resize_all): Call
+	tui_delete_invisible_windows.
+	* tui/tui-layout.c (show_layout): Call
+	tui_delete_invisible_windows.
+	* tui/tui-data.h (tui_delete_invisible_windows): Declare.
+	* tui/tui-data.c (tui_delete_invisible_windows): New function.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-disasm.c (tui_show_disassem): Add assertion.  Don't call
+	tui_add_win_to_layout.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.h (tui_default_win_height): Don't declare.
+	* tui/tui-layout.c (tui_default_win_height): Now static.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (show_layout): Unify all layout cases into a
+	single switch.
+	(show_source_disasm_command, show_source_or_disasm_and_command):
+	Don't check current layout.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.c (make_all_visible): Remove.
+	(tui_make_all_invisible): Simplify.
+	* tui/tui-layout.c (tui_make_all_invisible): Move from
+	tui-wingeneral.c; simplify.
+	(show_layout): Hoist call to tui_make_all_invisible.
+	(show_data): Don't call tui_make_all_invisible.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.h (tui_make_all_visible): Don't declare.
+	* tui/tui-wingeneral.c (tui_make_all_visible): Remove.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (current_layout, tui_current_layout): Move from
+	tui-data.c.
+	(show_source_disasm_command, show_data)
+	(show_source_or_disasm_and_command): Don't use
+	tui_set_current_layout_to.
+	* tui/tui-data.h (tui_set_current_layout_to): Don't declare.
+	* tui/tui-data.c (current_layout, tui_current_layout): Move to
+	tui-layout.c.
+	(tui_set_current_layout_to): Remove.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (tui_set_layout): Update.
+	* tui/tui-data.h (struct tui_layout_def): Remove.
+	(tui_layout_def): Don't declare.
+	* tui/tui-data.c (layout_def): Remove.
+	(tui_layout_def): Remove.
+
+2019-08-13  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<clear_detail>: No longer "override".
+	* tui/tui-regs.h (struct tui_data_window) <clear_detail>: Remove.
+	* tui/tui-regs.c (tui_data_window::clear_detail): Remove.
+	* tui/tui-data.h (struct tui_win_info) <clear_detail>: Remove.
+	* tui/tui-command.h (struct tui_cmd_window) <clear_detail>:
+	Remove.
+	* tui/tui-command.c (tui_cmd_window::clear_detail): Remove.
+
 2019-08-13  Tom Tromey  <tromey@adacore.com>
 
 	* tracepoint.c: Don't include readline.h or history.h.
