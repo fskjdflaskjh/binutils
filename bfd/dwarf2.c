@@ -2804,6 +2804,10 @@ lookup_symbol_in_variable_table (struct comp_unit *unit,
   return FALSE;
 }
 
+static struct comp_unit *stash_comp_unit (struct dwarf2_debug *);
+static bfd_boolean comp_unit_maybe_decode_line_info (struct comp_unit *,
+						     struct dwarf2_debug *);
+
 static bfd_boolean
 find_abstract_instance (struct comp_unit *   unit,
 			bfd_byte *           orig_info_ptr,
@@ -2874,12 +2878,26 @@ find_abstract_instance (struct comp_unit *   unit,
 	      if (info_ptr >= u->info_ptr_unit && info_ptr < u->end_ptr)
 		break;
 
-	  if (u)
+	  while (u == NULL)
 	    {
-	      unit = u;
-	      info_ptr_end = unit->end_ptr;
+	      u = stash_comp_unit (unit->stash);
+	      if (u == NULL)
+		break;
+	      if (info_ptr >= u->info_ptr_unit && info_ptr < u->end_ptr)
+		break;
+	      u = NULL;
 	    }
-	  /* else FIXME: What do we do now ?  */
+
+	  if (u == NULL)
+	    {
+	      _bfd_error_handler
+		(_("DWARF error: unable to locate abstract instance DIE ref %"
+		   PRIu64), (uint64_t) die_ref);
+	      bfd_set_error (bfd_error_bad_value);
+	      return FALSE;
+	    }
+	  unit = u;
+	  info_ptr_end = unit->end_ptr;
 	}
     }
   else if (attr_ptr->form == DW_FORM_GNU_ref_alt)
@@ -2979,6 +2997,8 @@ find_abstract_instance (struct comp_unit *   unit,
 		    }
 		  break;
 		case DW_AT_decl_file:
+		  if (!comp_unit_maybe_decode_line_info (unit, unit->stash))
+		    return FALSE;
 		  *filename_ptr = concat_filename (unit->line_table,
 						   attr.u.val);
 		  break;
@@ -3331,7 +3351,7 @@ scan_unit_for_symbols (struct comp_unit *unit)
   return FALSE;
 }
 
-/* Parse a DWARF2 compilation unit starting at INFO_PTR.  This
+/* Parse a DWARF2 compilation unit starting at INFO_PTR.  UNIT_LENGTH
    includes the compilation unit header that proceeds the DIE's, but
    does not include the length field that precedes each compilation
    unit header.  END_PTR points one past the end of this comp unit.
@@ -3604,32 +3624,8 @@ comp_unit_find_nearest_line (struct comp_unit *unit,
 {
   bfd_boolean func_p;
 
-  if (unit->error)
+  if (!comp_unit_maybe_decode_line_info (unit, stash))
     return FALSE;
-
-  if (! unit->line_table)
-    {
-      if (! unit->stmtlist)
-	{
-	  unit->error = 1;
-	  return FALSE;
-	}
-
-      unit->line_table = decode_line_info (unit, stash);
-
-      if (! unit->line_table)
-	{
-	  unit->error = 1;
-	  return FALSE;
-	}
-
-      if (unit->first_child_die_ptr < unit->end_ptr
-	  && ! scan_unit_for_symbols (unit))
-	{
-	  unit->error = 1;
-	  return FALSE;
-	}
-    }
 
   *function_ptr = NULL;
   func_p = lookup_address_in_function_table (unit, addr, function_ptr);
@@ -4472,6 +4468,90 @@ _bfd_dwarf2_slurp_debug_info (bfd *abfd, bfd *debug_bfd,
   return TRUE;
 }
 
+/* Parse the next DWARF2 compilation unit at STASH->INFO_PTR.  */
+
+static struct comp_unit *
+stash_comp_unit (struct dwarf2_debug *stash)
+{
+  bfd_size_type length;
+  unsigned int offset_size;
+  bfd_byte *info_ptr_unit = stash->info_ptr;
+
+  if (stash->info_ptr >= stash->info_ptr_end)
+    return NULL;
+
+  length = read_4_bytes (stash->bfd_ptr, stash->info_ptr,
+			 stash->info_ptr_end);
+  /* A 0xffffff length is the DWARF3 way of indicating
+     we use 64-bit offsets, instead of 32-bit offsets.  */
+  if (length == 0xffffffff)
+    {
+      offset_size = 8;
+      length = read_8_bytes (stash->bfd_ptr, stash->info_ptr + 4,
+			     stash->info_ptr_end);
+      stash->info_ptr += 12;
+    }
+  /* A zero length is the IRIX way of indicating 64-bit offsets,
+     mostly because the 64-bit length will generally fit in 32
+     bits, and the endianness helps.  */
+  else if (length == 0)
+    {
+      offset_size = 8;
+      length = read_4_bytes (stash->bfd_ptr, stash->info_ptr + 4,
+			     stash->info_ptr_end);
+      stash->info_ptr += 8;
+    }
+  /* In the absence of the hints above, we assume 32-bit DWARF2
+     offsets even for targets with 64-bit addresses, because:
+     a) most of the time these targets will not have generated
+     more than 2Gb of debug info and so will not need 64-bit
+     offsets,
+     and
+     b) if they do use 64-bit offsets but they are not using
+     the size hints that are tested for above then they are
+     not conforming to the DWARF3 standard anyway.  */
+  else
+    {
+      offset_size = 4;
+      stash->info_ptr += 4;
+    }
+
+  if (length != 0
+      && stash->info_ptr + length <= stash->info_ptr_end
+      && stash->info_ptr + length > stash->info_ptr)
+    {
+      struct comp_unit *each = parse_comp_unit (stash, length, info_ptr_unit,
+						offset_size);
+      if (each)
+	{
+	  if (stash->all_comp_units)
+	    stash->all_comp_units->prev_unit = each;
+	  else
+	    stash->last_comp_unit = each;
+
+	  each->next_unit = stash->all_comp_units;
+	  stash->all_comp_units = each;
+
+	  stash->info_ptr += length;
+
+	  if ((bfd_size_type) (stash->info_ptr - stash->sec_info_ptr)
+	      == stash->sec->size)
+	    {
+	      stash->sec = find_debug_info (stash->bfd_ptr,
+					    stash->debug_sections,
+					    stash->sec);
+	      stash->sec_info_ptr = stash->info_ptr;
+	    }
+	  return each;
+	}
+    }
+
+  /* Don't trust any of the DWARF info after a corrupted length or
+     parse error.  */
+  stash->info_ptr = stash->info_ptr_end;
+  return NULL;
+}
+
 /* Scan the debug information in PINFO looking for a DW_TAG_subprogram
    abbrev with a DW_AT_low_pc attached to it.  Then lookup that same
    symbol in SYMBOLS and return the difference between the low_pc and
@@ -4492,13 +4572,7 @@ _bfd_dwarf2_find_symbol_bias (asymbol ** symbols, void ** pinfo)
     {
       struct funcinfo * func;
 
-      if (unit->function_table == NULL)
-	{
-	  if (unit->line_table == NULL)
-	    unit->line_table = decode_line_info (unit, stash);
-	  if (unit->line_table != NULL)
-	    scan_unit_for_symbols (unit);
-	}
+      comp_unit_maybe_decode_line_info (unit, stash);
 
       for (func = unit->function_table; func != NULL; func = func->prev_func)
 	if (func->name && func->arange.low)
@@ -4531,7 +4605,6 @@ _bfd_dwarf2_find_symbol_bias (asymbol ** symbols, void ** pinfo)
    NULL the FUNCTIONNAME_PTR is also filled in.
    SYMBOLS contains the symbol table for ABFD.
    DEBUG_SECTIONS contains the name of the dwarf debug sections.
-   ADDR_SIZE is the number of bytes in the initial .debug_info length
    field and in the abbreviation offset, or zero to indicate that the
    default value should be used.  */
 
@@ -4546,7 +4619,6 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd,
 			       unsigned int *linenumber_ptr,
 			       unsigned int *discriminator_ptr,
 			       const struct dwarf_debug_section *debug_sections,
-			       unsigned int addr_size,
 			       void **pinfo)
 {
   /* Read each compilation unit from the section .debug_info, and check
@@ -4727,123 +4799,34 @@ _bfd_dwarf2_find_nearest_line (bfd *abfd,
 	}
     }
 
-  /* The DWARF2 spec says that the initial length field, and the
-     offset of the abbreviation table, should both be 4-byte values.
-     However, some compilers do things differently.  */
-  if (addr_size == 0)
-    addr_size = 4;
-  BFD_ASSERT (addr_size == 4 || addr_size == 8);
-
   /* Read each remaining comp. units checking each as they are read.  */
-  while (stash->info_ptr < stash->info_ptr_end)
+  while ((each = stash_comp_unit (stash)) != NULL)
     {
-      bfd_vma length;
-      unsigned int offset_size = addr_size;
-      bfd_byte *info_ptr_unit = stash->info_ptr;
-
-      length = read_4_bytes (stash->bfd_ptr, stash->info_ptr, stash->info_ptr_end);
-      /* A 0xffffff length is the DWARF3 way of indicating
-	 we use 64-bit offsets, instead of 32-bit offsets.  */
-      if (length == 0xffffffff)
-	{
-	  offset_size = 8;
-	  length = read_8_bytes (stash->bfd_ptr, stash->info_ptr + 4, stash->info_ptr_end);
-	  stash->info_ptr += 12;
-	}
-      /* A zero length is the IRIX way of indicating 64-bit offsets,
-	 mostly because the 64-bit length will generally fit in 32
-	 bits, and the endianness helps.  */
-      else if (length == 0)
-	{
-	  offset_size = 8;
-	  length = read_4_bytes (stash->bfd_ptr, stash->info_ptr + 4, stash->info_ptr_end);
-	  stash->info_ptr += 8;
-	}
-      /* In the absence of the hints above, we assume 32-bit DWARF2
-	 offsets even for targets with 64-bit addresses, because:
-	   a) most of the time these targets will not have generated
-	      more than 2Gb of debug info and so will not need 64-bit
-	      offsets,
-	 and
-	   b) if they do use 64-bit offsets but they are not using
-	      the size hints that are tested for above then they are
-	      not conforming to the DWARF3 standard anyway.  */
-      else if (addr_size == 8)
-	{
-	  offset_size = 4;
-	  stash->info_ptr += 4;
-	}
+      /* DW_AT_low_pc and DW_AT_high_pc are optional for
+	 compilation units.  If we don't have them (i.e.,
+	 unit->high == 0), we need to consult the line info table
+	 to see if a compilation unit contains the given
+	 address.  */
+      if (do_line)
+	found = (((symbol->flags & BSF_FUNCTION) == 0
+		  || each->arange.high == 0
+		  || comp_unit_contains_address (each, addr))
+		 && comp_unit_find_line (each, symbol, addr,
+					 filename_ptr,
+					 linenumber_ptr,
+					 stash));
       else
-	stash->info_ptr += 4;
+	found = ((each->arange.high == 0
+		  || comp_unit_contains_address (each, addr))
+		 && comp_unit_find_nearest_line (each, addr,
+						 filename_ptr,
+						 &function,
+						 linenumber_ptr,
+						 discriminator_ptr,
+						 stash) != 0);
 
-      if (length > 0)
-	{
-	  bfd_byte * new_ptr;
-
-	  /* PR 21151  */
-	  if (stash->info_ptr + length > stash->info_ptr_end)
-	    return FALSE;
-
-	  each = parse_comp_unit (stash, length, info_ptr_unit,
-				  offset_size);
-	  if (!each)
-	    /* The dwarf information is damaged, don't trust it any
-	       more.  */
-	    break;
-
-	  new_ptr = stash->info_ptr + length;
-	  /* PR 17512: file: 1500698c.  */
-	  if (new_ptr < stash->info_ptr)
-	    {
-	      /* A corrupt length value - do not trust the info any more.  */
-	      found = FALSE;
-	      break;
-	    }
-	  else
-	    stash->info_ptr = new_ptr;
-
-	  if (stash->all_comp_units)
-	    stash->all_comp_units->prev_unit = each;
-	  else
-	    stash->last_comp_unit = each;
-
-	  each->next_unit = stash->all_comp_units;
-	  stash->all_comp_units = each;
-
-	  /* DW_AT_low_pc and DW_AT_high_pc are optional for
-	     compilation units.  If we don't have them (i.e.,
-	     unit->high == 0), we need to consult the line info table
-	     to see if a compilation unit contains the given
-	     address.  */
-	  if (do_line)
-	    found = (((symbol->flags & BSF_FUNCTION) == 0
-		      || each->arange.high == 0
-		      || comp_unit_contains_address (each, addr))
-		     && comp_unit_find_line (each, symbol, addr,
-					     filename_ptr,
-					     linenumber_ptr,
-					     stash));
-	  else
-	    found = ((each->arange.high == 0
-		      || comp_unit_contains_address (each, addr))
-		     && comp_unit_find_nearest_line (each, addr,
-						     filename_ptr,
-						     &function,
-						     linenumber_ptr,
-						     discriminator_ptr,
-						     stash) != 0);
-
-	  if ((bfd_vma) (stash->info_ptr - stash->sec_info_ptr)
-	      == stash->sec->size)
-	    {
-	      stash->sec = find_debug_info (stash->bfd_ptr, debug_sections,
-					    stash->sec);
-	      stash->sec_info_ptr = stash->info_ptr;
-	    }
-
-	  if (found)
-	    goto done;
-	}
+      if (found)
+	break;
     }
 
  done:
