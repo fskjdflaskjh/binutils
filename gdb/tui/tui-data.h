@@ -62,10 +62,16 @@ public:
     return "";
   }
 
-  /* Reset this window.  The parameters are used to set the window's
+  /* Resize this window.  The parameters are used to set the window's
      size and position.  */
-  virtual void reset (int height, int width,
-		      int origin_x, int origin_y);
+  virtual void resize (int height, int width,
+		       int origin_x, int origin_y);
+
+  /* Return true if this can be boxed.  */
+  virtual bool can_box () const
+  {
+    return false;
+  }
 
   /* Window handle.  */
   WINDOW *handle = nullptr;
@@ -83,13 +89,6 @@ public:
   bool is_visible = false;
   /* Window title to display.  */
   char *title = nullptr;
-};
-
-/* Whether or not a window should be drawn with a box.  */
-enum tui_box
-{
-  DONT_BOX_WINDOW = 0,
-  BOX_WINDOW
 };
 
 /* Constant definitions.  */
@@ -147,31 +146,6 @@ struct tui_line_or_address
       int line_no;
       CORE_ADDR addr;
     } u;
-};
-
-#ifdef PATH_MAX
-# define MAX_LOCATOR_ELEMENT_LEN        PATH_MAX
-#else
-# define MAX_LOCATOR_ELEMENT_LEN        1024
-#endif
-
-/* Locator window class.  */
-
-struct tui_locator_window : public tui_gen_win_info
-{
-  tui_locator_window ()
-    : tui_gen_win_info (LOCATOR_WIN)
-  {
-    full_name[0] = 0;
-    proc_name[0] = 0;
-  }
-
-  char full_name[MAX_LOCATOR_ELEMENT_LEN];
-  char proc_name[MAX_LOCATOR_ELEMENT_LEN];
-  int line_no = 0;
-  CORE_ADDR addr = 0;
-  /* Architecture associated with code at this location.  */
-  struct gdbarch *gdbarch = nullptr;
 };
 
 /* This defines information about each logical window.  */
@@ -244,6 +218,11 @@ public:
 
   /* Return true if this window can be scrolled, false otherwise.  */
   virtual bool can_scroll () const
+  {
+    return true;
+  }
+
+  bool can_box () const override
   {
     return true;
   }
@@ -338,7 +317,6 @@ struct all_tui_windows
 
 
 /* Data Manipulation Functions.  */
-extern void tui_initialize_static_data (void);
 extern struct tui_win_info *tui_partial_win_by_name (const char *);
 extern enum tui_layout_type tui_current_layout (void);
 extern int tui_term_height (void);
@@ -346,10 +324,7 @@ extern void tui_set_term_height_to (int);
 extern int tui_term_width (void);
 extern void tui_set_term_width_to (int);
 extern struct tui_locator_window *tui_locator_win_info_ptr (void);
-extern std::vector<tui_source_window_base *> &tui_source_windows ();
-extern void tui_clear_source_windows (void);
 extern void tui_clear_source_windows_detail (void);
-extern void tui_add_to_source_windows (struct tui_source_window_base *);
 extern struct tui_win_info *tui_win_with_focus (void);
 extern void tui_set_win_with_focus (struct tui_win_info *);
 extern int tui_win_resized (void);

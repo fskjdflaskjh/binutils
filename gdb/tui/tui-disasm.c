@@ -179,8 +179,6 @@ tui_set_disassem_content (tui_source_window_base *win_info,
   if (pc == 0)
     return TUI_FAILURE;
 
-  tui_alloc_source_buffer (win_info);
-
   win_info->gdbarch = gdbarch;
   win_info->start_line_or_addr.loa = LOA_ADDRESS;
   win_info->start_line_or_addr.u.addr = pc;
@@ -379,4 +377,53 @@ tui_disasm_window::location_matches_p (struct bp_location *loc, int line_no)
 {
   return (content[line_no].line_or_addr.loa == LOA_ADDRESS
 	  && content[line_no].line_or_addr.u.addr == loc->address);
+}
+
+bool
+tui_disasm_window::addr_is_displayed (CORE_ADDR addr) const
+{
+  bool is_displayed = false;
+  int threshold = SCROLL_THRESHOLD;
+
+  int i = 0;
+  while (i < content.size () - threshold && !is_displayed)
+    {
+      is_displayed
+	= (content[i].line_or_addr.loa == LOA_ADDRESS
+	   && content[i].line_or_addr.u.addr == addr);
+      i++;
+    }
+
+  return is_displayed;
+}
+
+void
+tui_disasm_window::maybe_update (struct frame_info *fi, symtab_and_line sal,
+				 int line_no, CORE_ADDR addr)
+{
+  CORE_ADDR low;
+
+  if (find_pc_partial_function (get_frame_pc (fi),
+				NULL, &low, NULL) == 0)
+    {
+      /* There is no symbol available for current PC.  There is no
+	 safe way how to "disassemble backwards".  */
+      low = get_frame_pc (fi);
+    }
+  else
+    low = tui_get_low_disassembly_address (get_frame_arch (fi),
+					   low, get_frame_pc (fi));
+
+  struct tui_line_or_address a;
+
+  a.loa = LOA_ADDRESS;
+  a.u.addr = low;
+  if (!addr_is_displayed (addr))
+    tui_update_source_window (this, get_frame_arch (fi),
+			      sal.symtab, a, TRUE);
+  else
+    {
+      a.u.addr = addr;
+      set_is_exec_point_at (a);
+    }
 }

@@ -47,6 +47,15 @@ struct tui_source_window : public tui_source_window_base
 
   bool showing_source_p (const char *filename) const;
 
+  void maybe_update (struct frame_info *fi, symtab_and_line sal,
+		     int line_no, CORE_ADDR addr)
+    override;
+
+  void erase_source_content () override
+  {
+    do_erase_source_content (NO_SRC_STRING);
+  }
+
 protected:
 
   void do_scroll_vertical (int num_to_scroll) override;
@@ -54,6 +63,10 @@ protected:
 private:
 
   void style_changed ();
+
+  /* Answer whether a particular line number or address is displayed
+     in the current source window.  */
+  bool line_is_displayed (int line) const;
 
   /* A token used to register and unregister an observer.  */
   gdb::observers::token m_observable;

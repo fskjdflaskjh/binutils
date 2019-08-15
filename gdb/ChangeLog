@@ -1,3 +1,163 @@
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (show_layout, show_source_disasm_command)
+	(show_data): Don't change window visibility.
+	(tui_gen_win_info::resize): Remove special case for command
+	window.  Use wresize, when available.
+	(show_source_or_disasm_and_command): Don't change window
+	visibility.
+	* tui/tui-command.h (struct tui_cmd_window) <resize>: Declare.
+	<make_visible>: New method.
+	* tui/tui-command.c (tui_cmd_window::resize): New method.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_iterator): New.
+	(struct tui_source_windows): New.
+	* tui/tui-winsource.c (tui_display_main): Update.
+	* tui/tui-win.c (tui_resize_all, tui_adjust_win_heights)
+	(new_height_ok, parse_scrolling_args): Update.
+	* tui/tui-layout.c (show_layout, show_data): Update.
+	* tui/tui-data.h (tui_source_windows, tui_clear_source_windows)
+	(tui_add_to_source_windows): Don't declare.
+	* tui/tui-data.c (source_windows, tui_source_windows)
+	(tui_clear_source_windows, tui_add_to_source_windows): Remove.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base) <resize>:
+	Rename from reset.
+	* tui/tui-winsource.c (tui_source_window_base::resize): Rename.
+	* tui/tui-layout.c (show_source_disasm_command, show_data):
+	Update.
+	(tui_gen_win_info::resize): Rename.
+	(show_source_or_disasm_and_command): Update.
+	* tui/tui-data.h (struct tui_gen_win_info) <resize>: Rename from
+	reset.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.c (tui_initialize_static_data): Remove.
+	* tui/tui-interp.c (tui_interp::init): Don't call
+	tui_initialize_static_data.
+	* tui/tui-data.h (tui_initialize_static_data): Don't declare.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (tui_default_win_viewport_height): Don't
+	examine tui_win_list.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (tui_clear_source_content): Don't declare.
+	* tui/tui-winsource.c (tui_update_source_window_as_is): Don't call
+	tui_clear_source_content.
+	(tui_clear_source_content): Remove.
+	(tui_source_window_base::do_erase_source_content): Hoist call to
+	content.clear().
+	* tui/tui-stack.c (tui_show_frame_info): Don't call
+	tui_clear_source_content.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<do_erase_source_content>: New method.
+	<erase_source_content>: New method.
+	(tui_erase_source_content): Don't declare.
+	* tui/tui-winsource.c (tui_clear_source_content): Update.
+	(tui_source_window_base::do_erase_source_content): Rename from
+	tui_erase_source_content.
+	(tui_source_window_base::show_source_content): Update.
+	* tui/tui-win.c (tui_resize_all, tui_adjust_win_heights): Update.
+	* tui/tui-source.h (struct tui_source_window)
+	<erase_source_content>: New method.
+	* tui/tui-disasm.h (struct tui_disasm_window)
+	<erase_source_content>: New method.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (tui_alloc_source_buffer): Don't declare.
+	(struct tui_source_element): Add DISABLE_COPY_AND_ASSIGN, and move
+	constructor.
+	* tui/tui-winsource.c (tui_alloc_source_buffer): Remove.
+	* tui/tui-source.c (tui_set_source_content): Update.
+	* tui/tui-disasm.c (tui_set_disassem_content): Update.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (tui_line_is_displayed): Don't declare.
+	* tui/tui-winsource.c (tui_line_is_displayed): Move to
+	tui-source.c.
+	* tui/tui-source.h (struct tui_source_window) <line_is_displayed>:
+	Declare.
+	* tui/tui-source.c (tui_source_window::line_is_displayed): New
+	method.
+	(tui_source_window::maybe_update): Update.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (tui_addr_is_displayed): Don't declare.
+	* tui/tui-winsource.c (tui_addr_is_displayed): Move to
+	tui-disasm.c.
+	* tui/tui-disasm.h (struct tui_disasm_window) <addr_is_displayed>:
+	Declare.
+	* tui/tui-disasm.c (tui_disasm_window::addr_is_displayed): New
+	method.
+	(tui_disasm_window::maybe_update): Update.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<maybe_update>: Declare.
+	* tui/tui-stack.c (tui_show_frame_info): Call maybe_update
+	method.
+	* tui/tui-source.h (struct tui_source_window) <maybe_update>:
+	Declare.
+	* tui/tui-source.c (tui_source_window::maybe_update): New method.
+	* tui/tui-disasm.h (struct tui_disasm_window) <maybe_update>:
+	Declare.
+	* tui/tui-disasm.c (tui_disasm_window::maybe_update): New method.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.c (tui_make_status_line): Use string constructor.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.c: Include tui-stack.h.
+	* tui/tui-stack.h (MAX_LOCATOR_ELEMENT_LEN)
+	(struct tui_locator_window): Move from tui-data.h.
+	* tui/tui-stack.c (_locator, tui_locator_win_info_ptr)
+	(tui_initialize_static_data): Move from tui-data.c.
+	* tui/tui-data.h (MAX_LOCATOR_ELEMENT_LEN)
+	(struct tui_locator_window): Move to tui-stack.c.
+	* tui/tui-data.c (_locator, tui_locator_win_info_ptr)
+	(tui_initialize_static_data): Move to tui-stack.c.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (show_source_disasm_command)
+	(show_source_or_disasm_and_command): Use make_visible method, not
+	tui_make_window.
+	* tui/tui-command.h (struct tui_cmd_window) <make_visible>:
+	Remove.
+
+2019-08-15  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.h (tui_make_window): Update.
+	* tui/tui-wingeneral.c (tui_make_window): Remove "box_it"
+	parameter.
+	(tui_gen_win_info::make_visible): Update.
+	* tui/tui-regs.c (tui_data_window::display_registers_from):
+	Update.
+	* tui/tui-layout.c (show_source_disasm_command)
+	(show_source_or_disasm_and_command): Update.
+	* tui/tui-data.h (struct tui_gen_win_info) <can_box>: New method.
+	(enum tui_box): Remove.
+	(struct tui_win_info) <can_box>: New method.
+	* tui/tui-command.h (struct tui_cmd_window) <can_box>: New
+	method.
+
 2019-08-15  Tom de Vries  <tdevries@suse.de>
 
 	* linux-nat-trad.c: Include gdbarch.h.

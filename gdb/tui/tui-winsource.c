@@ -44,7 +44,8 @@
 void
 tui_display_main ()
 {
-  if (!tui_source_windows ().empty ())
+  auto adapter = tui_source_windows ();
+  if (adapter.begin () != adapter.end ())
     {
       struct gdbarch *gdbarch;
       CORE_ADDR addr;
@@ -98,7 +99,7 @@ tui_update_source_window_as_is (struct tui_source_window_base *win_info,
     ret = tui_set_disassem_content (win_info, gdbarch, line_or_addr.u.addr);
 
   if (ret == TUI_FAILURE)
-    tui_clear_source_content (win_info);
+    win_info->erase_source_content ();
   else
     {
       tui_update_breakpoint_info (win_info, nullptr, false);
@@ -153,7 +154,7 @@ tui_update_source_windows_with_addr (struct gdbarch *gdbarch, CORE_ADDR addr)
   else
     {
       for (struct tui_source_window_base *win_info : tui_source_windows ())
-	tui_clear_source_content (win_info);
+	win_info->erase_source_content ();
     }
 }
 
@@ -192,57 +193,30 @@ tui_update_source_windows_with_line (struct symtab *s, int line)
 }
 
 void
-tui_clear_source_content (struct tui_source_window_base *win_info)
-{
-  if (win_info != NULL)
-    {
-      int i;
-
-      tui_erase_source_content (win_info);
-      for (i = 0; i < win_info->content.size (); i++)
-	{
-	  struct tui_source_element *element = &win_info->content[i];
-
-	  element->break_mode = 0;
-	  element->is_exec_point = false;
-	}
-    }
-}
-
-
-void
-tui_erase_source_content (struct tui_source_window_base *win_info)
+tui_source_window_base::do_erase_source_content (const char *str)
 {
   int x_pos;
-  int half_width = (win_info->width - 2) / 2;
+  int half_width = (width - 2) / 2;
 
-  if (win_info->handle != NULL)
+  content.clear ();
+  if (handle != NULL)
     {
-      werase (win_info->handle);
-      win_info->check_and_display_highlight_if_needed ();
+      werase (handle);
+      check_and_display_highlight_if_needed ();
 
-      const char *no_src_str;
-
-      if (win_info->type == SRC_WIN)
-	no_src_str = NO_SRC_STRING;
-      else
-	no_src_str = NO_DISASSEM_STRING;
-      if (strlen (no_src_str) >= half_width)
+      if (strlen (str) >= half_width)
 	x_pos = 1;
       else
-	x_pos = half_width - strlen (no_src_str);
-      mvwaddstr (win_info->handle,
-		 (win_info->height / 2),
+	x_pos = half_width - strlen (str);
+      mvwaddstr (handle,
+		 (height / 2),
 		 x_pos,
-		 (char *) no_src_str);
+		 (char *) str);
 
-      win_info->content.clear ();
-      win_info->refresh_window ();
+      refresh_window ();
 
-      struct tui_gen_win_info *exec_info = win_info->execution_info;
-
-      werase (exec_info->handle);
-      exec_info->refresh_window ();
+      werase (execution_info->handle);
+      execution_info->refresh_window ();
     }
 }
 
@@ -284,7 +258,7 @@ tui_source_window_base::show_source_content ()
         tui_show_source_line (this, lineno);
     }
   else
-    tui_erase_source_content (this);
+    erase_source_content ();
 
   check_and_display_highlight_if_needed ();
   refresh_window ();
@@ -318,12 +292,12 @@ tui_source_window_base::~tui_source_window_base ()
 }  
 
 void
-tui_source_window_base::reset (int height, int width,
-			       int origin_x, int origin_y)
+tui_source_window_base::resize (int height, int width,
+				int origin_x, int origin_y)
 {
-  tui_gen_win_info::reset (height, width - 3,
-			   origin_x + 3, origin_y);
-  execution_info->reset (height, 3, origin_x, origin_y);
+  tui_gen_win_info::resize (height, width - 3,
+			    origin_x + 3, origin_y);
+  execution_info->resize (height, 3, origin_x, origin_y);
 }
 
 /* See tui-data.h.  */
@@ -619,80 +593,4 @@ tui_source_window_base::update_exec_info ()
       mvwaddstr (execution_info->handle, i + 1, 0, element);
     }
   execution_info->refresh_window ();
-}
-
-
-void
-tui_alloc_source_buffer (struct tui_source_window_base *win_info)
-{
-  int i, line_width, max_lines;
-
-  /* The window width/height includes the highlight box.  Determine actual
-     content dimensions, including string null-terminators.  */
-  max_lines = win_info->height - 2;
-  line_width = win_info->width - 2 + 1;
-
-  /* Allocate the buffer for the source lines.  */
-  win_info->content.resize (max_lines);
-  for (i = 0; i < max_lines; i++)
-    {
-      if (win_info->content[i].line == nullptr)
-	win_info->content[i].line = (char *) xmalloc (line_width);
-    }
-}
-
-
-/* Answer whether a particular line number or address is displayed
-   in the current source window.  */
-int
-tui_line_is_displayed (int line, 
-		       struct tui_source_window_base *win_info,
-		       int check_threshold)
-{
-  int is_displayed = FALSE;
-  int i, threshold;
-
-  if (check_threshold)
-    threshold = SCROLL_THRESHOLD;
-  else
-    threshold = 0;
-  i = 0;
-  while (i < win_info->content.size () - threshold
-	 && !is_displayed)
-    {
-      is_displayed
-	= win_info->content[i].line_or_addr.loa == LOA_LINE
-	  && win_info->content[i].line_or_addr.u.line_no == line;
-      i++;
-    }
-
-  return is_displayed;
-}
-
-
-/* Answer whether a particular line number or address is displayed
-   in the current source window.  */
-int
-tui_addr_is_displayed (CORE_ADDR addr, 
-		       struct tui_source_window_base *win_info,
-		       int check_threshold)
-{
-  int is_displayed = FALSE;
-  int i, threshold;
-
-  if (check_threshold)
-    threshold = SCROLL_THRESHOLD;
-  else
-    threshold = 0;
-  i = 0;
-  while (i < win_info->content.size () - threshold
-	 && !is_displayed)
-    {
-      is_displayed
-	= win_info->content[i].line_or_addr.loa == LOA_ADDRESS
-	  && win_info->content[i].line_or_addr.u.addr == addr;
-      i++;
-    }
-
-  return is_displayed;
 }

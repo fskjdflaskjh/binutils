@@ -23,6 +23,7 @@
 #define TUI_TUI_WINSOURCE_H
 
 #include "tui/tui-data.h"
+#include "symtab.h"
 
 /* Flags to tell what kind of breakpoint is at current line.  */
 enum tui_bp_flag
@@ -68,6 +69,17 @@ struct tui_source_element
     xfree (line);
   }
 
+  DISABLE_COPY_AND_ASSIGN (tui_source_element);
+
+  tui_source_element (tui_source_element &&other)
+    : line (other.line),
+      line_or_addr (other.line_or_addr),
+      is_exec_point (other.is_exec_point),
+      break_mode (other.break_mode)
+  {
+    other.line = nullptr;
+  }
+
   char *line = nullptr;
   struct tui_line_or_address line_or_addr;
   bool is_exec_point = false;
@@ -87,6 +99,9 @@ protected:
 
   void do_scroll_horizontal (int num_to_scroll) override;
   void do_make_visible_with_new_height () override;
+
+  /* Erase the content and display STRING.  */
+  void do_erase_source_content (const char *string);
 
 public:
 
@@ -109,12 +124,20 @@ public:
 
   virtual bool location_matches_p (struct bp_location *loc, int line_no) = 0;
 
-  void reset (int height, int width,
-	      int origin_x, int origin_y) override;
+  void resize (int height, int width,
+	       int origin_x, int origin_y) override;
 
   void show_source_content ();
 
   void update_exec_info ();
+
+  /* Update the window to display the given location.  Does nothing if
+     the location is already displayed.  */
+  virtual void maybe_update (struct frame_info *fi, symtab_and_line sal,
+			     int line_no, CORE_ADDR addr) = 0;
+
+  /* Erase the source content.  */
+  virtual void erase_source_content () = 0;
 
   /* Does the locator belong to this window?  */
   bool m_has_locator = false;
@@ -131,6 +154,76 @@ public:
   struct gdbarch *gdbarch = nullptr;
 
   std::vector<tui_source_element> content;
+};
+
+
+/* A wrapper for a TUI window iterator that only iterates over source
+   windows.  */
+
+struct tui_source_window_iterator
+{
+public:
+
+  typedef tui_source_window_iterator self_type;
+  typedef struct tui_source_window_base *value_type;
+  typedef struct tui_source_window_base *&reference;
+  typedef struct tui_source_window_base **pointer;
+  typedef std::forward_iterator_tag iterator_category;
+  typedef int difference_type;
+
+  explicit tui_source_window_iterator (bool dummy)
+    : m_iter (SRC_WIN)
+  {
+    advance ();
+  }
+
+  tui_source_window_iterator ()
+    : m_iter (tui_win_type (DISASSEM_WIN + 1))
+  {
+  }
+
+  bool operator!= (const self_type &other) const
+  {
+    return m_iter != other.m_iter;
+  }
+
+  value_type operator* () const
+  {
+    return (value_type) *m_iter;
+  }
+
+  self_type &operator++ ()
+  {
+    ++m_iter;
+    advance ();
+    return *this;
+  }
+
+private:
+
+  void advance ()
+  {
+    tui_window_iterator end;
+    while (m_iter != end && *m_iter == nullptr)
+      ++m_iter;
+  }
+
+  tui_window_iterator m_iter;
+};
+
+/* A range adapter for source windows.  */
+
+struct tui_source_windows
+{
+  tui_source_window_iterator begin () const
+  {
+    return tui_source_window_iterator (true);
+  }
+
+  tui_source_window_iterator end () const
+  {
+    return tui_source_window_iterator ();
+  }
 };
 
 /* Update the execution windows to show the active breakpoints.  This
@@ -164,17 +257,6 @@ extern void tui_update_source_window_as_is (struct tui_source_window_base *,
 extern void tui_update_source_windows_with_addr (struct gdbarch *, CORE_ADDR);
 extern void tui_update_source_windows_with_line (struct symtab *, 
 						 int);
-extern void tui_clear_source_content (struct tui_source_window_base *);
-extern void tui_erase_source_content (struct tui_source_window_base *);
-
-extern void tui_alloc_source_buffer (struct tui_source_window_base *);
-extern int tui_line_is_displayed (int,
-				  struct tui_source_window_base *,
-				  int);
-extern int tui_addr_is_displayed (CORE_ADDR,
-				  struct tui_source_window_base *,
-				  int);
-
 
 /* Constant definitions. */
 #define SCROLL_THRESHOLD 2	/* Threshold for lazy scroll.  */

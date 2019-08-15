@@ -39,6 +39,8 @@
 
 #include "gdb_curses.h"
 
+static struct tui_locator_window _locator;
+
 /* Get a printable name for the function at the address.
    The symbol name is demangled if demangling is turned on.
    Returns a pointer to a static area holding the result.  */
@@ -55,6 +57,14 @@ static int tui_set_locator_info (struct gdbarch *gdbarch,
 
 static void tui_update_command (const char *, int);
 
+
+/* Accessor for the locator win info.  Answers a pointer to the static
+   locator win info struct.  */
+struct tui_locator_window *
+tui_locator_win_info_ptr (void)
+{
+  return &_locator;
+}
 
 /* Create the status line to display as much information as we can on
    this single line: target name, process number, current function,
@@ -103,11 +113,9 @@ tui_make_status_line (struct tui_locator_window *loc)
     line_width = MIN_LINE_WIDTH;
 
   /* Translate PC address.  */
-  string_file pc_out;
-
-  fputs_filtered (loc->gdbarch? paddress (loc->gdbarch, loc->addr) : "??",
-		  &pc_out);
-
+  std::string pc_out (loc->gdbarch
+		      ? paddress (loc->gdbarch, loc->addr)
+		      : "??");
   const char *pc_buf = pc_out.c_str ();
   int pc_width = pc_out.size ();
 
@@ -341,7 +349,6 @@ tui_show_frame_info (struct frame_info *fi)
   if (fi)
     {
       struct tui_locator_window *locator = tui_locator_win_info_ptr ();
-      int source_already_displayed;
       CORE_ADDR pc;
 
       symtab_and_line sal = find_frame_sal (fi);
@@ -349,10 +356,6 @@ tui_show_frame_info (struct frame_info *fi)
       const char *fullname = nullptr;
       if (sal.symtab != nullptr)
 	fullname = symtab_to_fullname (sal.symtab);
-
-      source_already_displayed = (sal.symtab != 0
-				  && TUI_SRC_WIN != nullptr
-				  && TUI_SRC_WIN->showing_source_p (fullname));
 
       if (get_frame_pc_if_available (fi, &pc))
 	locator_changed_p
@@ -376,58 +379,7 @@ tui_show_frame_info (struct frame_info *fi)
       tui_show_locator_content ();
       for (struct tui_source_window_base *win_info : tui_source_windows ())
 	{
-	  if (win_info == TUI_SRC_WIN)
-	    {
-	      int start_line = (locator->line_no -
-				(win_info->viewport_height / 2)) + 1;
-	      if (start_line <= 0)
-		start_line = 1;
-
-	      struct tui_line_or_address l;
-
-	      l.loa = LOA_LINE;
-	      l.u.line_no = start_line;
-	      if (!(source_already_displayed
-		    && tui_line_is_displayed (locator->line_no,
-					      win_info, TRUE)))
-		tui_update_source_window (win_info, get_frame_arch (fi),
-					  sal.symtab, l, TRUE);
-	      else
-		{
-		  l.u.line_no = locator->line_no;
-		  win_info->set_is_exec_point_at (l);
-		}
-	    }
-	  else
-	    {
-	      CORE_ADDR low;
-
-	      if (find_pc_partial_function (get_frame_pc (fi),
-					    NULL, &low, NULL) == 0)
-		{
-		  /* There is no symbol available for current PC.  There is no
-		     safe way how to "disassemble backwards".  */
-		  low = get_frame_pc (fi);
-		}
-	      else
-		low = tui_get_low_disassembly_address (get_frame_arch (fi),
-						       low, get_frame_pc (fi));
-
-	      struct tui_line_or_address a;
-
-	      a.loa = LOA_ADDRESS;
-	      a.u.addr = low;
-	      if (!tui_addr_is_displayed (locator->addr,
-					  win_info, TRUE))
-		tui_update_source_window (win_info, get_frame_arch (fi),
-					  sal.symtab, a, TRUE);
-	      else
-		{
-		  a.u.addr = locator->addr;
-		  win_info->set_is_exec_point_at (a);
-		}
-	    }
-
+	  win_info->maybe_update (fi, sal, locator->line_no, locator->addr);
 	  win_info->update_exec_info ();
 	}
 
@@ -444,7 +396,7 @@ tui_show_frame_info (struct frame_info *fi)
       tui_show_locator_content ();
       for (struct tui_source_window_base *win_info : tui_source_windows ())
 	{
-	  tui_clear_source_content (win_info);
+	  win_info->erase_source_content ();
 	  win_info->update_exec_info ();
 	}
 

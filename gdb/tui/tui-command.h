@@ -35,10 +35,6 @@ struct tui_cmd_window : public tui_win_info
 
   DISABLE_COPY_AND_ASSIGN (tui_cmd_window);
 
-  void make_visible (bool visible) override
-  {
-  }
-
   int max_height () const override;
 
   void refresh_window () override
@@ -53,6 +49,18 @@ struct tui_cmd_window : public tui_win_info
   bool can_scroll () const override
   {
     return false;
+  }
+
+  bool can_box () const override
+  {
+    return false;
+  }
+
+  void resize (int height, int width, int origin_x, int origin_y) override;
+
+  void make_visible (bool visible) override
+  {
+    /* The command window can't be made invisible.  */
   }
 
   int start_line = 0;
