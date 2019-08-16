@@ -123,11 +123,13 @@ copy_source_line (const char **ptr, int line_no, int first_col,
 
 /* Function to display source in the source window.  */
 enum tui_status
-tui_set_source_content (tui_source_window_base *win_info,
-			struct symtab *s, 
-			int line_no,
-			int noerror)
+tui_source_window::set_contents (struct gdbarch *arch,
+				 struct symtab *s, 
+				 struct tui_line_or_address line_or_addr)
 {
+  gdb_assert (line_or_addr.loa == LOA_LINE);
+  int line_no = line_or_addr.u.line_no;
+
   enum tui_status ret = TUI_FAILURE;
 
   if (s != NULL)
@@ -135,25 +137,15 @@ tui_set_source_content (tui_source_window_base *win_info,
       int line_width, nlines;
 
       ret = TUI_SUCCESS;
-      line_width = win_info->width - 1;
+      line_width = width - 1;
       /* Take hilite (window border) into account, when
 	 calculating the number of lines.  */
-      nlines = (line_no + (win_info->height - 2)) - line_no;
+      nlines = (line_no + (height - 2)) - line_no;
 
       std::string srclines;
       if (!g_source_cache.get_source_lines (s, line_no, line_no + nlines,
 					    &srclines))
-	{
-	  if (!noerror)
-	    {
-	      const char *filename = symtab_to_filename_for_display (s);
-	      char *name = (char *) alloca (strlen (filename) + 100);
-
-	      sprintf (name, "%s:%d", filename, line_no);
-	      print_sys_errmsg (name, errno);
-	    }
-	  ret = TUI_FAILURE;
-	}
+	ret = TUI_FAILURE;
       else
 	{
 	  int cur_line_no, cur_line;
@@ -161,28 +153,27 @@ tui_set_source_content (tui_source_window_base *win_info,
 	    = tui_locator_win_info_ptr ();
 	  const char *s_filename = symtab_to_filename_for_display (s);
 
-	  xfree (win_info->title);
-	  win_info->title = xstrdup (s_filename);
+	  xfree (title);
+	  title = xstrdup (s_filename);
 
-	  xfree (win_info->fullname);
-	  win_info->fullname = xstrdup (symtab_to_fullname (s));
+	  xfree (fullname);
+	  fullname = xstrdup (symtab_to_fullname (s));
 
 	  cur_line = 0;
-	  win_info->gdbarch = get_objfile_arch (SYMTAB_OBJFILE (s));
-	  win_info->start_line_or_addr.loa = LOA_LINE;
-	  cur_line_no = win_info->start_line_or_addr.u.line_no = line_no;
+	  gdbarch = get_objfile_arch (SYMTAB_OBJFILE (s));
+	  start_line_or_addr.loa = LOA_LINE;
+	  cur_line_no = start_line_or_addr.u.line_no = line_no;
 
 	  const char *iter = srclines.c_str ();
-	  win_info->content.resize (nlines);
+	  content.resize (nlines);
 	  while (cur_line < nlines)
 	    {
 	      struct tui_source_element *element
-		= &win_info->content[cur_line];
+		= &content[cur_line];
 
 	      std::string text;
 	      if (*iter != '\0')
-		text = copy_source_line (&iter, cur_line_no,
-					 win_info->horizontal_offset,
+		text = copy_source_line (&iter, cur_line_no, horizontal_offset,
 					 line_width);
 
 	      /* Set whether element is the execution point
@@ -194,8 +185,8 @@ tui_set_source_content (tui_source_window_base *win_info,
 				 symtab_to_fullname (s)) == 0
 		   && cur_line_no == locator->line_no);
 
-	      xfree (win_info->content[cur_line].line);
-	      win_info->content[cur_line].line
+	      xfree (content[cur_line].line);
+	      content[cur_line].line
 		= xstrdup (text.c_str ());
 
 	      cur_line++;
@@ -211,13 +202,12 @@ tui_set_source_content (tui_source_window_base *win_info,
 /* Function to display source in the source window.  This function
    initializes the horizontal scroll to 0.  */
 void
-tui_show_symtab_source (tui_source_window_base *win_info,
-			struct gdbarch *gdbarch, struct symtab *s,
-			struct tui_line_or_address line, 
-			int noerror)
+tui_source_window::show_symtab_source (struct gdbarch *gdbarch,
+				       struct symtab *s,
+				       struct tui_line_or_address line)
 {
-  win_info->horizontal_offset = 0;
-  tui_update_source_window_as_is (win_info, gdbarch, s, line, noerror);
+  horizontal_offset = 0;
+  update_source_window_as_is (gdbarch, s, line);
 }
 
 
@@ -279,7 +269,7 @@ tui_source_window::~tui_source_window ()
 void
 tui_source_window::style_changed ()
 {
-  if (tui_active && is_visible)
+  if (tui_active && is_visible ())
     refill ();
 }
 
@@ -329,8 +319,7 @@ tui_source_window::maybe_update (struct frame_info *fi, symtab_and_line sal,
   l.u.line_no = start_line;
   if (!(source_already_displayed
 	&& line_is_displayed (line_no)))
-    tui_update_source_window (this, get_frame_arch (fi),
-			      sal.symtab, l, TRUE);
+    update_source_window (get_frame_arch (fi), sal.symtab, l);
   else
     {
       l.u.line_no = line_no;

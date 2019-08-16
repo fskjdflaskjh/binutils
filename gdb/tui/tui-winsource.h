@@ -104,6 +104,11 @@ protected:
 
   void rerender () override;
 
+  virtual enum tui_status set_contents
+    (struct gdbarch *gdbarch,
+     struct symtab *s,
+     struct tui_line_or_address line_or_addr) = 0;
+
 public:
 
   void clear_detail ();
@@ -135,11 +140,24 @@ public:
   virtual void maybe_update (struct frame_info *fi, symtab_and_line sal,
 			     int line_no, CORE_ADDR addr) = 0;
 
+  void update_source_window_as_is  (struct gdbarch *gdbarch,
+				    struct symtab *s,
+				    struct tui_line_or_address line_or_addr);
+  void update_source_window (struct gdbarch *gdbarch,
+			     struct symtab *s,
+			     struct tui_line_or_address line_or_addr);
+
+  /* Scan the source window and the breakpoints to update the
+     break_mode information for each line.  Returns true if something
+     changed and the execution window must be refreshed.  See
+     tui_update_all_breakpoint_info for a description of
+     BEING_DELETED.  */
+  bool update_breakpoint_info (struct breakpoint *being_deleted,
+			       bool current_only);
+
   /* Erase the source content.  */
   virtual void erase_source_content () = 0;
 
-  /* Does the locator belong to this window?  */
-  bool m_has_locator = false;
   /* Execution information window.  */
   struct tui_exec_info_window *execution_info;
   /* Used for horizontal scroll.  */
@@ -234,25 +252,8 @@ struct tui_source_windows
    removed from the list of breakpoints.  */
 extern void tui_update_all_breakpoint_info (struct breakpoint *being_deleted);
 
-/* Scan the source window and the breakpoints to update the break_mode
-   information for each line.  Returns true if something changed and
-   the execution window must be refreshed.  See
-   tui_update_all_breakpoint_info for a description of
-   BEING_DELETED.  */
-extern bool tui_update_breakpoint_info (struct tui_source_window_base *win,
-					struct breakpoint *being_deleted,
-					bool current_only);
-
 /* Function to display the "main" routine.  */
 extern void tui_display_main (void);
-extern void tui_update_source_window (struct tui_source_window_base *, 
-				      struct gdbarch *, struct symtab *,
-				      struct tui_line_or_address, 
-				      int);
-extern void tui_update_source_window_as_is (struct tui_source_window_base *,
-					    struct gdbarch *, struct symtab *,
-					    struct tui_line_or_address, 
-					    int);
 extern void tui_update_source_windows_with_addr (struct gdbarch *, CORE_ADDR);
 extern void tui_update_source_windows_with_line (struct symtab *, 
 						 int);
