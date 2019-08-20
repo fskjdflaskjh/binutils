@@ -189,7 +189,7 @@ tui_set_layout (enum tui_layout_type layout_type)
       tui_update_source_windows_with_addr (gdbarch, addr);
       if (new_layout == SRC_DATA_COMMAND
 	  || new_layout == DISASSEM_DATA_COMMAND)
-	tui_show_registers (TUI_DATA_WIN->current_group);
+	TUI_DATA_WIN->show_registers (TUI_DATA_WIN->current_group);
     }
 }
 
@@ -602,7 +602,7 @@ tui_gen_win_info::resize (int height_, int width_,
     }
 
   if (handle == nullptr)
-    tui_make_window (this);
+    make_window ();
 
   rerender ();
 }

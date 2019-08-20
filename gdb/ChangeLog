@@ -1,3 +1,134 @@
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_window) <last_regs_line_no,
+	line_from_reg_element_no, first_reg_element_no_inline,
+	display_all_data, delete_data_content_windows,
+	erase_data_content>: Now private.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.c (box_win): Change type of highlight_flag.
+	(tui_unhighlight_win, tui_highlight_win)
+	(tui_win_info::make_window): Update.
+	* tui/tui-data.h (HILITE, NO_HILITE): Remove.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.h (PROC_PREFIX, LINE_PREFIX, PC_PREFIX)
+	(MIN_LINE_WIDTH, MIN_PROC_WIDTH, MAX_TARGET_WIDTH)
+	(MAX_PID_WIDTH): Move to tui-stack.c.
+	* tui/tui-stack.c (PROC_PREFIX, LINE_PREFIX, PC_PREFIX)
+	(MIN_LINE_WIDTH, MIN_PROC_WIDTH, MAX_TARGET_WIDTH)
+	(MAX_PID_WIDTH): Move from tui-data.h.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.h (tui_make_window): Don't declare.
+	* tui/tui-wingeneral.c (box_win): Change type of win_info.
+	(box_win): Update.
+	(tui_gen_win_info::make_window): Rename from tui_make_window.
+	(tui_win_info::make_window): New method.
+	(tui_gen_win_info::make_visible): Update.
+	* tui/tui-source.c (tui_source_window::set_contents): Update.
+	* tui/tui-regs.c (tui_data_window::show_register_group): Update.
+	(tui_data_window::display_registers_from): Update.
+	* tui/tui-layout.c (tui_gen_win_info::resize): Update.
+	* tui/tui-data.h (struct tui_gen_win_info) <make_window>:
+	Declare.
+	<can_box>: Remove.
+	<title>: Remove.
+	(struct tui_win_info) <make_window>: Declare.
+	<can_box>: Now virtual.
+	<title>: New member.
+	* tui/tui-data.c (~tui_gen_win_info): Don't free title.
+	* tui/tui-command.c (tui_cmd_window::resize): Update.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_window) <display_regs>: Remove.
+	* tui/tui-regs.c (tui_data_window::show_registers): Update.
+	(tui_data_window::check_register_values): Update.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_window): Use
+	DISABLE_COPY_AND_ASSIGN.
+	<regs_content>: Change type, removing unique_ptr.
+	<tui_data_window>: Add move constructor.
+	* tui/tui-regs.c (tui_data_window::show_registers)
+	(tui_data_window::show_register_group)
+	(tui_data_window::display_registers_from)
+	(tui_data_window::display_registers_from)
+	(tui_data_window::first_data_item_displayed)
+	(tui_data_window::delete_data_content_windows)
+	(tui_data_window::rerender, tui_data_window::refresh_window)
+	(tui_data_window::check_register_values): Update.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_window) <show_registers,
+	show_register_group>: Declare.
+	(tui_show_register_group): Don't declare.
+	* tui/tui-regs.c (tui_data_window::show_registers): Rename from
+	tui_show_registers.
+	(tui_data_window::show_register_group): Rename from
+	tui_show_register_group.
+	(tui_data_window::check_register_values, tui_reg_command):
+	Update.
+	* tui/tui-layout.c (tui_set_layout): Update.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_window) <check_register_values>:
+	Declare.
+	(tui_check_register_values): Don't declare.
+	* tui/tui-regs.c (tui_data_window::check_register_values): Rename
+	from tui_check_register_values.
+	* tui/tui-hooks.c (tui_register_changed): Update.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_reg_layout): Move later.
+	(tui_show_registers): Don't enable TUI mode or change layout.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_item_window)
+	<~tui_data_item_window>: Remove.
+	<content>: Now a unique_xmalloc_ptr.
+	* tui/tui-regs.c (tui_register_format): Return a
+	unique_xmalloc_ptr.
+	(tui_get_register): Update.
+	(~tui_data_item_window): Remove.
+	(tui_data_window::display_registers_from, tui_display_register):
+	Update.
+	* tui/tui-io.h (tui_expand_tabs): Update.
+	* tui/tui-io.c (tui_expand_tabs): Return a unique_xmalloc_ptr.
+	Remove "col" parameter.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_item_window) <value>: Remove
+	field.
+	* tui/tui-regs.c (~tui_data_item_window): Update.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_register_format, tui_get_register): Move
+	earlier.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_reg_command): Remove NULL check.
+
+2019-08-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-source.h (struct tui_source_window): Update.
+	* tui/tui-regs.c (tui_show_registers): Update.
+	* tui/tui-disasm.h (struct tui_disasm_window): Update.
+	* tui/tui-data.h (NO_SRC_STRING, NO_DISASSEM_STRING)
+	(NO_REGS_STRING): Remove defines.
+
 2019-08-20  Conrad Meyer  <cem@FreeBSD.org>
 
 	* remote.c (remote_target::remote_btrace_maybe_reopen): Avoid

@@ -52,6 +52,8 @@ protected:
   {
   }
 
+  virtual void make_window ();
+
 public:
 
   virtual ~tui_gen_win_info ();
@@ -73,12 +75,6 @@ public:
   virtual void resize (int height, int width,
 		       int origin_x, int origin_y);
 
-  /* Return true if this can be boxed.  */
-  virtual bool can_box () const
-  {
-    return false;
-  }
-
   /* Return true if this window is visible.  */
   bool is_visible () const
   {
@@ -97,38 +93,20 @@ public:
   struct tui_point origin = {0, 0};
   /* Viewport height.  */
   int viewport_height = 0;
-  /* Window title to display.  */
-  char *title = nullptr;
 };
 
 /* Constant definitions.  */
 #define DEFAULT_TAB_LEN         8
-#define NO_SRC_STRING           "[ No Source Available ]"
-#define NO_DISASSEM_STRING      "[ No Assembly Available ]"
-#define NO_REGS_STRING          "[ Register Values Unavailable ]"
 #define NO_DATA_STRING          "[ No Data Values Displayed ]"
 #define SRC_NAME                "src"
 #define CMD_NAME                "cmd"
 #define DATA_NAME               "regs"
 #define DISASSEM_NAME           "asm"
-#define HILITE                  TRUE
-#define NO_HILITE               FALSE
 #define MIN_WIN_HEIGHT          3
 #define MIN_CMD_WIN_HEIGHT      3
 
 /* Strings to display in the TUI status line.  */
-#define PROC_PREFIX             "In: "
-#define LINE_PREFIX             "L"
-#define PC_PREFIX               "PC: "
 #define SINGLE_KEY              "(SingleKey)"
-
-/* Minimum/Maximum length of some fields displayed in the TUI status
-   line.  */
-#define MIN_LINE_WIDTH     4	/* Use at least 4 digits for line
-				   numbers.  */
-#define MIN_PROC_WIDTH    12
-#define MAX_TARGET_WIDTH  10
-#define MAX_PID_WIDTH     19
 
 /* The kinds of layouts available.  */
 enum tui_layout_type
@@ -176,6 +154,8 @@ protected:
 
   void rerender () override;
 
+  void make_window () override;
+
 public:
 
   ~tui_win_info () override
@@ -216,12 +196,15 @@ public:
     return true;
   }
 
-  bool can_box () const override
+  virtual bool can_box () const
   {
     return true;
   }
 
   void check_and_display_highlight_if_needed ();
+
+  /* Window title to display.  */
+  std::string title;
 
   /* Can this window ever be highlighted?  */
   bool can_highlight = true;
