@@ -1,3 +1,29 @@
+2019-08-28  Tamar Christina  <tamar.christina@arm.com>
+
+	Backported from mainline.
+	2019-08-20  Tamar Christina  <tamar.christina@arm.com>
+
+	* elf32-arm.c (elf32_thumb2_plt_entry, elf32_arm_plt_thumb_stub,
+	elf32_arm_stub_long_branch_v4t_thumb_thumb,
+	elf32_arm_stub_long_branch_v4t_thumb_arm,
+	elf32_arm_stub_short_branch_v4t_thumb_arm,
+	elf32_arm_stub_long_branch_v4t_thumb_arm_pic,
+	elf32_arm_stub_long_branch_v4t_thumb_thumb_pic,
+	elf32_arm_stub_long_branch_v4t_thumb_tls_pic): Change nop to branch to
+	previous instruction.
+
+2019-08-28  Tamar Christina  <tamar.christina@arm.com>
+
+	Backport from mainline.
+	2019-08-22  Tamar Christina  <tamar.christina@arm.com>
+
+	PR ld/24601
+	* elfnn-aarch64.c (aarch64_relocate): Handle weak TLS and undefined TLS.
+	Also Pass input_bfd to _bfd_aarch64_elf_resolve_relocation.
+	* elfxx-aarch64.c (_bfd_aarch64_elf_resolve_relocation): Use it.
+	* elfxx-aarch64.h (_bfd_aarch64_elf_resolve_relocation): Emit warning
+	for weak TLS.
+
 2019-07-08  Alan Modra  <amodra@gmail.com>
 
 	PR 24785
