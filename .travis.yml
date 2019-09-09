@@ -1,0 +1,24 @@
+sudo: false
+dist: trusty
+
+language: c
+
+addons:
+  apt:
+    packages:
+      - texinfo
+        dejagnu
+
+script:
+  - ./ci-build-binutils.sh
+
+matrix:
+  include:
+    - env:
+        - TARGET_TRIPLET='xtensa-elf'
+    - env:
+        - TARGET_TRIPLET='xtensa-linux-uclibc'
+    - env:
+        - TARGET_TRIPLET='xtensa-linux-gnu'
+    - env:
+        - TARGET_TRIPLET='xtensa-uclinux-uclibc'
