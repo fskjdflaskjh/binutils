@@ -2092,10 +2092,29 @@ std::vector<CORE_ADDR> find_pcs_for_symtab_line
 
 typedef bool (symbol_found_callback_ftype) (struct block_symbol *bsym);
 
-void iterate_over_symbols (const struct block *block,
+/* Iterate over the symbols named NAME, matching DOMAIN, in BLOCK.
+
+   For each symbol that matches, CALLBACK is called.  The symbol is
+   passed to the callback.
+
+   If CALLBACK returns false, the iteration ends and this function
+   returns false.  Otherwise, the search continues, and the function
+   eventually returns true.  */
+
+bool iterate_over_symbols (const struct block *block,
 			   const lookup_name_info &name,
 			   const domain_enum domain,
 			   gdb::function_view<symbol_found_callback_ftype> callback);
+
+/* Like iterate_over_symbols, but if all calls to CALLBACK return
+   true, then calls CALLBACK one additional time with a block_symbol
+   that has a valid block but a NULL symbol.  */
+
+bool iterate_over_symbols_terminated
+  (const struct block *block,
+   const lookup_name_info &name,
+   const domain_enum domain,
+   gdb::function_view<symbol_found_callback_ftype> callback);
 
 /* Storage type used by demangle_for_lookup.  demangle_for_lookup
    either returns a const char * pointer that points to either of the
