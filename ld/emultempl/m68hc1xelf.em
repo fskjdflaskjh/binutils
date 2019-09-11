@@ -19,7 +19,7 @@
 # MA 02110-1301, USA.
 #
 
-# This file is sourced from elf32.em, and defines extra m68hc12-elf
+# This file is sourced from elf.em, and defines extra m68hc12-elf
 # and m68hc11-elf specific routines.  It is used to generate the
 # HC11/HC12 trampolines to call a far function by using a normal 'jsr/bsr'.
 #
@@ -318,27 +318,6 @@ m68hc11elf_after_allocation (void)
 
   gld${EMULATION_NAME}_after_allocation ();
 }
-
-
-/* Avoid processing the fake stub_file in vercheck, stat_needed and
-   check_needed routines.  */
-
-static void (*real_func) (lang_input_statement_type *);
-
-static void m68hc11_for_each_input_file_wrapper (lang_input_statement_type *l)
-{
-  if (l != stub_file)
-    (*real_func) (l);
-}
-
-static void
-m68hc11_lang_for_each_input_file (void (*func) (lang_input_statement_type *))
-{
-  real_func = func;
-  lang_for_each_input_file (&m68hc11_for_each_input_file_wrapper);
-}
-
-#define lang_for_each_input_file m68hc11_lang_for_each_input_file
 
 EOF
 

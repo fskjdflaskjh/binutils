@@ -20,7 +20,7 @@
 # MA 02110-1301, USA.
 #
 
-# This file is sourced from elf32.em, and defines extra cr16-elf
+# This file is sourced from elf.em, and defines extra cr16-elf
 # specific routines.
 #
 fragment <<EOF
@@ -120,7 +120,7 @@ cr16elf_after_parse (void)
      is true the link sometimes fails.  */
   config.magic_demand_paged = FALSE;
 
-  gld${EMULATION_NAME}_after_parse ();
+  ldelf_after_parse ();
 }
 
 /* This is called after the sections have been attached to output

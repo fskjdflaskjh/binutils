@@ -24,16 +24,15 @@
 fragment <<EOF
 /* Need to have this macro defined before mmix-elfnmmo, which uses the
    name for the before_allocation function, defined in ldemul.c (for
-   the mmo "emulation") or in elf32.em (for the elf64mmix
+   the mmo "emulation") or in elf.em (for the elf64mmix
    "emulation").  */
 #define gldmmo_before_allocation before_allocation_default
 
 /* We include this header *not* because we expect to handle ELF here
-   but because we re-use the map_segments function in elf-generic.em,
-   a file which is rightly somewhat ELF-centric.  But this is only to
+   but because we use the map_segments function.  But this is only to
    get a weird testcase right; ld-mmix/bpo-22, forcing ELF to be
    output from the mmo emulation: -m mmo --oformat elf64-mmix!  */
-#include "elf-bfd.h"
+#include "ldelfgen.h"
 
 static void gld${EMULATION_NAME}_after_allocation (void);
 EOF
@@ -45,7 +44,7 @@ fragment <<EOF
 
 /* Place an orphan section.  We use this to put random SEC_CODE or
    SEC_READONLY sections right after MMO_TEXT_SECTION_NAME.  Much borrowed
-   from elf32.em.  */
+   from elf.em.  */
 
 static lang_output_section_statement_type *
 mmo_place_orphan (asection *s,
@@ -182,7 +181,7 @@ mmo_place_orphan (asection *s,
     return NULL;
 
   /* If there's an output section by *this* name, we'll use it, regardless
-     of actual section flags, in contrast to what's done in elf32.em.  */
+     of actual section flags, in contrast to what's done in elf.em.  */
   os = lang_insert_orphan (s, secname, 0, after, place, NULL, NULL);
 
   return os;
@@ -205,7 +204,7 @@ static void
 gld${EMULATION_NAME}_after_allocation (void)
 {
   bfd_map_over_sections (link_info.output_bfd, mmo_wipe_sec_reloc_flag, NULL);
-  gld${EMULATION_NAME}_map_segments (FALSE);
+  ldelf_map_segments (FALSE);
 }
 
 /* To get on-demand global register allocation right, we need to parse the

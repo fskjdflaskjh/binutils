@@ -19,7 +19,7 @@
 # MA 02110-1301, USA.
 #
 
-# This file is sourced from elf32.em, and defines extra ia64-elf
+# This file is sourced from elf.em, and defines extra ia64-elf
 # specific routines.
 #
 # Define some shell vars to insert bits of code into the standard elf
@@ -36,7 +36,7 @@ ia64elf_after_parse (void)
   link_info.relax_pass = 2;
   bfd_elf${ELFSIZE}_ia64_after_parse (itanium);
 
-  gld${EMULATION_NAME}_after_parse ();
+  ldelf_after_parse ();
 }
 
 EOF
