@@ -4344,9 +4344,7 @@ print_assignment (lang_assignment_statement_type *assignment,
 static void
 print_input_statement (lang_input_statement_type *statm)
 {
-  if (statm->filename != NULL
-      && (statm->the_bfd == NULL
-	  || (statm->the_bfd->flags & BFD_LINKER_CREATED) == 0))
+  if (statm->filename != NULL)
     fprintf (config.map_file, "LOAD %s\n", statm->filename);
 }
 
@@ -7502,8 +7500,9 @@ lang_process (void)
 	      prev = find_next_input_statement (prev);
 	      if (*prev != (void *) plugin_insert->next_real_file)
 		{
-		  /* Huh?  We didn't find the expected input statement.  */
-		  ASSERT (0);
+		  /* We didn't find the expected input statement.
+		     This can happen due to lookup_name creating input
+		     statements not linked into the statement list.  */
 		  prev = &plugin_insert->header.next;
 		}
 	    }
