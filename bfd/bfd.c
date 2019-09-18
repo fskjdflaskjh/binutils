@@ -1418,7 +1418,7 @@ bfd_set_file_flags (bfd *abfd, flagword flags)
       return FALSE;
     }
 
-  bfd_get_file_flags (abfd) = flags;
+  abfd->flags = flags;
   if ((flags & bfd_applicable_file_flags (abfd)) != flags)
     {
       bfd_set_error (bfd_error_invalid_operation);
@@ -1507,7 +1507,7 @@ RETURNS
 int
 bfd_get_sign_extend_vma (bfd *abfd)
 {
-  char *name;
+  const char *name;
 
   if (bfd_get_flavour (abfd) == bfd_target_elf_flavour)
     return get_elf_backend_data (abfd)->sign_extend_vma;

@@ -264,7 +264,7 @@ typedef unsigned long symindex;
 /* This is a type pun with struct ranlib on purpose!  */
 typedef struct carsym
 {
-  char *name;
+  const char *name;
   file_ptr file_offset;	/* Look here to find the file.  */
 }
 carsym;			/* To make these you call a carsymogen.  */
@@ -2545,13 +2545,13 @@ void bfd_set_arch_info (bfd *abfd, const bfd_arch_info_type *arg);
 bfd_boolean bfd_default_set_arch_mach
    (bfd *abfd, enum bfd_architecture arch, unsigned long mach);
 
-enum bfd_architecture bfd_get_arch (bfd *abfd);
+enum bfd_architecture bfd_get_arch (const bfd *abfd);
 
-unsigned long bfd_get_mach (bfd *abfd);
+unsigned long bfd_get_mach (const bfd *abfd);
 
-unsigned int bfd_arch_bits_per_byte (bfd *abfd);
+unsigned int bfd_arch_bits_per_byte (const bfd *abfd);
 
-unsigned int bfd_arch_bits_per_address (bfd *abfd);
+unsigned int bfd_arch_bits_per_address (const bfd *abfd);
 
 const bfd_arch_info_type *bfd_get_arch_info (bfd *abfd);
 
@@ -2561,7 +2561,7 @@ const bfd_arch_info_type *bfd_lookup_arch
 const char *bfd_printable_arch_mach
    (enum bfd_architecture arch, unsigned long machine);
 
-unsigned int bfd_octets_per_byte (bfd *abfd);
+unsigned int bfd_octets_per_byte (const bfd *abfd);
 
 unsigned int bfd_arch_mach_octets_per_byte
    (enum bfd_architecture arch, unsigned long machine);
@@ -2718,7 +2718,7 @@ struct reloc_howto_struct
      bfd *, char **);
 
   /* The textual name of the relocation type.  */
-  char *name;
+  const char *name;
 };
 
 #define HOWTO(type, right, size, bits, pcrel, left, ovf, func, name,   \
@@ -7634,7 +7634,7 @@ typedef struct flag_info flag_info;
 typedef struct bfd_target
 {
   /* Identifies the kind of target, e.g., SunOS4, Ultrix, etc.  */
-  char *name;
+  const char *name;
 
  /* The "flavour" of a back end is a general indication about
     the contents of a file.  */
