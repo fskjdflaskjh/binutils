@@ -54,23 +54,17 @@ struct tui_source_element
     line_or_addr.u.line_no = 0;
   }
 
-  ~tui_source_element ()
-  {
-    xfree (line);
-  }
-
   DISABLE_COPY_AND_ASSIGN (tui_source_element);
 
   tui_source_element (tui_source_element &&other)
-    : line (other.line),
+    : line (std::move (other.line)),
       line_or_addr (other.line_or_addr),
       is_exec_point (other.is_exec_point),
       break_mode (other.break_mode)
   {
-    other.line = nullptr;
   }
 
-  char *line = nullptr;
+  gdb::unique_xmalloc_ptr<char> line;
   struct tui_line_or_address line_or_addr;
   bool is_exec_point = false;
   tui_bp_flags break_mode = 0;
@@ -82,9 +76,12 @@ struct tui_source_element
 
 struct tui_source_window_base : public tui_win_info
 {
+private:
+  void show_source_content ();
+
 protected:
   explicit tui_source_window_base (enum tui_win_type type);
-  ~tui_source_window_base () override;
+
   DISABLE_COPY_AND_ASSIGN (tui_source_window_base);
 
   void do_scroll_horizontal (int num_to_scroll) override;
@@ -101,8 +98,6 @@ protected:
 
 public:
 
-  void clear_detail ();
-
   /* Refill the source window's source cache and update it.  If this
      is a disassembly window, then just update it.  */
   void refill ();
@@ -113,8 +108,6 @@ public:
   void update_tab_width () override;
 
   virtual bool location_matches_p (struct bp_location *loc, int line_no) = 0;
-
-  void show_source_content ();
 
   void update_exec_info ();
 
@@ -144,9 +137,6 @@ public:
   /* Used for horizontal scroll.  */
   int horizontal_offset = 0;
   struct tui_line_or_address start_line_or_addr;
-
-  /* It is the resolved form as returned by symtab_to_fullname.  */
-  char *fullname = nullptr;
 
   /* Architecture associated with code at this location.  */
   struct gdbarch *gdbarch = nullptr;

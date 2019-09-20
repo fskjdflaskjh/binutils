@@ -222,8 +222,7 @@ tui_show_source_line (struct tui_source_window_base *win_info, int lineno)
     tui_set_reverse_mode (win_info->handle, true);
 
   wmove (win_info->handle, lineno, TUI_EXECINFO_SIZE);
-  tui_puts (line->line,
-	    win_info->handle);
+  tui_puts (line->line.get (), win_info->handle);
   if (line->is_exec_point)
     tui_set_reverse_mode (win_info->handle, false);
 
@@ -239,29 +238,13 @@ tui_show_source_line (struct tui_source_window_base *win_info, int lineno)
 void
 tui_source_window_base::show_source_content ()
 {
-  if (!content.empty ())
-    {
-      int lineno;
+  gdb_assert (!content.empty ());
 
-      for (lineno = 1; lineno <= content.size (); lineno++)
-        tui_show_source_line (this, lineno);
-    }
-  else
-    erase_source_content ();
+  for (int lineno = 1; lineno <= content.size (); lineno++)
+    tui_show_source_line (this, lineno);
 
   check_and_display_highlight_if_needed ();
   refresh_window ();
-}
-
-/* See tui-data.h.  */
-
-void
-tui_source_window_base::clear_detail ()
-{
-  gdbarch = NULL;
-  start_line_or_addr.loa = LOA_ADDRESS;
-  start_line_or_addr.u.addr = 0;
-  horizontal_offset = 0;
 }
 
 tui_source_window_base::tui_source_window_base (enum tui_win_type type)
@@ -272,11 +255,6 @@ tui_source_window_base::tui_source_window_base (enum tui_win_type type)
   start_line_or_addr.u.addr = 0;
 }
 
-
-tui_source_window_base::~tui_source_window_base ()
-{
-  xfree (fullname);
-}  
 
 /* See tui-data.h.  */
 

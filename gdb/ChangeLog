@@ -1,3 +1,170 @@
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* NEWS: Mention case-sensitivity of TUI commands.
+	* tui/tui-win.c (tui_set_focus_command): Now case-sensitive.
+	(tui_set_win_height_command, parse_scrolling_args): Likewise.
+	* tui/tui-layout.c (tui_layout_command): Now case-sensitive.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-source.c (tui_source_window::set_contents): Use
+	make_unique_xstrdup.
+	* tui/tui-disasm.c (tui_disasm_window::set_contents): Use
+	make_unique_xstrdup.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.c: Remove separator comments.
+	* tui/tui-layout.c: Remove separator comments.
+	* tui/tui-win.c: Remove separator comments.
+	* tui/tui-wingeneral.c: Remove separator comments.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui.h (strcat_to_buf): Don't declare.
+	* tui/tui.c (strcat_to_buf): Remove.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-source.h (struct tui_source_window) <m_fullname>: Rename
+	from "fullname".
+	* tui/tui-source.c (tui_source_window::set_contents)
+	(tui_source_window::location_matches_p)
+	(tui_source_window::maybe_update): Update.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_window) <get_current_group>:
+	Update.
+	<m_regs_content, m_regs_column_count, m_current_group>: Add "m_"
+	prefix.
+	* tui/tui-regs.c (tui_data_window::last_regs_line_no)
+	(tui_data_window::line_from_reg_element_no)
+	(tui_data_window::first_reg_element_no_inline)
+	(tui_data_window::show_registers)
+	(tui_data_window::show_register_group)
+	(tui_data_window::display_registers_from)
+	(tui_data_window::display_registers_from_line)
+	(tui_data_window::first_data_item_displayed)
+	(tui_data_window::delete_data_content_windows)
+	(tui_data_window::erase_data_content)
+	(tui_data_window::do_scroll_vertical)
+	(tui_data_window::refresh_window)
+	(tui_data_window::check_register_values): Update.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.h (MAX_LOCATOR_ELEMENT_LEN): Remove define.
+	(struct tui_locator_window) <full_name, proc_name>: Now
+	std::string.
+	* tui/tui-stack.c (tui_locator_window::make_status_line)
+	(tui_locator_window::set_locator_fullname)
+	(tui_locator_window::set_locator_info): Update.
+	* tui/tui-source.c (tui_source_window::set_contents)
+	(tui_source_window::showing_source_p): Update.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.c (tui_locator_window::set_locator_fullname):
+	Don't call tui_locator_win_info_ptr.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_resize_all): Don't call refresh.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_resize_all, tui_adjust_win_heights): Use 1 as
+	height for locator.
+	* tui/tui-stack.c (tui_locator_window::rerender): Call scrollok.
+	* tui/tui-layout.c (show_source_disasm_command, show_data)
+	(show_source_or_disasm_and_command): Use 1 as height for locator.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui.c (tui_enable): Update.
+	* tui/tui-win.c (tui_sigwinch_handler, tui_async_resize_screen):
+	Update.
+	* tui/tui-data.h (tui_win_resized, tui_set_win_resized_to):
+	Update.
+	* tui/tui-data.c (win_resized): Now bool.
+	(tui_win_resized): Return bool.
+	(tui_set_win_resized_to): Accept a bool.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_window) <show_register_group>:
+	Change type of "refresh_values_only".
+	* tui/tui-regs.c (tui_data_window::show_register_group): Change
+	type of "refresh_values_only".
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-disasm.c (struct tui_asm_line) <addr_string, insn>: Now
+	std::string.
+	(tui_disassemble): Add "pos" parameter.
+	(tui_disasm_window::set_contents): Simplify.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<show_source_content>: Now private.
+	* tui/tui-winsource.c
+	(tui_source_window_base::show_source_content): Don't handle empty
+	content case.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (show_source_disasm_command)
+	(show_source_or_disasm_and_command): Don't call
+	show_source_content.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.h (struct tui_locator_window) <make_status_line>:
+	Declare.
+	* tui/tui-stack.c (tui_locator_window::make_status_line): Rename
+	from tui_make_status_line.
+	(tui_locator_window::rerender): Update.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.c (tui_make_status_line): Return std::string.
+	(tui_locator_window::rerender): Update.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<~tui_source_window_base>: Don't declare.
+	<fullname>: Remove.
+	* tui/tui-winsource.c (~tui_source_window_base): Remove.
+	* tui/tui-source.h (struct tui_source_window) <fullname>: New
+	member.
+	* tui/tui-source.c (tui_source_window::set_contents): Update.
+	(tui_source_window::location_matches_p)
+	(tui_source_window::maybe_update): Update.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (~tui_source_element): Remove.
+	(tui_source_element): Update.
+	(struct tui_source_element) <line>: Now a unique_xmalloc_ptr.
+	* tui/tui-winsource.c (tui_show_source_line): Update.
+	* tui/tui-source.c (tui_source_window::set_contents): Update.
+	* tui/tui-disasm.c (tui_disasm_window::set_contents): Update.
+
+2019-09-20  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.h (tui_clear_source_windows_detail): Don't
+	declare.
+	* tui/tui-layout.c (tui_add_win_to_layout): Don't call
+	tui_clear_source_windows_detail.
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<clear_detail>: Don't declare.
+	* tui/tui-winsource.c (tui_source_window_base::clear_detail):
+	Remove.
+	* tui/tui-data.c (tui_clear_source_windows_detail): Remove.
+
 2019-09-20  Tom Tromey  <tromey@adacore.com>
 
 	PR ada/24919:

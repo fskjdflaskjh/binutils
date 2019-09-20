@@ -27,23 +27,12 @@
 #include "tui/tui-winsource.h"
 #include "gdb_curses.h"
 
-/****************************
-** GLOBAL DECLARATIONS
-****************************/
 struct tui_win_info *tui_win_list[MAX_MAJOR_WINDOWS];
 
-/***************************
-** Private data
-****************************/
 static int term_height, term_width;
 static struct tui_win_info *win_with_focus = NULL;
 
-static int win_resized = FALSE;
-
-
-/*********************************
-** PUBLIC FUNCTIONS
-**********************************/
+static bool win_resized = false;
 
 int
 tui_win_is_auxiliary (enum tui_win_type win_type)
@@ -51,13 +40,9 @@ tui_win_is_auxiliary (enum tui_win_type win_type)
   return (win_type > MAX_MAJOR_WINDOWS);
 }
 
-/******************************************
-** ACCESSORS & MUTATORS FOR PRIVATE DATA
-******************************************/
-
 /* Answer a whether the terminal window has been resized or not.  */
-int
-tui_win_resized (void)
+bool
+tui_win_resized ()
 {
   return win_resized;
 }
@@ -65,7 +50,7 @@ tui_win_resized (void)
 
 /* Set a whether the terminal window has been resized or not.  */
 void
-tui_set_win_resized_to (int resized)
+tui_set_win_resized_to (bool resized)
 {
   win_resized = resized;
 }
@@ -84,15 +69,6 @@ void
 tui_set_win_with_focus (struct tui_win_info *win_info)
 {
   win_with_focus = win_info;
-}
-
-
-/* Clear the pertinent detail in the source windows.  */
-void
-tui_clear_source_windows_detail ()
-{
-  for (tui_source_window_base *win : tui_source_windows ())
-    win->clear_detail ();
 }
 
 
@@ -126,11 +102,6 @@ tui_set_term_width_to (int w)
 {
   term_width = w;
 }
-
-
-/*****************************
-** OTHER PUBLIC FUNCTIONS
-*****************************/
 
 
 /* Answer the next window in the list, cycling back to the top if
