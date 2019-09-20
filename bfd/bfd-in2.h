@@ -244,19 +244,6 @@ typedef unsigned long symindex;
 
 #define BFD_NO_MORE_SYMBOLS ((symindex) ~0)
 
-/* General purpose part of a symbol X;
-   target specific parts are in libcoff.h, libaout.h, etc.  */
-
-#define bfd_asymbol_section(sy) ((sy)->section)
-#define bfd_asymbol_value(sy) ((sy)->section->vma + (sy)->value)
-#define bfd_asymbol_name(sy) ((sy)->name)
-#define bfd_asymbol_bfd(sy) ((sy)->the_bfd)
-#define bfd_asymbol_flavour(sy)			\
-  (((sy)->flags & BSF_SYNTHETIC) != 0		\
-   ? bfd_target_unknown_flavour			\
-   : (sy)->the_bfd->xvec->flavour)
-#define bfd_set_asymbol_name(sy, n) do { (sy)->name = (n); } while (0)
-
 /* A canonical archive symbol.  */
 /* This is a type pun with struct ranlib on purpose!  */
 typedef struct carsym
@@ -305,31 +292,6 @@ typedef struct bfd_section *sec_ptr;
   ((((bfd_vma) (this) + (boundary) - 1) >= (bfd_vma) (this))		  \
    ? (((bfd_vma) (this) + ((boundary) - 1)) & ~ (bfd_vma) ((boundary)-1)) \
    : ~ (bfd_vma) 0)
-
-#define bfd_section_name(sec) ((sec)->name)
-#define bfd_section_size(sec) ((sec)->size)
-#define bfd_section_vma(sec) ((sec)->vma)
-#define bfd_section_lma(sec) ((sec)->lma)
-#define bfd_section_alignment(sec) ((sec)->alignment_power)
-#define bfd_section_flags(sec) ((sec)->flags)
-#define bfd_section_userdata(sec) ((sec)->userdata)
-
-#define bfd_is_com_section(sec) (((sec)->flags & SEC_IS_COMMON) != 0)
-
-#define bfd_get_section_limit_octets(bfd, sec)			\
-  ((bfd)->direction != write_direction && (sec)->rawsize != 0	\
-   ? (sec)->rawsize : (sec)->size)
-
-/* Find the address one past the end of SEC.  */
-#define bfd_get_section_limit(bfd, sec) \
-  (bfd_get_section_limit_octets(bfd, sec) / bfd_octets_per_byte (bfd))
-
-/* Return TRUE if input section SEC has been discarded.  */
-#define discarded_section(sec)				\
-  (!bfd_is_abs_section (sec)					\
-   && bfd_is_abs_section ((sec)->output_section)		\
-   && (sec)->sec_info_type != SEC_INFO_TYPE_MERGE		\
-   && (sec)->sec_info_type != SEC_INFO_TYPE_JUST_SYMS)
 
 typedef enum bfd_print_symbol
 {
@@ -515,38 +477,6 @@ extern int bfd_stat (bfd *, struct stat *);
    bfd_bwrite ((BUF), (ELTSIZE) * (NITEMS), (ABFD)))
 #endif
 extern void _bfd_warn_deprecated (const char *, const char *, int, const char *);
-
-#define bfd_get_filename(abfd) ((abfd)->filename)
-#define bfd_get_cacheable(abfd) ((abfd)->cacheable)
-#define bfd_get_format(abfd) ((abfd)->format)
-#define bfd_get_target(abfd) ((abfd)->xvec->name)
-#define bfd_get_flavour(abfd) ((abfd)->xvec->flavour)
-#define bfd_family_coff(abfd) \
-  (bfd_get_flavour (abfd) == bfd_target_coff_flavour || \
-   bfd_get_flavour (abfd) == bfd_target_xcoff_flavour)
-#define bfd_big_endian(abfd) ((abfd)->xvec->byteorder == BFD_ENDIAN_BIG)
-#define bfd_little_endian(abfd) ((abfd)->xvec->byteorder == BFD_ENDIAN_LITTLE)
-#define bfd_header_big_endian(abfd) \
-  ((abfd)->xvec->header_byteorder == BFD_ENDIAN_BIG)
-#define bfd_header_little_endian(abfd) \
-  ((abfd)->xvec->header_byteorder == BFD_ENDIAN_LITTLE)
-#define bfd_get_file_flags(abfd) ((abfd)->flags)
-#define bfd_applicable_file_flags(abfd) ((abfd)->xvec->object_flags)
-#define bfd_applicable_section_flags(abfd) ((abfd)->xvec->section_flags)
-#define bfd_has_map(abfd) ((abfd)->has_armap)
-#define bfd_is_thin_archive(abfd) ((abfd)->is_thin_archive)
-
-#define bfd_valid_reloc_types(abfd) ((abfd)->xvec->valid_reloc_types)
-#define bfd_usrdata(abfd) ((abfd)->usrdata)
-
-#define bfd_get_start_address(abfd) ((abfd)->start_address)
-#define bfd_get_symcount(abfd) ((abfd)->symcount)
-#define bfd_get_outsymbols(abfd) ((abfd)->outsymbols)
-#define bfd_count_sections(abfd) ((abfd)->section_count)
-
-#define bfd_get_dynamic_symcount(abfd) ((abfd)->dynsymcount)
-
-#define bfd_get_symbol_leading_char(abfd) ((abfd)->xvec->symbol_leading_char)
 
 extern bfd_boolean bfd_cache_close
   (bfd *abfd);
@@ -1731,6 +1661,53 @@ struct relax_table {
   int size;
 };
 
+static inline const char *
+bfd_section_name (const asection *sec)
+{
+  return sec->name;
+}
+
+static inline bfd_size_type
+bfd_section_size (const asection *sec)
+{
+  return sec->size;
+}
+
+static inline bfd_vma
+bfd_section_vma (const asection *sec)
+{
+  return sec->vma;
+}
+
+static inline bfd_vma
+bfd_section_lma (const asection *sec)
+{
+  return sec->lma;
+}
+
+static inline unsigned int
+bfd_section_alignment (const asection *sec)
+{
+  return sec->alignment_power;
+}
+
+static inline flagword
+bfd_section_flags (const asection *sec)
+{
+  return sec->flags;
+}
+
+static inline void *
+bfd_section_userdata (const asection *sec)
+{
+  return sec->userdata;
+}
+static inline bfd_boolean
+bfd_is_com_section (const asection *sec)
+{
+  return (sec->flags & SEC_IS_COMMON) != 0;
+}
+
 /* Note: the following are provided as inline functions rather than macros
    because not all callers use the return value.  A macro implementation
    would use a comma expression, eg: "((ptr)->foo = val, TRUE)" and some
@@ -1783,105 +1760,39 @@ extern asection _bfd_std_section[4];
 /* Pointer to the indirect section.  */
 #define bfd_ind_section_ptr (&_bfd_std_section[3])
 
-#define bfd_is_und_section(sec) ((sec) == bfd_und_section_ptr)
-#define bfd_is_abs_section(sec) ((sec) == bfd_abs_section_ptr)
-#define bfd_is_ind_section(sec) ((sec) == bfd_ind_section_ptr)
+static inline bfd_boolean
+bfd_is_und_section (const asection *sec)
+{
+  return sec == bfd_und_section_ptr;
+}
 
-#define bfd_is_const_section(SEC)              \
- (   ((SEC) == bfd_abs_section_ptr)            \
-  || ((SEC) == bfd_und_section_ptr)            \
-  || ((SEC) == bfd_com_section_ptr)            \
-  || ((SEC) == bfd_ind_section_ptr))
+static inline bfd_boolean
+bfd_is_abs_section (const asection *sec)
+{
+  return sec == bfd_abs_section_ptr;
+}
 
-/* Macros to handle insertion and deletion of a bfd's sections.  These
-   only handle the list pointers, ie. do not adjust section_count,
-   target_index etc.  */
-#define bfd_section_list_remove(ABFD, S) \
-  do                                                   \
-    {                                                  \
-      asection *_s = S;                                \
-      asection *_next = _s->next;                      \
-      asection *_prev = _s->prev;                      \
-      if (_prev)                                       \
-        _prev->next = _next;                           \
-      else                                             \
-        (ABFD)->sections = _next;                      \
-      if (_next)                                       \
-        _next->prev = _prev;                           \
-      else                                             \
-        (ABFD)->section_last = _prev;                  \
-    }                                                  \
-  while (0)
-#define bfd_section_list_append(ABFD, S) \
-  do                                                   \
-    {                                                  \
-      asection *_s = S;                                \
-      bfd *_abfd = ABFD;                               \
-      _s->next = NULL;                                 \
-      if (_abfd->section_last)                         \
-        {                                              \
-          _s->prev = _abfd->section_last;              \
-          _abfd->section_last->next = _s;              \
-        }                                              \
-      else                                             \
-        {                                              \
-          _s->prev = NULL;                             \
-          _abfd->sections = _s;                        \
-        }                                              \
-      _abfd->section_last = _s;                        \
-    }                                                  \
-  while (0)
-#define bfd_section_list_prepend(ABFD, S) \
-  do                                                   \
-    {                                                  \
-      asection *_s = S;                                \
-      bfd *_abfd = ABFD;                               \
-      _s->prev = NULL;                                 \
-      if (_abfd->sections)                             \
-        {                                              \
-          _s->next = _abfd->sections;                  \
-          _abfd->sections->prev = _s;                  \
-        }                                              \
-      else                                             \
-        {                                              \
-          _s->next = NULL;                             \
-          _abfd->section_last = _s;                    \
-        }                                              \
-      _abfd->sections = _s;                            \
-    }                                                  \
-  while (0)
-#define bfd_section_list_insert_after(ABFD, A, S) \
-  do                                                   \
-    {                                                  \
-      asection *_a = A;                                \
-      asection *_s = S;                                \
-      asection *_next = _a->next;                      \
-      _s->next = _next;                                \
-      _s->prev = _a;                                   \
-      _a->next = _s;                                   \
-      if (_next)                                       \
-        _next->prev = _s;                              \
-      else                                             \
-        (ABFD)->section_last = _s;                     \
-    }                                                  \
-  while (0)
-#define bfd_section_list_insert_before(ABFD, B, S) \
-  do                                                   \
-    {                                                  \
-      asection *_b = B;                                \
-      asection *_s = S;                                \
-      asection *_prev = _b->prev;                      \
-      _s->prev = _prev;                                \
-      _s->next = _b;                                   \
-      _b->prev = _s;                                   \
-      if (_prev)                                       \
-        _prev->next = _s;                              \
-      else                                             \
-        (ABFD)->sections = _s;                         \
-    }                                                  \
-  while (0)
-#define bfd_section_removed_from_list(ABFD, S) \
-  ((S)->next == NULL ? (ABFD)->section_last != (S) : (S)->next->prev != (S))
+static inline bfd_boolean
+bfd_is_ind_section (const asection *sec)
+{
+  return sec == bfd_ind_section_ptr;
+}
+
+static inline bfd_boolean
+bfd_is_const_section (const asection *sec)
+{
+  return sec >= bfd_abs_section_ptr && sec <= bfd_ind_section_ptr;
+}
+
+/* Return TRUE if input section SEC has been discarded.  */
+static inline bfd_boolean
+discarded_section (const asection *sec)
+{
+  return (!bfd_is_abs_section (sec)
+          && bfd_is_abs_section (sec->output_section)
+          && sec->sec_info_type != SEC_INFO_TYPE_MERGE
+          && sec->sec_info_type != SEC_INFO_TYPE_JUST_SYMS);
+}
 
 #define BFD_FAKE_SECTION(SEC, SYM, NAME, IDX, FLAGS)                   \
   /* name, id,  index, next, prev, flags, user_set_vma,            */  \
@@ -7321,12 +7232,225 @@ struct bfd
   const struct bfd_build_id *build_id;
 };
 
+static inline const char *
+bfd_get_filename (const bfd *abfd)
+{
+  return abfd->filename;
+}
+
+static inline bfd_boolean
+bfd_get_cacheable (const bfd *abfd)
+{
+  return abfd->cacheable;
+}
+
+static inline enum bfd_format
+bfd_get_format (const bfd *abfd)
+{
+  return abfd->format;
+}
+
+static inline flagword
+bfd_get_file_flags (const bfd *abfd)
+{
+  return abfd->flags;
+}
+
+static inline bfd_vma
+bfd_get_start_address (const bfd *abfd)
+{
+  return abfd->start_address;
+}
+
+static inline unsigned int
+bfd_get_symcount (const bfd *abfd)
+{
+  return abfd->symcount;
+}
+
+static inline unsigned int
+bfd_get_dynamic_symcount (const bfd *abfd)
+{
+  return abfd->dynsymcount;
+}
+
+static inline struct bfd_symbol **
+bfd_get_outsymbols (const bfd *abfd)
+{
+  return abfd->outsymbols;
+}
+
+static inline unsigned int
+bfd_count_sections (const bfd *abfd)
+{
+  return abfd->section_count;
+}
+
+static inline bfd_boolean
+bfd_has_map (const bfd *abfd)
+{
+  return abfd->has_armap;
+}
+
+static inline bfd_boolean
+bfd_is_thin_archive (const bfd *abfd)
+{
+  return abfd->is_thin_archive;
+}
+
+static inline void *
+bfd_usrdata (const bfd *abfd)
+{
+  return abfd->usrdata;
+}
+
 /* See note beside bfd_set_section_userdata.  */
 static inline bfd_boolean
 bfd_set_cacheable (bfd * abfd, bfd_boolean val)
 {
   abfd->cacheable = val;
   return TRUE;
+}
+
+static inline void
+bfd_set_thin_archive (bfd *abfd, bfd_boolean val)
+{
+  abfd->is_thin_archive = val;
+}
+
+static inline void
+bfd_set_usrdata (bfd *abfd, void *val)
+{
+  abfd->usrdata = val;
+}
+
+static inline asection *
+bfd_asymbol_section (const asymbol *sy)
+{
+  return sy->section;
+}
+
+static inline bfd_vma
+bfd_asymbol_value (const asymbol *sy)
+{
+  return sy->section->vma + sy->value;
+}
+
+static inline const char *
+bfd_asymbol_name (const asymbol *sy)
+{
+  return sy->name;
+}
+
+static inline struct bfd *
+bfd_asymbol_bfd (const asymbol *sy)
+{
+  return sy->the_bfd;
+}
+
+static inline void
+bfd_set_asymbol_name (asymbol *sy, const char *name)
+{
+  sy->name = name;
+}
+
+static inline bfd_size_type
+bfd_get_section_limit_octets (const bfd *abfd, const asection *sec)
+{
+  if (abfd->direction != write_direction && sec->rawsize != 0)
+    return sec->rawsize;
+  return sec->size;
+}
+
+/* Find the address one past the end of SEC.  */
+static inline bfd_size_type
+bfd_get_section_limit (const bfd *abfd, const asection *sec)
+{
+  return bfd_get_section_limit_octets (abfd, sec) / bfd_octets_per_byte (abfd);
+}
+
+/* Functions to handle insertion and deletion of a bfd's sections.  These
+   only handle the list pointers, ie. do not adjust section_count,
+   target_index etc.  */
+static inline void
+bfd_section_list_remove (bfd *abfd, asection *s)
+{
+  asection *next = s->next;
+  asection *prev = s->prev;
+  if (prev)
+    prev->next = next;
+  else
+    abfd->sections = next;
+  if (next)
+    next->prev = prev;
+  else
+    abfd->section_last = prev;
+}
+
+static inline void
+bfd_section_list_append (bfd *abfd, asection *s)
+{
+  s->next = 0;
+  if (abfd->section_last)
+    {
+      s->prev = abfd->section_last;
+      abfd->section_last->next = s;
+    }
+  else
+    {
+      s->prev = 0;
+      abfd->sections = s;
+    }
+  abfd->section_last = s;
+}
+
+static inline void
+bfd_section_list_prepend (bfd *abfd, asection *s)
+{
+  s->prev = 0;
+  if (abfd->sections)
+    {
+      s->next = abfd->sections;
+      abfd->sections->prev = s;
+    }
+  else
+    {
+      s->next = 0;
+      abfd->section_last = s;
+    }
+  abfd->sections = s;
+}
+
+static inline void
+bfd_section_list_insert_after (bfd *abfd, asection *a, asection *s)
+{
+  asection *next = a->next;
+  s->next = next;
+  s->prev = a;
+  a->next = s;
+  if (next)
+    next->prev = s;
+  else
+    abfd->section_last = s;
+}
+
+static inline void
+bfd_section_list_insert_before (bfd *abfd, asection *b, asection *s)
+{
+  asection *prev = b->prev;
+  s->prev = prev;
+  s->next = b;
+  b->prev = s;
+  if (prev)
+    prev->next = s;
+  else
+    abfd->sections = s;
+}
+
+static inline bfd_boolean
+bfd_section_removed_from_list (const bfd *abfd, const asection *s)
+{
+  return s->next ? s->next->prev != s : abfd->section_last != s;
 }
 
 
@@ -8022,6 +8146,74 @@ typedef struct bfd_target
   const void *backend_data;
 
 } bfd_target;
+
+static inline const char *
+bfd_get_target (const bfd *abfd)
+{
+  return abfd->xvec->name;
+}
+
+static inline enum bfd_flavour
+bfd_get_flavour (const bfd *abfd)
+{
+  return abfd->xvec->flavour;
+}
+
+static inline flagword
+bfd_applicable_file_flags (const bfd *abfd)
+{
+  return abfd->xvec->object_flags;
+}
+
+static inline bfd_boolean
+bfd_family_coff (const bfd *abfd)
+{
+  return (bfd_get_flavour (abfd) == bfd_target_coff_flavour
+          || bfd_get_flavour (abfd) == bfd_target_xcoff_flavour);
+}
+
+static inline bfd_boolean
+bfd_big_endian (const bfd *abfd)
+{
+  return abfd->xvec->byteorder == BFD_ENDIAN_BIG;
+}
+static inline bfd_boolean
+bfd_little_endian (const bfd *abfd)
+{
+  return abfd->xvec->byteorder == BFD_ENDIAN_LITTLE;
+}
+
+static inline bfd_boolean
+bfd_header_big_endian (const bfd *abfd)
+{
+  return abfd->xvec->header_byteorder == BFD_ENDIAN_BIG;
+}
+
+static inline bfd_boolean
+bfd_header_little_endian (const bfd *abfd)
+{
+  return abfd->xvec->header_byteorder == BFD_ENDIAN_LITTLE;
+}
+
+static inline flagword
+bfd_applicable_section_flags (const bfd *abfd)
+{
+  return abfd->xvec->section_flags;
+}
+
+static inline char
+bfd_get_symbol_leading_char (const bfd *abfd)
+{
+  return abfd->xvec->symbol_leading_char;
+}
+
+static inline enum bfd_flavour
+bfd_asymbol_flavour (const asymbol *sy)
+{
+  if ((sy->flags & BSF_SYNTHETIC) != 0)
+    return bfd_target_unknown_flavour;
+  return sy->the_bfd->xvec->flavour;
+}
 
 bfd_boolean bfd_set_default_target (const char *name);
 

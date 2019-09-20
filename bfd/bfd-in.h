@@ -237,19 +237,6 @@ typedef unsigned long symindex;
 
 #define BFD_NO_MORE_SYMBOLS ((symindex) ~0)
 
-/* General purpose part of a symbol X;
-   target specific parts are in libcoff.h, libaout.h, etc.  */
-
-#define bfd_asymbol_section(sy) ((sy)->section)
-#define bfd_asymbol_value(sy) ((sy)->section->vma + (sy)->value)
-#define bfd_asymbol_name(sy) ((sy)->name)
-#define bfd_asymbol_bfd(sy) ((sy)->the_bfd)
-#define bfd_asymbol_flavour(sy)			\
-  (((sy)->flags & BSF_SYNTHETIC) != 0		\
-   ? bfd_target_unknown_flavour			\
-   : (sy)->the_bfd->xvec->flavour)
-#define bfd_set_asymbol_name(sy, n) do { (sy)->name = (n); } while (0)
-
 /* A canonical archive symbol.  */
 /* This is a type pun with struct ranlib on purpose!  */
 typedef struct carsym
@@ -298,31 +285,6 @@ typedef struct bfd_section *sec_ptr;
   ((((bfd_vma) (this) + (boundary) - 1) >= (bfd_vma) (this))		  \
    ? (((bfd_vma) (this) + ((boundary) - 1)) & ~ (bfd_vma) ((boundary)-1)) \
    : ~ (bfd_vma) 0)
-
-#define bfd_section_name(sec) ((sec)->name)
-#define bfd_section_size(sec) ((sec)->size)
-#define bfd_section_vma(sec) ((sec)->vma)
-#define bfd_section_lma(sec) ((sec)->lma)
-#define bfd_section_alignment(sec) ((sec)->alignment_power)
-#define bfd_section_flags(sec) ((sec)->flags)
-#define bfd_section_userdata(sec) ((sec)->userdata)
-
-#define bfd_is_com_section(sec) (((sec)->flags & SEC_IS_COMMON) != 0)
-
-#define bfd_get_section_limit_octets(bfd, sec)			\
-  ((bfd)->direction != write_direction && (sec)->rawsize != 0	\
-   ? (sec)->rawsize : (sec)->size)
-
-/* Find the address one past the end of SEC.  */
-#define bfd_get_section_limit(bfd, sec) \
-  (bfd_get_section_limit_octets(bfd, sec) / bfd_octets_per_byte (bfd))
-
-/* Return TRUE if input section SEC has been discarded.  */
-#define discarded_section(sec)				\
-  (!bfd_is_abs_section (sec)					\
-   && bfd_is_abs_section ((sec)->output_section)		\
-   && (sec)->sec_info_type != SEC_INFO_TYPE_MERGE		\
-   && (sec)->sec_info_type != SEC_INFO_TYPE_JUST_SYMS)
 
 typedef enum bfd_print_symbol
 {
@@ -508,38 +470,6 @@ extern int bfd_stat (bfd *, struct stat *);
    bfd_bwrite ((BUF), (ELTSIZE) * (NITEMS), (ABFD)))
 #endif
 extern void _bfd_warn_deprecated (const char *, const char *, int, const char *);
-
-#define bfd_get_filename(abfd) ((abfd)->filename)
-#define bfd_get_cacheable(abfd) ((abfd)->cacheable)
-#define bfd_get_format(abfd) ((abfd)->format)
-#define bfd_get_target(abfd) ((abfd)->xvec->name)
-#define bfd_get_flavour(abfd) ((abfd)->xvec->flavour)
-#define bfd_family_coff(abfd) \
-  (bfd_get_flavour (abfd) == bfd_target_coff_flavour || \
-   bfd_get_flavour (abfd) == bfd_target_xcoff_flavour)
-#define bfd_big_endian(abfd) ((abfd)->xvec->byteorder == BFD_ENDIAN_BIG)
-#define bfd_little_endian(abfd) ((abfd)->xvec->byteorder == BFD_ENDIAN_LITTLE)
-#define bfd_header_big_endian(abfd) \
-  ((abfd)->xvec->header_byteorder == BFD_ENDIAN_BIG)
-#define bfd_header_little_endian(abfd) \
-  ((abfd)->xvec->header_byteorder == BFD_ENDIAN_LITTLE)
-#define bfd_get_file_flags(abfd) ((abfd)->flags)
-#define bfd_applicable_file_flags(abfd) ((abfd)->xvec->object_flags)
-#define bfd_applicable_section_flags(abfd) ((abfd)->xvec->section_flags)
-#define bfd_has_map(abfd) ((abfd)->has_armap)
-#define bfd_is_thin_archive(abfd) ((abfd)->is_thin_archive)
-
-#define bfd_valid_reloc_types(abfd) ((abfd)->xvec->valid_reloc_types)
-#define bfd_usrdata(abfd) ((abfd)->usrdata)
-
-#define bfd_get_start_address(abfd) ((abfd)->start_address)
-#define bfd_get_symcount(abfd) ((abfd)->symcount)
-#define bfd_get_outsymbols(abfd) ((abfd)->outsymbols)
-#define bfd_count_sections(abfd) ((abfd)->section_count)
-
-#define bfd_get_dynamic_symcount(abfd) ((abfd)->dynsymcount)
-
-#define bfd_get_symbol_leading_char(abfd) ((abfd)->xvec->symbol_leading_char)
 
 extern bfd_boolean bfd_cache_close
   (bfd *abfd);

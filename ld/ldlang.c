@@ -902,12 +902,8 @@ walk_wild_file (lang_wild_statement_type *s,
 	     archive which is included, BFD will call ldlang_add_file,
 	     which will set the usrdata field of the member to the
 	     lang_input_statement.  */
-	  if (member->usrdata != NULL)
-	    {
-	      walk_wild_section (s,
-				 (lang_input_statement_type *) member->usrdata,
-				 callback, data);
-	    }
+	  if (bfd_usrdata (member) != NULL)
+	    walk_wild_section (s, bfd_usrdata (member), callback, data);
 
 	  member = bfd_openr_next_archived_file (f->the_bfd, member);
 	}
@@ -1418,7 +1414,7 @@ lang_memory_default (asection *section)
 lang_output_section_statement_type *
 lang_output_section_get (const asection *output_section)
 {
-  return get_userdata (output_section);
+  return bfd_section_userdata (output_section);
 }
 
 /* Find or create an output_section_statement with the given NAME.
@@ -2320,12 +2316,11 @@ sort_def_symbol (struct bfd_link_hash_entry *hash_entry,
       input_section_userdata_type *ud;
       struct map_symbol_def *def;
 
-      ud = ((input_section_userdata_type *)
-	    get_userdata (hash_entry->u.def.section));
+      ud = bfd_section_userdata (hash_entry->u.def.section);
       if (!ud)
 	{
 	  ud = stat_alloc (sizeof (*ud));
-	  get_userdata (hash_entry->u.def.section) = ud;
+	  bfd_set_section_userdata (hash_entry->u.def.section, ud);
 	  ud->map_symbol_def_tail = &ud->map_symbol_def_head;
 	  ud->map_symbol_def_count = 0;
 	}
@@ -2365,7 +2360,7 @@ init_os (lang_output_section_statement_type *s, flagword flags)
 
   /* Set the userdata of the output section to the output section
      statement to avoid lookup.  */
-  get_userdata (s->bfd_section) = s;
+  bfd_set_section_userdata (s->bfd_section, s);
 
   /* If there is a base address, make sure that any sections it might
      mention are initialized.  */
@@ -3038,7 +3033,7 @@ load_symbols (lang_input_statement_type *entry,
     case bfd_archive:
       check_excluded_libs (entry->the_bfd);
 
-      entry->the_bfd->usrdata = entry;
+      bfd_set_usrdata (entry->the_bfd, entry);
       if (entry->flags.whole_archive)
 	{
 	  bfd *member = NULL;
@@ -4394,8 +4389,7 @@ hash_entry_addr_cmp (const void *a, const void *b)
 static void
 print_all_symbols (asection *sec)
 {
-  input_section_userdata_type *ud
-    = (input_section_userdata_type *) get_userdata (sec);
+  input_section_userdata_type *ud = bfd_section_userdata (sec);
   struct map_symbol_def *def;
   struct bfd_link_hash_entry **entries;
   unsigned int i;
@@ -6898,7 +6892,7 @@ ldlang_add_file (lang_input_statement_type *entry)
 
   *link_info.input_bfds_tail = entry->the_bfd;
   link_info.input_bfds_tail = &entry->the_bfd->link.next;
-  entry->the_bfd->usrdata = entry;
+  bfd_set_usrdata (entry->the_bfd, entry);
   bfd_set_gp_size (entry->the_bfd, g_switch_value);
 
   /* Look through the sections and check for any which should not be
@@ -7540,7 +7534,7 @@ lang_process (void)
 	      *iter = temp;
 	      if (my_arch != NULL)
 		{
-		  lang_input_statement_type *parent = my_arch->usrdata;
+		  lang_input_statement_type *parent = bfd_usrdata (my_arch);
 		  if (parent != NULL)
 		    parent->next = (lang_input_statement_type *)
 		      ((char *) iter
