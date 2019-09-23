@@ -1,3 +1,150 @@
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* Makefile.am (SOURCE_HFILES): Add many missing .h files.
+	* Makefile.in: Regenerate.
+	* po/SRC-POTFILES.in: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h (bfd_symbol, bfd_section_already_linked),
+	(bfd_elf_version_tree): Delete forward declarations.
+	Move other forward decls and remaining elf function decl later.
+	(bfd_section_already_linked_table_init),
+	(bfd_section_already_linked_table_free),
+	(_bfd_handle_already_linked, _bfd_nearby_section),
+	(_bfd_fix_excluded_sec_syms): Move to bfdlink.h.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move ecoff function declarations..
+	* ecoff-bfd.h: ..to here, new file.
+	* ecoff.c: Include ecoff-bfd.h.
+	* ecofflink.c: Likewise.
+	* elf64-alpha.c: Likewise.
+	* elfxx-mips.c: Likewise.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h (enum notice_asneeded_action): Move to bfdlink.h.
+	Move most other elf declarations..
+	* elf-bfd.h: ..to here.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move m68k function declaration..
+	* cpu-m68k.h: ..to here, new file..
+	* elf32-m68k.h: ..and here, new file.
+	* elf32-m68k.c: Include cpu-m68k.h and elf32-m68k.h.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move bfin function declaration..
+	* elf32-bfin.h: ..to here, new file.
+	* elf32-bfin.c: Include elf32-bfin.h.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move cr16 function declaration..
+	* elf32-cr16.h: ..to here, new file.
+	* elf32-cr16.c: Include elf32-cr16.h.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h (bfd_sunos_get_needed_list),
+	(bfd_sunos_record_link_assignment),
+	(bfd_sunos_size_dynamic_sections),
+	(bfd_i386linux_size_dynamic_sections),
+	(bfd_sparclinux_size_dynamic_sections): Delete obsolete decls.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move xcoff function declarations..
+	* xcofflink.h: ..to here, new file.
+	* xcofflink.c: Include xcofflink.h.
+	* coff-rs6000.c (bfd_xcoff_ar_archive_set_magic): Delete unused func.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Delete coff forward refs and move coff declaration..
+	* coff-bfd.h: ..to here.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move arm declaraions..
+	* cpu-arm.h: ..to here, new file..
+	* coff-arm.h: ..and here, new file..
+	* elf32-arm.h: ..and here, new file.
+	* cpu-arm.c: Include cpu-arm.h.
+	* coff-arm.c: Include cpu-arm.h and coff-arm.h.
+	* elf32-arm.c: Include cpu-arm.h and elf32-arm.h.
+	* pe-arm.c: Move function rename defines later.
+	* pe-arm-wince.c: Likewise and include sysdep.h and bfd.h early.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move tic6x function declaration..
+	* elf32-tic6x.h: ..to here.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move aarch64 declarations and defines..
+	* cpu-aarch64.h: ..to here, new file..
+	* elfxx-aarch64.h: ..and here.
+	* cpu-aarch64.c: Include cpu-aarch64.h.
+	* elfnn-aarch64.c: Likewise.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Delete ticoff function declarations.
+	* coff-tic54x.c (bfd_ticoff_set_section_load_page),
+	(bfd_ticoff_get_section_load_page): Make static.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move h8300 function declaration to..
+	* cpu-h8300.h: ..here, new file.
+	* cpu-h8300.c: Include cpu-h8300.h.
+	* elf32-h8300.c: Likewise.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move ia64 function declarations..
+	* elfxx-ia64.h: ..to here.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move v850 function declarations..
+	* elf32-v850.h: ..to here, new file.
+	* elf32-v850.c: Include elf32-v850.h.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move mips function declaration to..
+	* elfxx-mips.h: ..here.
+	* bfd-in2.h: Regenerate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* bfd-in.h: Move csky function declarations to..
+	* elf32-csky.h: ..here, new file.
+	* elf32-csky.c: Include elf32-csky.h.
+	* bfd-in2.h: Regenerate.
+
 2019-09-20  Nelson Chu <nelson.chu@sifive.com>
 
 	* elfnn-riscv.c (riscv_pcgp_hi_reloc): Add new field undefined_weak.

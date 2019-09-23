@@ -1,5 +1,5 @@
-/* 32-bit ELF support for TI C6X
-   Copyright (C) 2010-2019 Free Software Foundation, Inc.
+/* V850 Note manipulation routines.
+   Copyright (C) 2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -18,30 +18,8 @@
    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
    MA 02110-1301, USA.  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+extern bfd_boolean v850_elf_create_sections
+  (struct bfd_link_info *);
 
-extern int elf32_tic6x_merge_arch_attributes (int, int);
-
-/* This function is provided for use from the assembler.  */
-
-extern void elf32_tic6x_set_use_rela_p (bfd *, bfd_boolean);
-
-struct elf32_tic6x_params
-{
-  int dsbt_index;
-  int dsbt_size;
-};
-
-extern void elf32_tic6x_setup (struct bfd_link_info *,
-			       struct elf32_tic6x_params *);
-
-/* C6x unwind section editing support.  */
-extern bfd_boolean elf32_tic6x_fix_exidx_coverage (struct bfd_section **,
-						   unsigned int,
-						   struct bfd_link_info *,
-						   bfd_boolean);
-#ifdef __cplusplus
-}
-#endif
+extern bfd_boolean v850_elf_set_note
+  (bfd *, unsigned int, unsigned int);

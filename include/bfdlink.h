@@ -42,6 +42,12 @@ enum bfd_link_discard
   discard_all		/* Discard all locals.  */
 };
 
+enum notice_asneeded_action {
+  notice_as_needed,
+  notice_not_needed,
+  notice_needed
+};
+
 /* Whether to generate ELF common symbols with the STT_COMMON type
    during a relocatable link.  */
 enum bfd_link_elf_stt_common
@@ -851,6 +857,20 @@ struct bfd_link_order_reloc
 
 /* Allocate a new link_order for a section.  */
 extern struct bfd_link_order *bfd_new_link_order (bfd *, asection *);
+
+struct bfd_section_already_linked;
+
+extern bfd_boolean bfd_section_already_linked_table_init (void);
+extern void bfd_section_already_linked_table_free (void);
+extern bfd_boolean _bfd_handle_already_linked
+  (struct bfd_section *, struct bfd_section_already_linked *,
+   struct bfd_link_info *);
+
+extern struct bfd_section *_bfd_nearby_section
+  (bfd *, struct bfd_section *, bfd_vma);
+
+extern void _bfd_fix_excluded_sec_syms
+  (bfd *, struct bfd_link_info *);
 
 /* These structures are used to describe version information for the
    ELF linker.  These structures could be manipulated entirely inside

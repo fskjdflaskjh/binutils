@@ -1,5 +1,5 @@
-/* 32-bit ELF support for TI C6X
-   Copyright (C) 2010-2019 Free Software Foundation, Inc.
+/* BFD support for the ARM processor
+   Copyright (C) 2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -18,30 +18,22 @@
    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
    MA 02110-1301, USA.  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* ARM Note section processing.  */
+extern bfd_boolean bfd_arm_merge_machines
+  (bfd *, bfd *);
 
-extern int elf32_tic6x_merge_arch_attributes (int, int);
+extern bfd_boolean bfd_arm_update_notes
+  (bfd *, const char *);
 
-/* This function is provided for use from the assembler.  */
+extern unsigned int bfd_arm_get_mach_from_notes
+  (bfd *, const char *);
 
-extern void elf32_tic6x_set_use_rela_p (bfd *, bfd_boolean);
+/* ELF ARM mapping symbol support.  */
+#define BFD_ARM_SPECIAL_SYM_TYPE_MAP	(1 << 0)
+#define BFD_ARM_SPECIAL_SYM_TYPE_TAG	(1 << 1)
+#define BFD_ARM_SPECIAL_SYM_TYPE_OTHER	(1 << 2)
+#define BFD_ARM_SPECIAL_SYM_TYPE_ANY	(~0)
 
-struct elf32_tic6x_params
-{
-  int dsbt_index;
-  int dsbt_size;
-};
+extern bfd_boolean bfd_is_arm_special_symbol_name
+  (const char *, int);
 
-extern void elf32_tic6x_setup (struct bfd_link_info *,
-			       struct elf32_tic6x_params *);
-
-/* C6x unwind section editing support.  */
-extern bfd_boolean elf32_tic6x_fix_exidx_coverage (struct bfd_section **,
-						   unsigned int,
-						   struct bfd_link_info *,
-						   bfd_boolean);
-#ifdef __cplusplus
-}
-#endif
