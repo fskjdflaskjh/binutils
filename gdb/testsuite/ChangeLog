@@ -1,3 +1,20 @@
+2019-10-01  Tom Tromey  <tom@tromey.com>
+
+	* gdb.base/style.exp: Test "show logging filename".
+
+2019-10-01  Tom Tromey  <tom@tromey.com>
+
+	* lib/gdb-utils.exp (style): Handle "metadata" argument.
+	* gdb.base/style.exp: Add metadata style test.
+
+2019-10-01  Tom Tromey  <tom@tromey.com>
+
+	* gdb.base/style.exp: Test "pwd".
+
+2019-10-01  Tom Tromey  <tom@tromey.com>
+
+	* gdb.base/style.exp: Update tests.
+
 2019-10-01  Andreas Arnez  <arnez@linux.ibm.com>
 
 	* gdb.base/pretty-print.c (struct s1_t): Change fields 'three' and

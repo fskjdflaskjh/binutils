@@ -54,6 +54,7 @@
 #include "observable.h"
 #include "gdbsupport/def-vector.h"
 #include "cli/cli-option.h"
+#include "cli/cli-style.h"
 
 /* The possible choices of "set print frame-arguments", and the value
    of this setting.  */
@@ -381,16 +382,20 @@ print_frame_arg (const frame_print_options &fp_opts,
   if (arg->entry_kind == print_entry_values_only
       || arg->entry_kind == print_entry_values_compact)
     stb.puts ("@entry");
-  uiout->field_stream ("name", stb, ui_out_style_kind::VARIABLE);
+  uiout->field_stream ("name", stb, variable_name_style.style ());
   annotate_arg_name_end ();
   uiout->text ("=");
 
+  ui_file_style style;
   if (!arg->val && !arg->error)
     uiout->text ("...");
   else
     {
       if (arg->error)
-	stb.printf (_("<error reading variable: %s>"), arg->error.get ());
+	{
+	  stb.printf (_("<error reading variable: %s>"), arg->error.get ());
+	  style = metadata_style.style ();
+	}
       else
 	{
 	  try
@@ -427,11 +432,12 @@ print_frame_arg (const frame_print_options &fp_opts,
 	    {
 	      stb.printf (_("<error reading variable: %s>"),
 			  except.what ());
+	      style = metadata_style.style ();
 	    }
 	}
     }
 
-  uiout->field_stream ("value", stb);
+  uiout->field_stream ("value", stb, style);
 }
 
 /* Read in inferior function local SYM at FRAME into ARGP.  Caller is
@@ -1005,18 +1011,18 @@ print_frame_info (const frame_print_options &fp_opts,
         {
           annotate_function_call ();
           uiout->field_string ("func", "<function called from gdb>",
-			       ui_out_style_kind::FUNCTION);
+			       metadata_style.style ());
 	}
       else if (get_frame_type (frame) == SIGTRAMP_FRAME)
         {
 	  annotate_signal_handler_caller ();
           uiout->field_string ("func", "<signal handler called>",
-			       ui_out_style_kind::FUNCTION);
+			       metadata_style.style ());
         }
       else if (get_frame_type (frame) == ARCH_FRAME)
         {
           uiout->field_string ("func", "<cross-architecture call>",
-			       ui_out_style_kind::FUNCTION);
+			       metadata_style.style ());
 	}
       uiout->text ("\n");
       annotate_frame_end ();
@@ -1310,7 +1316,7 @@ print_frame (const frame_print_options &fp_opts,
 	    print_pc (uiout, gdbarch, frame, pc);
 	  else
 	    uiout->field_string ("addr", "<unavailable>",
-				 ui_out_style_kind::ADDRESS);
+				 metadata_style.style ());
 	  annotate_frame_address_end ();
 	  uiout->text (" in ");
 	}
@@ -1319,7 +1325,7 @@ print_frame (const frame_print_options &fp_opts,
     string_file stb;
     fprintf_symbol_filtered (&stb, funname ? funname.get () : "??",
 			     funlang, DMGL_ANSI);
-    uiout->field_stream ("func", stb, ui_out_style_kind::FUNCTION);
+    uiout->field_stream ("func", stb, function_name_style.style ());
     uiout->wrap_hint ("   ");
     annotate_frame_args ();
 
@@ -1361,7 +1367,8 @@ print_frame (const frame_print_options &fp_opts,
 	uiout->wrap_hint ("   ");
 	uiout->text (" at ");
 	annotate_frame_source_file ();
-	uiout->field_string ("file", filename_display, ui_out_style_kind::FILE);
+	uiout->field_string ("file", filename_display,
+			     file_name_style.style ());
 	if (uiout->is_mi_like_p ())
 	  {
 	    const char *fullname = symtab_to_fullname (sal.symtab);
@@ -1386,7 +1393,7 @@ print_frame (const frame_print_options &fp_opts,
 	    annotate_frame_where ();
 	    uiout->wrap_hint ("  ");
 	    uiout->text (" from ");
-	    uiout->field_string ("from", lib);
+	    uiout->field_string ("from", lib, file_name_style.style ());
 	  }
       }
     if (uiout->is_mi_like_p ())
@@ -1506,7 +1513,7 @@ info_frame_command_core (struct frame_info *fi, bool selected_frame_p)
   if (frame_pc_p)
     fputs_filtered (paddress (gdbarch, get_frame_pc (fi)), gdb_stdout);
   else
-    fputs_filtered ("<unavailable>", gdb_stdout);
+    fputs_styled ("<unavailable>", metadata_style.style (), gdb_stdout);
 
   wrap_here ("   ");
   if (funname)
@@ -1517,8 +1524,11 @@ info_frame_command_core (struct frame_info *fi, bool selected_frame_p)
     }
   wrap_here ("   ");
   if (sal.symtab)
-    printf_filtered (" (%s:%d)", symtab_to_filename_for_display (sal.symtab),
-		     sal.line);
+    printf_filtered
+      (" (%ps:%d)",
+       styled_string (file_name_style.style (),
+		      symtab_to_filename_for_display (sal.symtab)),
+       sal.line);
   puts_filtered ("; ");
   wrap_here ("    ");
   printf_filtered ("saved %s = ", pc_regname);
@@ -1543,8 +1553,9 @@ info_frame_command_core (struct frame_info *fi, bool selected_frame_p)
 	      val_print_not_saved (gdb_stdout);
 	      break;
 	    default:
-	      fprintf_filtered (gdb_stdout, _("<error: %s>"),
-				ex.what ());
+	      fprintf_styled (gdb_stdout, metadata_style.style (),
+			      _("<error: %s>"),
+			      ex.what ());
 	      break;
 	    }
 	}
