@@ -2051,6 +2051,7 @@ extern char *bfd_elf_string_from_elf_section
 extern Elf_Internal_Sym *bfd_elf_get_elf_syms
   (bfd *, Elf_Internal_Shdr *, size_t, size_t, Elf_Internal_Sym *, void *,
    Elf_External_Sym_Shndx *);
+extern char * bfd_elf_get_str_section (bfd *, unsigned int);
 extern const char *bfd_elf_sym_name
   (bfd *, Elf_Internal_Shdr *, Elf_Internal_Sym *, asection *);
 
@@ -2251,8 +2252,12 @@ extern void _bfd_elf_strtab_restore
   (struct elf_strtab_hash *, void *);
 extern bfd_size_type _bfd_elf_strtab_size
   (struct elf_strtab_hash *);
+extern bfd_size_type _bfd_elf_strtab_len
+  (struct elf_strtab_hash *);
 extern bfd_size_type _bfd_elf_strtab_offset
   (struct elf_strtab_hash *, size_t);
+extern const char * _bfd_elf_strtab_str
+  (struct elf_strtab_hash *, size_t idx, bfd_size_type *offset);
 extern bfd_boolean _bfd_elf_strtab_emit
   (bfd *, struct elf_strtab_hash *);
 extern void _bfd_elf_strtab_finalize
@@ -2959,6 +2964,14 @@ extern asection _bfd_elf_large_com_section;
      && ((INFO)->symbolic \
 	 || (H)->start_stop \
 	 || ((INFO)->dynamic && !(H)->dynamic)))
+
+/* Determine if a section contains CTF data, using its name.  */
+static inline bfd_boolean
+bfd_section_is_ctf (const asection *sec)
+{
+  const char *name = bfd_section_name (sec);
+  return strncmp (name, ".ctf", 4) == 0 && (name[4] == 0 || name[4] == '.');
+}
 
 #ifdef __cplusplus
 }

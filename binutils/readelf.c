@@ -184,7 +184,7 @@ typedef struct elf_section_list
 #define DEBUG_DUMP	(1 << 2)	/* The -w command line switch.  */
 #define STRING_DUMP     (1 << 3)	/* The -p command line switch.  */
 #define RELOC_DUMP      (1 << 4)	/* The -R command line switch.  */
-#define CTF_DUMP        (1 << 5)        /* The --ctf command line switch.  */
+#define CTF_DUMP	(1 << 5)	/* The --ctf command line switch.  */
 
 typedef unsigned char dump_type;
 
@@ -4465,7 +4465,7 @@ static struct option options[] =
   {"dwarf-start",      required_argument, 0, OPTION_DWARF_START},
   {"dwarf-check",      no_argument, 0, OPTION_DWARF_CHECK},
 
-  {"ctf",              required_argument, 0, OPTION_CTF_DUMP},
+  {"ctf",	       required_argument, 0, OPTION_CTF_DUMP},
 
   {"ctf-symbols",      required_argument, 0, OPTION_CTF_SYMBOLS},
   {"ctf-strings",      required_argument, 0, OPTION_CTF_STRINGS},
@@ -13922,18 +13922,19 @@ dump_section_as_ctf (Elf_Internal_Shdr * section, Filedata * filedata)
   Elf_Internal_Shdr *  parent_sec = NULL;
   Elf_Internal_Shdr *  symtab_sec = NULL;
   Elf_Internal_Shdr *  strtab_sec = NULL;
-  void *      	       data = NULL;
-  void *      	       symdata = NULL;
-  void *      	       strdata = NULL;
-  void *      	       parentdata = NULL;
-  ctf_sect_t           ctfsect, symsect, strsect, parentsect;
-  ctf_sect_t *         symsectp = NULL;
-  ctf_sect_t *         strsectp = NULL;
-  ctf_file_t *         ctf = NULL;
-  ctf_file_t *         parent = NULL;
+  void *	       data = NULL;
+  void *	       symdata = NULL;
+  void *	       strdata = NULL;
+  void *	       parentdata = NULL;
+  ctf_sect_t	       ctfsect, symsect, strsect, parentsect;
+  ctf_sect_t *	       symsectp = NULL;
+  ctf_sect_t *	       strsectp = NULL;
+  ctf_file_t *	       ctf = NULL;
+  ctf_file_t *	       parent = NULL;
 
-  const char *things[] = {"Labels", "Data objects", "Function objects",
-			  "Variables", "Types", "Strings", ""};
+  const char *things[] = {"Header", "Labels", "Data objects",
+			  "Function objects", "Variables", "Types", "Strings",
+			  ""};
   const char **thing;
   int err;
   bfd_boolean ret = FALSE;
@@ -13943,7 +13944,13 @@ dump_section_as_ctf (Elf_Internal_Shdr * section, Filedata * filedata)
   data = get_section_contents (section, filedata);
   ctfsect.cts_data = data;
 
-  if (dump_ctf_symtab_name)
+  if (!dump_ctf_symtab_name)
+    dump_ctf_symtab_name = strdup (".symtab");
+
+  if (!dump_ctf_strtab_name)
+    dump_ctf_strtab_name = strdup (".strtab");
+
+  if (dump_ctf_symtab_name && dump_ctf_symtab_name[0] != 0)
     {
       if ((symtab_sec = find_section (filedata, dump_ctf_symtab_name)) == NULL)
 	{
@@ -13958,7 +13965,7 @@ dump_section_as_ctf (Elf_Internal_Shdr * section, Filedata * filedata)
       symsectp = shdr_to_ctf_sect (&symsect, symtab_sec, filedata);
       symsect.cts_data = symdata;
     }
-  if (dump_ctf_strtab_name)
+  if (dump_ctf_strtab_name && dump_ctf_symtab_name[0] != 0)
     {
       if ((strtab_sec = find_section (filedata, dump_ctf_strtab_name)) == NULL)
 	{
@@ -14014,7 +14021,7 @@ dump_section_as_ctf (Elf_Internal_Shdr * section, Filedata * filedata)
   printf (_("\nDump of CTF section '%s':\n"),
 	  printable_section_name (filedata, section));
 
-  for (i = 1, thing = things; *thing[0]; thing++, i++)
+  for (i = 0, thing = things; *thing[0]; thing++, i++)
     {
       ctf_dump_state_t *s = NULL;
       char *item;
