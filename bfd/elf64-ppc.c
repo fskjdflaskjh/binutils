@@ -3212,8 +3212,9 @@ struct ppc_link_hash_table
 /* Nonzero if this section has TLS related relocations.  */
 #define has_tls_reloc sec_flg0
 
-/* Nonzero if this section has an old-style call to __tls_get_addr.  */
-#define has_tls_get_addr_call sec_flg1
+/* Nonzero if this section has a call to __tls_get_addr lacking marker
+   relocations.  */
+#define nomark_tls_get_addr sec_flg1
 
 /* Nonzero if this section has any toc or got relocs.  */
 #define has_toc_reloc sec_flg2
@@ -4537,8 +4538,6 @@ ppc64_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	    sec->has_toc_reloc = 1;
 	}
 
-      tls_type = 0;
-      ifunc = NULL;
       r_type = ELF64_R_TYPE (rel->r_info);
       switch (r_type)
 	{
@@ -4591,6 +4590,7 @@ ppc64_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	  break;
 	}
 
+      ifunc = NULL;
       if (h != NULL)
 	{
 	  if (h->type == STT_GNU_IFUNC)
@@ -4616,6 +4616,7 @@ ppc64_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	    }
 	}
 
+      tls_type = 0;
       switch (r_type)
 	{
 	case R_PPC64_TLSGD:
@@ -4909,7 +4910,7 @@ ppc64_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		    ;
 		  else
 		    /* Mark this section as having an old-style call.  */
-		    sec->has_tls_get_addr_call = 1;
+		    sec->nomark_tls_get_addr = 1;
 		}
 	      plt_list = &h->plt.plist;
 	    }
@@ -7777,11 +7778,9 @@ ppc64_elf_tls_optimize (struct bfd_link_info *info)
 		    value = sym->st_value;
 
 		  ok_tprel = FALSE;
-		  is_local = FALSE;
-		  if (h == NULL
-		      || !h->def_dynamic)
+		  is_local = SYMBOL_REFERENCES_LOCAL (info, h);
+		  if (is_local)
 		    {
-		      is_local = TRUE;
 		      if (h != NULL
 			  && h->root.type == bfd_link_hash_undefweak)
 			ok_tprel = TRUE;
@@ -7809,7 +7808,7 @@ ppc64_elf_tls_optimize (struct bfd_link_info *info)
 		     setup insn.  If we don't find matching arg setup
 		     relocs, don't do any tls optimization.  */
 		  if (pass == 0
-		      && sec->has_tls_get_addr_call
+		      && sec->nomark_tls_get_addr
 		      && h != NULL
 		      && (h == &htab->tls_get_addr->elf
 			  || h == &htab->tls_get_addr_fd->elf)
@@ -7881,8 +7880,11 @@ ppc64_elf_tls_optimize (struct bfd_link_info *info)
 			}
 		      continue;
 
-		    case R_PPC64_TLSGD:
 		    case R_PPC64_TLSLD:
+		      if (!is_local)
+			continue;
+		      /* Fall through.  */
+		    case R_PPC64_TLSGD:
 		      if (rel + 1 < relend
 			  && is_plt_seq_reloc (ELF64_R_TYPE (rel[1].r_info)))
 			{
@@ -8010,7 +8012,7 @@ ppc64_elf_tls_optimize (struct bfd_link_info *info)
 		  if (pass == 0)
 		    {
 		      if (!expecting_tls_get_addr
-			  || !sec->has_tls_get_addr_call)
+			  || !sec->nomark_tls_get_addr)
 			continue;
 
 		      if (rel + 1 < relend
@@ -8062,12 +8064,12 @@ ppc64_elf_tls_optimize (struct bfd_link_info *info)
 		     Disable optimization in this case.  */
 		  if ((tls_clear & (TLS_GD | TLS_LD)) != 0
 		      && (tls_set & TLS_EXPLICIT) == 0
-		      && !sec->has_tls_get_addr_call
+		      && !sec->nomark_tls_get_addr
 		      && ((*tls_mask & (TLS_TLS | TLS_MARK))
 			  != (TLS_TLS | TLS_MARK)))
 		    continue;
 
-		  if (expecting_tls_get_addr)
+		  if (expecting_tls_get_addr == 1 + !sec->nomark_tls_get_addr)
 		    {
 		      struct plt_entry *ent = NULL;
 
@@ -9252,7 +9254,7 @@ allocate_got (struct elf_link_hash_entry *h,
       htab->got_reli_size += rentsize;
     }
   else if (((bfd_link_pic (info)
-	     && !((gent->tls_type & TLS_TPREL) != 0
+	     && !(gent->tls_type != 0
 		  && bfd_link_executable (info)
 		  && SYMBOL_REFERENCES_LOCAL (info, h)))
 	    || (htab->elf.dynamic_sections_created
@@ -9358,7 +9360,7 @@ allocate_dynrelocs (struct elf_link_hash_entry *h, void *inf)
     if (gent->got.refcount > 0)
       {
 	if ((gent->tls_type & TLS_LD) != 0
-	    && !h->def_dynamic)
+	    && SYMBOL_REFERENCES_LOCAL (info, h))
 	  {
 	    ppc64_tlsld_got (gent->owner)->got.refcount += 1;
 	    *pgent = gent->next;
@@ -9784,7 +9786,7 @@ ppc64_elf_size_dynamic_sections (bfd *output_bfd,
 			htab->got_reli_size += rel_size;
 		      }
 		    else if (bfd_link_pic (info)
-			     && !((ent->tls_type & TLS_TPREL) != 0
+			     && !(ent->tls_type != 0
 				  && bfd_link_executable (info)))
 		      {
 			asection *srel = ppc64_elf_tdata (ibfd)->relgot;
@@ -9861,7 +9863,7 @@ ppc64_elf_size_dynamic_sections (bfd *output_bfd,
 	      ent->got.offset = s->size;
 	      ent->owner = ibfd;
 	      s->size += 16;
-	      if (bfd_link_pic (info))
+	      if (bfd_link_dll (info))
 		{
 		  asection *srel = ppc64_elf_tdata (ibfd)->relgot;
 		  srel->size += sizeof (Elf64_External_Rela);
@@ -12156,7 +12158,7 @@ ppc64_elf_layout_multitoc (struct bfd_link_info *info)
 		  htab->got_reli_size += rel_size;
 		}
 	      else if (bfd_link_pic (info)
-		       && !((ent->tls_type & TLS_TPREL) != 0
+		       && !(ent->tls_type != 0
 			    && bfd_link_executable (info)))
 		{
 		  asection *srel = ppc64_elf_tdata (ibfd)->relgot;
@@ -12182,7 +12184,7 @@ ppc64_elf_layout_multitoc (struct bfd_link_info *info)
 	  asection *s = ppc64_elf_tdata (ibfd)->got;
 	  ent->got.offset = s->size;
 	  s->size += 16;
-	  if (bfd_link_pic (info))
+	  if (bfd_link_dll (info))
 	    {
 	      asection *srel = ppc64_elf_tdata (ibfd)->relgot;
 	      srel->size += sizeof (Elf64_External_Rela);
@@ -14640,7 +14642,7 @@ ppc64_elf_relocate_section (bfd *output_bfd,
 		 stays with its arg setup insns, ie. that the next
 		 reloc is the __tls_get_addr call associated with
 		 the current reloc.  Edit both insns.  */
-	      if (input_section->has_tls_get_addr_call
+	      if (input_section->nomark_tls_get_addr
 		  && rel + 1 < relend
 		  && branch_reloc_hash_match (input_bfd, rel + 1,
 					      htab->tls_get_addr,
@@ -15521,8 +15523,7 @@ ppc64_elf_relocate_section (bfd *output_bfd,
 	    struct got_entry *ent;
 
 	    if (tls_type == (TLS_TLS | TLS_LD)
-		&& (h == NULL
-		    || !h->elf.def_dynamic))
+		&& SYMBOL_REFERENCES_LOCAL (info, &h->elf))
 	      ent = ppc64_tlsld_got (input_bfd);
 	    else
 	      {
@@ -15597,10 +15598,8 @@ ppc64_elf_relocate_section (bfd *output_bfd,
 		else if (indx != 0
 			 || (bfd_link_pic (info)
 			     && (h == NULL
-				 || !UNDEFWEAK_NO_DYNAMIC_RELOC (info, &h->elf)
-				 || (tls_type == (TLS_TLS | TLS_LD)
-				     && !h->elf.def_dynamic))
-			     && !(tls_type == (TLS_TLS | TLS_TPREL)
+				 || !UNDEFWEAK_NO_DYNAMIC_RELOC (info, &h->elf))
+			     && !(tls_type != 0
 				  && bfd_link_executable (info)
 				  && SYMBOL_REFERENCES_LOCAL (info, &h->elf))))
 		  relgot = ppc64_elf_tdata (ent->owner)->relgot;
