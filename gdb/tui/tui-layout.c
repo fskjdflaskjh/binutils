@@ -233,66 +233,6 @@ tui_add_win_to_layout (enum tui_win_type type)
     }
 }
 
-
-/* Answer the height of a window.  If it hasn't been created yet,
-   answer what the height of a window would be based upon its type and
-   the layout.  */
-static int
-tui_default_win_height (enum tui_win_type type, 
-			enum tui_layout_type layout)
-{
-  int h;
-
-  if (tui_win_list[type] != NULL)
-    h = tui_win_list[type]->height;
-  else
-    {
-      switch (layout)
-	{
-	case SRC_COMMAND:
-	case DISASSEM_COMMAND:
-	  if (TUI_CMD_WIN == NULL)
-	    h = tui_term_height () / 2;
-	  else
-	    h = tui_term_height () - TUI_CMD_WIN->height;
-	  break;
-	case SRC_DISASSEM_COMMAND:
-	case SRC_DATA_COMMAND:
-	case DISASSEM_DATA_COMMAND:
-	  if (TUI_CMD_WIN == NULL)
-	    h = tui_term_height () / 3;
-	  else
-	    h = (tui_term_height () - TUI_CMD_WIN->height) / 2;
-	  break;
-	default:
-	  h = 0;
-	  break;
-	}
-    }
-
-  return h;
-}
-
-
-/* Answer the height of a window.  If it hasn't been created yet,
-   answer what the height of a window would be based upon its type and
-   the layout.  */
-int
-tui_default_win_viewport_height (enum tui_win_type type,
-				 enum tui_layout_type layout)
-{
-  int h;
-
-  h = tui_default_win_height (type, layout);
-
-  if (type == CMD_WIN)
-    h -= 1;
-  else
-    h -= 2;
-
-  return h;
-}
-
 /* Complete possible layout names.  TEXT is the complete text entered so
    far, WORD is the word currently being completed.  */
 
@@ -571,12 +511,11 @@ tui_gen_win_info::resize (int height_, int width_,
   if (handle != nullptr)
     {
 #ifdef HAVE_WRESIZE
-      wresize (handle, height, width);
-      mvwin (handle, origin.y, origin.x);
-      wmove (handle, 0, 0);
+      wresize (handle.get (), height, width);
+      mvwin (handle.get (), origin.y, origin.x);
+      wmove (handle.get (), 0, 0);
 #else
-      tui_delete_win (handle);
-      handle = NULL;
+      handle.reset (nullptr);
 #endif
     }
 
