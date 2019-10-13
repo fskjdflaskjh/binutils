@@ -4529,6 +4529,7 @@
 
 2019-07-04  Alan Hayward  <alan.hayward@arm.com>
 
+	PR breakpoints/25011
 	* symfile.c (symbol_file_command): Call solib_create_inferior_hook.
 
 2019-07-04  Tom Tromey  <tom@tromey.com>
@@ -6769,6 +6770,7 @@
 
 2019-05-28  Alan Hayward  <alan.hayward@arm.com>
 
+	PR gdb/25010
 	* event-top.c: Remove include comment.
 	* inflow.c (class scoped_ignore_sigttou): Move from here...
 	* inflow.h (class scoped_ignore_sigttou): ...to here.
