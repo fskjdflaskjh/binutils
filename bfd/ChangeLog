@@ -1,3 +1,63 @@
+2019-10-14  Alan Modra  <amodra@gmail.com>
+
+	* syms.c (struct indexentry): Add idx field.
+	(cmpindexentry): Final sort on idx.
+	(_bfd_stab_section_find_nearest_line): Set idx.
+
+2019-10-14  Alan Modra  <amodra@gmail.com>
+
+	* dwarf2.c (struct lookup_funcinfo): Add idx field.
+	(compare_lookup_funcinfos): Perform final sort on idx.
+	(build_lookup_funcinfo_table): Set idx.
+	(compare_sequences): Perform final sort on num_lines.
+	(build_line_info_table): Set num_lines and line_info_lookup earlier.
+	(sort_line_sequences): Set num_lines for sort.
+
+2019-10-14  Alan Modra  <amodra@gmail.com>
+
+	* elflink.c (elf_sort_symbol): Sort on type and name as well.
+	(elf_link_add_object_symbols): Style fix.
+
+2019-10-14  Alan Modra  <amodra@gmail.com>
+
+	* elf.c (_bfd_elf_map_sections_to_segments): Init target_index
+	for sections about to be sorted.
+	(assign_file_positions_for_load_sections): Likewise.
+	(elf_sort_sections): Don't bother optimising both TOEND case.
+	* elflink.c (bfd_elf_final_link): Reset target_index.
+
+2019-10-14  Alan Modra  <amodra@gmail.com>
+
+	* elflink.c (elf_get_linked_section_vma): Delete.
+	(compare_link_order): Use elf_linked_to_section and sort by lma,
+	size, and id.
+	(elf_fixup_link_order): Use size_t variables where appropriate.
+	Make use of elf_linked_to_section.  Formatting.  Properly align
+	sections.
+
+2019-10-14  Alan Modra  <amodra@gmail.com>
+
+	* elf-strtab.c (strrevcmp): Comment.
+	* merge.c (strrevcmp): Likewise.
+	* elf64-ppc.c (compare_symbols): Correct final pointer comparison.
+	Comment on why comparing pointers ensures a stable sort.
+	* elflink.c (struct elf_symbol): Add void* to union.
+	(elf_sort_elf_symbol): Ensure a stable sort with pointer comparison.
+	(elf_sym_name_compare): Likewise.
+	(bfd_elf_match_symbols_in_sections): Style fix.
+	(elf_link_sort_cmp1): Comment.
+
+2019-10-14  Alan Modra  <amodra@gmail.com>
+
+	PR 24955
+	* elflink.c (elf_output_implib): Don't use xmalloc.  Don't ignore
+	return value of bfd_alloc2.
+	* peXXigen.c (_bfd_XXi_write_codeview_record): Don't use xmalloc.
+	* pef.c (bfd_pef_print_symbol): Likewise.  Don't ignore return
+	value of bfd_get_section_contents.
+	* som.c (som_write_space_strings): Don't use xmalloc.
+	(som_write_symbol_strings): Likewise.
+
 2019-10-11  Max Filippov  <jcmvbkbc@gmail.com>
 
 	* dwarf2.c (stash_maybe_enable_info_hash_tables): Only set

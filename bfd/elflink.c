@@ -3587,27 +3587,60 @@ on_needed_list (const char *soname,
   return FALSE;
 }
 
-/* Sort symbol by value, section, and size.  */
+/* Sort symbol by value, section, size, and type.  */
 static int
 elf_sort_symbol (const void *arg1, const void *arg2)
 {
   const struct elf_link_hash_entry *h1;
   const struct elf_link_hash_entry *h2;
   bfd_signed_vma vdiff;
+  int sdiff;
+  const char *n1;
+  const char *n2;
 
   h1 = *(const struct elf_link_hash_entry **) arg1;
   h2 = *(const struct elf_link_hash_entry **) arg2;
   vdiff = h1->root.u.def.value - h2->root.u.def.value;
   if (vdiff != 0)
     return vdiff > 0 ? 1 : -1;
-  else
-    {
-      int sdiff = h1->root.u.def.section->id - h2->root.u.def.section->id;
-      if (sdiff != 0)
-	return sdiff > 0 ? 1 : -1;
-    }
+
+  sdiff = h1->root.u.def.section->id - h2->root.u.def.section->id;
+  if (sdiff != 0)
+    return sdiff;
+
+  /* Sort so that sized symbols are selected over zero size symbols.  */
   vdiff = h1->size - h2->size;
-  return vdiff == 0 ? 0 : vdiff > 0 ? 1 : -1;
+  if (vdiff != 0)
+    return vdiff > 0 ? 1 : -1;
+
+  /* Sort so that STT_OBJECT is selected over STT_NOTYPE.  */
+  if (h1->type != h2->type)
+    return h1->type - h2->type;
+
+  /* If symbols are properly sized and typed, and multiple strong
+     aliases are not defined in a shared library by the user we
+     shouldn't get here.  Unfortunately linker script symbols like
+     __bss_start sometimes match a user symbol defined at the start of
+     .bss without proper size and type.  We'd like to preference the
+     user symbol over reserved system symbols.  Sort on leading
+     underscores.  */
+  n1 = h1->root.root.string;
+  n2 = h2->root.root.string;
+  while (*n1 == *n2)
+    {
+      if (*n1 == 0)
+	break;
+      ++n1;
+      ++n2;
+    }
+  if (*n1 == '_')
+    return -1;
+  if (*n2 == '_')
+    return 1;
+
+  /* Final sort on name selects user symbols like '_u' over reserved
+     system symbols like '_Z' and also will avoid qsort instability.  */
+  return *n1 - *n2;
 }
 
 /* This function is used to adjust offsets into .dynstr for
@@ -5345,8 +5378,8 @@ error_free_dyn:
 	 defined symbol, search time for N weak defined symbols will be
 	 O(N^2). Binary search will cut it down to O(NlogN).  */
       amt = extsymcount;
-      amt *= sizeof (struct elf_link_hash_entry *);
-      sorted_sym_hash = (struct elf_link_hash_entry **) bfd_malloc (amt);
+      amt *= sizeof (*sorted_sym_hash);
+      sorted_sym_hash = bfd_malloc (amt);
       if (sorted_sym_hash == NULL)
 	goto error_return;
       sym_hash = sorted_sym_hash;
@@ -5366,8 +5399,7 @@ error_free_dyn:
 	    }
 	}
 
-      qsort (sorted_sym_hash, sym_count,
-	     sizeof (struct elf_link_hash_entry *),
+      qsort (sorted_sym_hash, sym_count, sizeof (*sorted_sym_hash),
 	     elf_sort_symbol);
 
       while (weaks != NULL)
@@ -7862,6 +7894,7 @@ struct elf_symbol
     {
       Elf_Internal_Sym *isym;
       struct elf_symbuf_symbol *ssym;
+      void *p;
     } u;
   const char *name;
 };
@@ -7874,7 +7907,13 @@ elf_sort_elf_symbol (const void *arg1, const void *arg2)
   const Elf_Internal_Sym *s1 = *(const Elf_Internal_Sym **) arg1;
   const Elf_Internal_Sym *s2 = *(const Elf_Internal_Sym **) arg2;
 
-  return s1->st_shndx - s2->st_shndx;
+  if (s1->st_shndx != s2->st_shndx)
+    return s1->st_shndx > s2->st_shndx ? 1 : -1;
+  /* Final sort by the address of the sym in the symbuf ensures
+     a stable sort.  */
+  if (s1 != s2)
+    return s1 > s2 ? 1 : -1;
+  return 0;
 }
 
 static int
@@ -7882,7 +7921,12 @@ elf_sym_name_compare (const void *arg1, const void *arg2)
 {
   const struct elf_symbol *s1 = (const struct elf_symbol *) arg1;
   const struct elf_symbol *s2 = (const struct elf_symbol *) arg2;
-  return strcmp (s1->name, s2->name);
+  int ret = strcmp (s1->name, s2->name);
+  if (ret != 0)
+    return ret;
+  if (s1->u.p != s2->u.p)
+    return s1->u.p > s2->u.p ? 1 : -1;
+  return 0;
 }
 
 static struct elf_symbuf_head *
@@ -8005,8 +8049,10 @@ bfd_elf_match_symbols_in_sections (asection *sec1, asection *sec2,
 	goto done;
 
       if (!info->reduce_memory_overheads)
-	elf_tdata (bfd1)->symbuf = ssymbuf1
-	  = elf_create_symbuf (symcount1, isymbuf1);
+	{
+	  ssymbuf1 = elf_create_symbuf (symcount1, isymbuf1);
+	  elf_tdata (bfd1)->symbuf = ssymbuf1;
+	}
     }
 
   if (ssymbuf1 == NULL || ssymbuf2 == NULL)
@@ -8017,8 +8063,10 @@ bfd_elf_match_symbols_in_sections (asection *sec1, asection *sec2,
 	goto done;
 
       if (ssymbuf1 != NULL && !info->reduce_memory_overheads)
-	elf_tdata (bfd2)->symbuf = ssymbuf2
-	  = elf_create_symbuf (symcount2, isymbuf2);
+	{
+	  ssymbuf2 = elf_create_symbuf (symcount2, isymbuf2);
+	  elf_tdata (bfd2)->symbuf = ssymbuf2;
+	}
     }
 
   if (ssymbuf1 != NULL && ssymbuf2 != NULL)
@@ -9059,6 +9107,15 @@ struct elf_link_sort_rela
   /* We use this as an array of size int_rels_per_ext_rel.  */
   Elf_Internal_Rela rela[1];
 };
+
+/* qsort stability here and for cmp2 is only an issue if multiple
+   dynamic relocations are emitted at the same address.  But targets
+   that apply a series of dynamic relocations each operating on the
+   result of the prior relocation can't use -z combreloc as
+   implemented anyway.  Such schemes tend to be broken by sorting on
+   symbol index.  That leaves dynamic NONE relocs as the only other
+   case where ld might emit multiple relocs at the same address, and
+   those are only emitted due to target bugs.  */
 
 static int
 elf_link_sort_cmp1 (const void *A, const void *B)
@@ -11453,56 +11510,43 @@ elf_reloc_link_order (bfd *output_bfd,
 }
 
 
-/* Get the output vma of the section pointed to by the sh_link field.  */
-
-static bfd_vma
-elf_get_linked_section_vma (struct bfd_link_order *p)
-{
-  Elf_Internal_Shdr **elf_shdrp;
-  asection *s;
-  int elfsec;
-
-  s = p->u.indirect.section;
-  elf_shdrp = elf_elfsections (s->owner);
-  elfsec = _bfd_elf_section_from_bfd_section (s->owner, s);
-  elfsec = elf_shdrp[elfsec]->sh_link;
-  /* PR 290:
-     The Intel C compiler generates SHT_IA_64_UNWIND with
-     SHF_LINK_ORDER.  But it doesn't set the sh_link or
-     sh_info fields.  Hence we could get the situation
-     where elfsec is 0.  */
-  if (elfsec == 0)
-    {
-      const struct elf_backend_data *bed
-	= get_elf_backend_data (s->owner);
-      if (bed->link_order_error_handler)
-	bed->link_order_error_handler
-	  /* xgettext:c-format */
-	  (_("%pB: warning: sh_link not set for section `%pA'"), s->owner, s);
-      return 0;
-    }
-  else
-    {
-      s = elf_shdrp[elfsec]->bfd_section;
-      return s->output_section->vma + s->output_offset;
-    }
-}
-
-
 /* Compare two sections based on the locations of the sections they are
    linked to.  Used by elf_fixup_link_order.  */
 
 static int
-compare_link_order (const void * a, const void * b)
+compare_link_order (const void *a, const void *b)
 {
-  bfd_vma apos;
-  bfd_vma bpos;
+  const struct bfd_link_order *alo = *(const struct bfd_link_order **) a;
+  const struct bfd_link_order *blo = *(const struct bfd_link_order **) b;
+  asection *asec = elf_linked_to_section (alo->u.indirect.section);
+  asection *bsec = elf_linked_to_section (blo->u.indirect.section);
+  bfd_vma apos = asec->output_section->lma + asec->output_offset;
+  bfd_vma bpos = bsec->output_section->lma + bsec->output_offset;
 
-  apos = elf_get_linked_section_vma (*(struct bfd_link_order **)a);
-  bpos = elf_get_linked_section_vma (*(struct bfd_link_order **)b);
   if (apos < bpos)
     return -1;
-  return apos > bpos;
+  if (apos > bpos)
+    return 1;
+
+  /* The only way we should get matching LMAs is when the first of two
+     sections has zero size.  */
+  if (asec->size < bsec->size)
+    return -1;
+  if (asec->size > bsec->size)
+    return 1;
+
+  /* If they are both zero size then they almost certainly have the same
+     VMA and thus are not ordered with respect to each other.  Test VMA
+     anyway, and fall back to id to make the result reproducible across
+     qsort implementations.  */
+  apos = asec->output_section->vma + asec->output_offset;
+  bpos = bsec->output_section->vma + bsec->output_offset;
+  if (apos < bpos)
+    return -1;
+  if (apos > bpos)
+    return 1;
+
+  return asec->id - bsec->id;
 }
 
 
@@ -11514,13 +11558,11 @@ compare_link_order (const void * a, const void * b)
 static bfd_boolean
 elf_fixup_link_order (bfd *abfd, asection *o)
 {
-  int seen_linkorder;
-  int seen_other;
-  int n;
+  size_t seen_linkorder;
+  size_t seen_other;
+  size_t n;
   struct bfd_link_order *p;
   bfd *sub;
-  const struct elf_backend_data *bed = get_elf_backend_data (abfd);
-  unsigned elfsec;
   struct bfd_link_order **sections;
   asection *s, *other_sec, *linkorder_sec;
   bfd_vma offset;
@@ -11537,11 +11579,8 @@ elf_fixup_link_order (bfd *abfd, asection *o)
 	  sub = s->owner;
 	  if ((s->flags & SEC_LINKER_CREATED) == 0
 	      && bfd_get_flavour (sub) == bfd_target_elf_flavour
-	      && elf_elfheader (sub)->e_ident[EI_CLASS] == bed->s->elfclass
-	      && (elfsec = _bfd_elf_section_from_bfd_section (sub, s))
-	      && elfsec < elf_numsections (sub)
-	      && elf_elfsections (sub)[elfsec]->sh_flags & SHF_LINK_ORDER
-	      && elf_elfsections (sub)[elfsec]->sh_link < elf_numsections (sub))
+	      && elf_section_data (s) != NULL
+	      && elf_linked_to_section (s) != NULL)
 	    {
 	      seen_linkorder++;
 	      linkorder_sec = s;
@@ -11575,26 +11614,25 @@ elf_fixup_link_order (bfd *abfd, asection *o)
   if (!seen_linkorder)
     return TRUE;
 
-  sections = (struct bfd_link_order **)
-    bfd_malloc (seen_linkorder * sizeof (struct bfd_link_order *));
+  sections = bfd_malloc (seen_linkorder * sizeof (*sections));
   if (sections == NULL)
     return FALSE;
-  seen_linkorder = 0;
 
+  seen_linkorder = 0;
   for (p = o->map_head.link_order; p != NULL; p = p->next)
-    {
-      sections[seen_linkorder++] = p;
-    }
+    sections[seen_linkorder++] = p;
+
   /* Sort the input sections in the order of their linked section.  */
-  qsort (sections, seen_linkorder, sizeof (struct bfd_link_order *),
-	 compare_link_order);
+  qsort (sections, seen_linkorder, sizeof (*sections), compare_link_order);
 
   /* Change the offsets of the sections.  */
   offset = 0;
   for (n = 0; n < seen_linkorder; n++)
     {
+      bfd_vma mask;
       s = sections[n]->u.indirect.section;
-      offset &= ~(bfd_vma) 0 << s->alignment_power;
+      mask = ~(bfd_vma) 0 << s->alignment_power;
+      offset = (offset + ~mask) & mask;
       s->output_offset = offset / bfd_octets_per_byte (abfd);
       sections[n]->offset = offset;
       offset += sections[n]->size;
@@ -11649,7 +11687,10 @@ elf_output_implib (bfd *abfd, struct bfd_link_info *info)
     return FALSE;
 
   /* Read in the symbol table.  */
-  sympp = (asymbol **) xmalloc (symsize);
+  sympp = (asymbol **) bfd_malloc (symsize);
+  if (sympp == NULL)
+    return FALSE;
+
   symcount = bfd_canonicalize_symtab (abfd, sympp);
   if (symcount < 0)
     goto free_sym_buf;
@@ -11677,6 +11718,9 @@ elf_output_implib (bfd *abfd, struct bfd_link_info *info)
   /* Make symbols absolute.  */
   osymbuf = (elf_symbol_type *) bfd_alloc2 (implib_bfd, symcount,
 					    sizeof (*osymbuf));
+  if (osymbuf == NULL)
+    goto free_sym_buf;
+
   for (src_count = 0; src_count < symcount; src_count++)
     {
       memcpy (&osymbuf[src_count], (elf_symbol_type *) sympp[src_count],
@@ -12035,6 +12079,10 @@ bfd_elf_final_link (bfd *abfd, struct bfd_link_info *info)
 	      && !(_bfd_elf_link_size_reloc_section (abfd, &esdo->rela)))
 	    goto error_return;
 	}
+
+      /* _bfd_elf_compute_section_file_positions makes temporary use
+	 of target_index.  Reset it.  */
+      o->target_index = 0;
 
       /* Now, reset REL_COUNT and REL_COUNT2 so that we can use them
 	 to count upwards while actually outputting the relocations.  */
