@@ -590,8 +590,8 @@ windows_fetch_one_register (struct regcache *regcache,
 void
 windows_nat_target::fetch_registers (struct regcache *regcache, int r)
 {
-  DWORD pid = regcache->ptid ().tid ();
-  windows_thread_info *th = thread_rec (pid, TRUE);
+  DWORD tid = regcache->ptid ().tid ();
+  windows_thread_info *th = thread_rec (tid, TRUE);
 
   /* Check if TH exists.  Windows sometimes uses a non-existent
      thread id in its events.  */
@@ -660,8 +660,8 @@ windows_store_one_register (const struct regcache *regcache,
 void
 windows_nat_target::store_registers (struct regcache *regcache, int r)
 {
-  DWORD pid = regcache->ptid ().tid ();
-  windows_thread_info *th = thread_rec (pid, TRUE);
+  DWORD tid = regcache->ptid ().tid ();
+  windows_thread_info *th = thread_rec (tid, TRUE);
 
   /* Check if TH exists.  Windows sometimes uses a non-existent
      thread id in its events.  */
@@ -1447,8 +1447,8 @@ windows_nat_target::resume (ptid_t ptid, int step, enum gdb_signal sig)
 
   last_sig = GDB_SIGNAL_0;
 
-  DEBUG_EXEC (("gdb: windows_resume (pid=%d, tid=%ld, step=%d, sig=%d);\n",
-	       ptid.pid (), ptid.tid (), step, sig));
+  DEBUG_EXEC (("gdb: windows_resume (pid=%d, tid=0x%x, step=%d, sig=%d);\n",
+	       ptid.pid (), (unsigned) ptid.tid (), step, sig));
 
   /* Get context for currently selected thread.  */
   th = thread_rec (inferior_ptid.tid (), FALSE);
