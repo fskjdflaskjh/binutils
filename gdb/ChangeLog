@@ -1,5 +1,59 @@
 2019-10-15  Andrew Burgess  <andrew.burgess@embecosm.com>
 
+	* linespec.c (decode_digits_ordinary): Update comment.
+	* make-target-delegates: No longer need to handle VEC case.
+	* memrange.c (normalize_mem_ranges): Update comment.
+	* namespace.c (add_using_directive): Update comment.
+	* objc-lang.c (uniquify_strings): Update comment.
+	* ppc-linux-nat.c (struct thread_points): Update comment.
+	* probe.h (find_probes_in_objfile): Update comment.
+	* target.h (enum flash_preserve_mode): Update comment.
+	* varobj.c (varobj_restrict_range): Update comment.
+	* varobj.h (varobj_list_children): Update comment.
+
+2019-10-15  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* Makefile.in: Remove references to vec.h and vec.c.
+	* aarch64-tdep.c: No longer include vec.h.
+	* ada-lang.c: Likewise.
+	* ada-lang.h: Likewise.
+	* arm-tdep.c: Likewise.
+	* ax.h: Likewise.
+	* breakpoint.h: Likewise.
+	* charset.c: Likewise.
+	* cp-support.h: Likewise.
+	* dtrace-probe.c: Likewise.
+	* dwarf2read.c: Likewise.
+	* extension.h: Likewise.
+	* gdb_bfd.c: Likewise.
+	* gdbsupport/gdb_vecs.h: Likewise.
+	* gdbsupport/vec.c: Remove.
+	* gdbsupport/vec.h: Remove.
+	* gdbthread.h: Likewise.
+	* guile/scm-type.c: Likewise.
+	* inline-frame.c: Likewise.
+	* machoread.c: Likewise.
+	* memattr.c: Likewise.
+	* memrange.h: Likewise.
+	* namespace.h: Likewise.
+	* nat/linux-btrace.h: Likewise.
+	* osdata.c: Likewise.
+	* parser-defs.h: Likewise.
+	* progspace.h: Likewise.
+	* python/py-type.c: Likewise.
+	* record-btrace.c: Likewise.
+	* rust-exp.y: Likewise.
+	* solib-target.c: Likewise.
+	* stap-probe.c: Likewise.
+	* target-descriptions.c: Likewise.
+	* target-memory.c: Likewise.
+	* target.h: Likewise.
+	* varobj.c: Likewise.
+	* varobj.h: Likewise.
+	* xml-support.h: Likewise.
+
+2019-10-15  Andrew Burgess  <andrew.burgess@embecosm.com>
+
 	* gdb/dwarf2read.c (dwarf2_per_objfile::~dwarf2_per_objfile):
 	Update for new std::vector based implementation.
 	(process_psymtab_comp_unit_reader): Likewise.
