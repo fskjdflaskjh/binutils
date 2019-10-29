@@ -828,26 +828,24 @@ symbol_find_demangled_name (struct general_symbol_info *gsymbol,
 
 void
 symbol_set_names (struct general_symbol_info *gsymbol,
-		  const char *linkage_name, int len, bool copy_name,
+		  gdb::string_view linkage_name, bool copy_name,
 		  struct objfile_per_bfd_storage *per_bfd)
 {
   struct demangled_name_entry **slot;
-  /* A 0-terminated copy of the linkage name.  */
-  const char *linkage_name_copy;
 
   if (gsymbol->language == language_ada)
     {
       /* In Ada, we do the symbol lookups using the mangled name, so
          we can save some space by not storing the demangled name.  */
       if (!copy_name)
-	gsymbol->name = linkage_name;
+	gsymbol->name = linkage_name.data ();
       else
 	{
 	  char *name = (char *) obstack_alloc (&per_bfd->storage_obstack,
-					       len + 1);
+					       linkage_name.length () + 1);
 
-	  memcpy (name, linkage_name, len);
-	  name[len] = '\0';
+	  memcpy (name, linkage_name.data (), linkage_name.length ());
+	  name[linkage_name.length ()] = '\0';
 	  gsymbol->name = name;
 	}
       symbol_set_demangled_name (gsymbol, NULL, &per_bfd->storage_obstack);
@@ -858,20 +856,7 @@ symbol_set_names (struct general_symbol_info *gsymbol,
   if (per_bfd->demangled_names_hash == NULL)
     create_demangled_names_hash (per_bfd);
 
-  if (linkage_name[len] != '\0')
-    {
-      char *alloc_name;
-
-      alloc_name = (char *) alloca (len + 1);
-      memcpy (alloc_name, linkage_name, len);
-      alloc_name[len] = '\0';
-
-      linkage_name_copy = alloc_name;
-    }
-  else
-    linkage_name_copy = linkage_name;
-
-  struct demangled_name_entry entry (gdb::string_view (linkage_name_copy, len));
+  struct demangled_name_entry entry (linkage_name);
   slot = ((struct demangled_name_entry **)
 	  htab_find_slot (per_bfd->demangled_names_hash.get (),
 			  &entry, INSERT));
@@ -882,8 +867,24 @@ symbol_set_names (struct general_symbol_info *gsymbol,
 	 This happens to, e.g., main.init (__go_init_main).  Cope.  */
       || (gsymbol->language == language_go && (*slot)->demangled == nullptr))
     {
+      /* A 0-terminated copy of the linkage name.  Callers must set COPY_NAME
+         to true if the string might not be nullterminated.  We have to make
+         this copy because demangling needs a nullterminated string.  */
+      gdb::string_view linkage_name_copy;
+      if (copy_name)
+	{
+	  char *alloc_name = (char *) alloca (linkage_name.length () + 1);
+	  memcpy (alloc_name, linkage_name.data (), linkage_name.length ());
+	  alloc_name[linkage_name.length ()] = '\0';
+
+	  linkage_name_copy = gdb::string_view (alloc_name,
+						linkage_name.length ());
+	}
+      else
+	linkage_name_copy = linkage_name;
+
       gdb::unique_xmalloc_ptr<char> demangled_name_ptr
-	(symbol_find_demangled_name (gsymbol, linkage_name_copy));
+	(symbol_find_demangled_name (gsymbol, linkage_name_copy.data ()));
 
       /* Suppose we have demangled_name==NULL, copy_name==0, and
 	 linkage_name_copy==linkage_name.  In this case, we already have the
@@ -894,14 +895,13 @@ symbol_set_names (struct general_symbol_info *gsymbol,
 	 It turns out that it is actually important to still save such
 	 an entry in the hash table, because storing this name gives
 	 us better bcache hit rates for partial symbols.  */
-      if (!copy_name && linkage_name_copy == linkage_name)
+      if (!copy_name)
 	{
 	  *slot
 	    = ((struct demangled_name_entry *)
 	       obstack_alloc (&per_bfd->storage_obstack,
 			      sizeof (demangled_name_entry)));
-	  new (*slot) demangled_name_entry
-	    (gdb::string_view (linkage_name, len));
+	  new (*slot) demangled_name_entry (linkage_name);
 	}
       else
 	{
@@ -910,11 +910,13 @@ symbol_set_names (struct general_symbol_info *gsymbol,
 	  *slot
 	    = ((struct demangled_name_entry *)
 	       obstack_alloc (&per_bfd->storage_obstack,
-			      sizeof (demangled_name_entry) + len + 1));
+			      sizeof (demangled_name_entry)
+			      + linkage_name.length () + 1));
 	  char *mangled_ptr = reinterpret_cast<char *> (*slot + 1);
-	  strcpy (mangled_ptr, linkage_name_copy);
+	  memcpy (mangled_ptr, linkage_name.data (), linkage_name.length ());
+	  mangled_ptr [linkage_name.length ()] = '\0';
 	  new (*slot) demangled_name_entry
-	    (gdb::string_view (mangled_ptr, len));
+	    (gdb::string_view (mangled_ptr, linkage_name.length ()));
 	}
       (*slot)->demangled = std::move (demangled_name_ptr);
       (*slot)->language = gsymbol->language;
