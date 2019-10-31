@@ -831,8 +831,11 @@ enum search_domain
   /* All defined types */
   TYPES_DOMAIN = 2,
 
+  /* All modules.  */
+  MODULES_DOMAIN = 3,
+
   /* Any type.  */
-  ALL_DOMAIN = 3
+  ALL_DOMAIN = 4
 };
 
 extern const char *search_domain_name (enum search_domain);
@@ -2069,6 +2072,22 @@ extern std::vector<symbol_search> search_symbols (const char *,
 						  int,
 						  const char **,
 						  bool);
+
+/* When searching for Fortran symbols within modules (functions/variables)
+   we return a vector of this type.  The first item in the pair is the
+   module symbol, and the second item is the symbol for the function or
+   variable we found.  */
+typedef std::pair<symbol_search, symbol_search> module_symbol_search;
+
+/* Searches the symbols to find function and variables symbols (depending
+   on KIND) within Fortran modules.  The MODULE_REGEXP matches against the
+   name of the module, REGEXP matches against the name of the symbol within
+   the module, and TYPE_REGEXP matches against the type of the symbol
+   within the module.  */
+extern std::vector<module_symbol_search> search_module_symbols
+	(const char *module_regexp, const char *regexp,
+	 const char *type_regexp, search_domain kind);
+
 extern bool treg_matches_sym_type_name (const compiled_regex &treg,
 					const struct symbol *sym);
 

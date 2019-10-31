@@ -13,40 +13,24 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module mod1
-  type :: m1t1
-     integer :: b
-  end type m1t1
-
-  real :: mod1_var_1 = 1.0
-  integer, parameter :: mod1_var_2 = 456
-
+! Comment just to change the line number on which
+! mod2 is defined.
+module mod2
+  integer :: mod2_var_1 = 123
+  real, parameter :: mod2_var_2 = 0.5
 contains
-  subroutine sub_m1_a(arg)
-    integer :: arg
-    print*, "sub_m1_a"
-    print*, "arg = ", arg
-  end subroutine sub_m1_a
+  subroutine sub_m2_a(a, b)
+    integer :: a
+    logical :: b
+    print*, "sub_m2_a = ", abc
+    print*, "a = ", a
+    print*, "b = ", b
+  end subroutine sub_m2_a
 
-  integer function sub_m1_b()
-    print*, "sub_m1_b"
-    sub_m1_b = 3
-  end function sub_m1_b
-end module mod1
-
-program info_types_test
-  use mod1
-  use mod2
-
-  type :: s1
-     integer :: a
-  end type s1
-
-  logical :: l
-  type (s1) :: var_a
-  type (m1t1) :: var_b
-
-  var_a%a = 1 + mod2_var_1
-  var_b%b = 2
-  l = .FALSE.
-end program info_types_test
+  logical function sub_m2_b(x)
+    real :: x
+    print*, "sub_m2_b = ", cde
+    print*, "x = ", x
+    sub_m2_b = .true.
+  end function sub_m2_b
+end module mod2
