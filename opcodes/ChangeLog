@@ -1,3 +1,81 @@
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class= to
+	OPERAND_TYPE_REGMASK and OPERAND_TYPE_REGBND entries. Move up
+	OPERAND_TYPE_REGBND entry.
+	(operand_classes): Add RegMask and RegBND entries.
+	(operand_types): Drop RegMask and RegBND entry.
+	* i386-opc.h (enum operand_class): Add RegMask and RegBND.
+	(RegMask, RegBND): Delete.
+	(union i386_operand_type): Remove regmask and regbnd fields.
+	* i386-opc.tbl (RegMask, RegBND): Define.
+	* i386-reg.tbl: Replace RegMask by Class=RegMask and RegBND by
+	Class=RegBND.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class= to
+	OPERAND_TYPE_REGMMX, OPERAND_TYPE_REGXMM, OPERAND_TYPE_REGYMM, and
+	OPERAND_TYPE_REGZMM entries.
+	(operand_classes): Add RegMMX and RegSIMD entries.
+	(operand_types): Drop RegMMX and RegSIMD entries.
+	* i386-opc.h (enum operand_class): Add RegMMX and RegSIMD.
+	(RegMMX, RegSIMD): Delete.
+	(union i386_operand_type): Remove regmmx and regsimd fields.
+	* i386-opc.tbl (RegMMX): Define.
+	(RegXMM, RegYMM, RegZMM): Add Class=.
+	* i386-reg.tbl: Replace RegMMX by Class=RegMMX and RegSIMD by
+	Class=RegSIMD.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class= to
+	OPERAND_TYPE_CONTROL, OPERAND_TYPE_TEST, and OPERAND_TYPE_DEBUG
+	entries.
+	(operand_classes): Add RegCR, RegDR, and RegTR entries.
+	(operand_types): Drop Control, Debug, and Test entries.
+	* i386-opc.h (enum operand_class): Add RegCR, RegDR, and RegTR.
+	(Control, Debug, Test): Delete.
+	(union i386_operand_type): Remove control, debug, and test
+	fields.
+	* i386-opc.tbl (Control, Debug, Test): Define.
+	* i386-reg.tbl: Replace Control by Class=RegCR, Debug by
+	Class=RegDR, and Test by Class=RegTR.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class= to
+	OPERAND_TYPE_SREG entry.
+	(operand_classes): Add SReg entry.
+	(operand_types): Drop SReg entry.
+	* i386-opc.h (enum operand_class): Add SReg.
+	(SReg): Delete.
+	(union i386_operand_type): Remove sreg field.
+	* i386-opc.tbl (SReg): Define.
+	* i386-reg.tbl: Replace SReg by Class=SReg.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class=. New
+	OPERAND_TYPE_ANYIMM entry.
+	(operand_classes): New.
+	(operand_types): Drop Reg entry.
+	(output_operand_type): New parameter "class". Process it.
+	(process_i386_operand_type): New local variable "class".
+	(main): Adjust static assertions.
+	* i386-opc.h (CLASS_WIDTH): Define.
+	(enum operand_class): New.
+	(Reg): Replace by Class. Adjust comment.
+	(union i386_operand_type): Replace reg by class.
+	* i386-opc.tbl (Reg8, Reg16, Reg32, Reg64, FloatReg): Add
+	Class=.
+	* i386-reg.tbl: Replace Reg by Class=Reg.
+	* i386-init.h: Re-generate.
+
 2019-11-07  Mihail Ionescu  <mihail.ionescu@arm.com>
 
 	* opcodes/aarch64-tbl.h (V8_6_INSN): New macro for v8.6 instructions.

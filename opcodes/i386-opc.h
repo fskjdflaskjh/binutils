@@ -702,26 +702,29 @@ typedef struct i386_opcode_modifier
   unsigned int intel64:1;
 } i386_opcode_modifier;
 
+/* Operand classes.  */
+
+#define CLASS_WIDTH 4
+enum operand_class
+{
+  ClassNone,
+  Reg, /* GPRs and FP regs, distinguished by operand size */
+  SReg, /* Segment register */
+  RegCR, /* Control register */
+  RegDR, /* Debug register */
+  RegTR, /* Test register */
+  RegMMX, /* MMX register */
+  RegSIMD, /* XMM/YMM/ZMM registers, distinguished by operand size */
+  RegMask, /* Vector Mask register */
+  RegBND, /* Bound register */
+};
+
 /* Position of operand_type bits.  */
 
 enum
 {
-  /* Register (qualified by Byte, Word, etc) */
-  Reg = 0,
-  /* MMX register */
-  RegMMX,
-  /* Vector registers */
-  RegSIMD,
-  /* Vector Mask registers */
-  RegMask,
-  /* Control register */
-  Control,
-  /* Debug register */
-  Debug,
-  /* Test register */
-  Test,
-  /* Segment register */
-  SReg,
+  /* Class */
+  Class = CLASS_WIDTH - 1,
   /* 1 bit immediate */
   Imm1,
   /* 8 bit immediate */
@@ -788,10 +791,7 @@ enum
   /* Any memory size.  */
   Anysize,
 
-  /* Bound register.  */
-  RegBND,
-
-  /* The number of bitfields in i386_operand_type.  */
+  /* The number of bits in i386_operand_type.  */
   OTNum
 };
 
@@ -808,14 +808,7 @@ typedef union i386_operand_type
 {
   struct
     {
-      unsigned int reg:1;
-      unsigned int regmmx:1;
-      unsigned int regsimd:1;
-      unsigned int regmask:1;
-      unsigned int control:1;
-      unsigned int debug:1;
-      unsigned int test:1;
-      unsigned int sreg:1;
+      unsigned int class:CLASS_WIDTH;
       unsigned int imm1:1;
       unsigned int imm8:1;
       unsigned int imm8s:1;
@@ -845,7 +838,6 @@ typedef union i386_operand_type
       unsigned int zmmword:1;
       unsigned int unspecified:1;
       unsigned int anysize:1;
-      unsigned int regbnd:1;
 #ifdef OTUnused
       unsigned int unused:(OTNumOfBits - OTUnused);
 #endif

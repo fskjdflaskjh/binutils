@@ -22,17 +22,28 @@
 #include "i386-opc.h"
 #undef None
 
-#define Reg8  Reg|Byte
-#define Reg16 Reg|Word
-#define Reg32 Reg|Dword
-#define Reg64 Reg|Qword
+#define Reg8  Class=Reg|Byte
+#define Reg16 Class=Reg|Word
+#define Reg32 Class=Reg|Dword
+#define Reg64 Class=Reg|Qword
 
 #define FloatAcc Acc|Tbyte
-#define FloatReg Reg|Tbyte
+#define FloatReg Class=Reg|Tbyte
 
-#define RegXMM RegSIMD|Xmmword
-#define RegYMM RegSIMD|Ymmword
-#define RegZMM RegSIMD|Zmmword
+#define SReg  Class=SReg
+
+#define Control Class=RegCR
+#define Debug   Class=RegDR
+#define Test    Class=RegTR
+
+#define RegMMX Class=RegMMX
+#define RegXMM Class=RegSIMD|Xmmword
+#define RegYMM Class=RegSIMD|Ymmword
+#define RegZMM Class=RegSIMD|Zmmword
+
+#define RegMask Class=RegMask
+
+#define RegBND Class=RegBND
 
 #define Size16 Size=SIZE16
 #define Size32 Size=SIZE32
