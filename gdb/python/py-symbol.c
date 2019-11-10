@@ -23,6 +23,7 @@
 #include "symtab.h"
 #include "python-internal.h"
 #include "objfiles.h"
+#include "symfile.h"
 
 typedef struct sympy_symbol_object {
   PyObject_HEAD
@@ -472,7 +473,7 @@ gdbpy_lookup_global_symbol (PyObject *self, PyObject *args, PyObject *kw)
 }
 
 /* Implementation of
-   gdb.lookup_static_symbol (name [, domain) -> symbol or None.  */
+   gdb.lookup_static_symbol (name [, domain]) -> symbol or None.  */
 
 PyObject *
 gdbpy_lookup_static_symbol (PyObject *self, PyObject *args, PyObject *kw)
@@ -487,9 +488,32 @@ gdbpy_lookup_static_symbol (PyObject *self, PyObject *args, PyObject *kw)
 					&domain))
     return NULL;
 
+  /* In order to find static symbols associated with the "current" object
+     file ahead of those from other object files, we first need to see if
+     we can acquire a current block.  If this fails however, then we still
+     want to search all static symbols, so don't throw an exception just
+     yet.  */
+  const struct block *block = NULL;
   try
     {
-      symbol = lookup_static_symbol (name, (domain_enum) domain).symbol;
+      struct frame_info *selected_frame
+	= get_selected_frame (_("No frame selected."));
+      block = get_frame_block (selected_frame, NULL);
+    }
+  catch (const gdb_exception &except)
+    {
+      /* Nothing.  */
+    }
+
+  try
+    {
+      if (block != nullptr)
+	symbol
+	  = lookup_symbol_in_static_block (name, block,
+					   (domain_enum) domain).symbol;
+
+      if (symbol == nullptr)
+	symbol = lookup_static_symbol (name, (domain_enum) domain).symbol;
     }
   catch (const gdb_exception &except)
     {
@@ -509,6 +533,66 @@ gdbpy_lookup_static_symbol (PyObject *self, PyObject *args, PyObject *kw)
     }
 
   return sym_obj;
+}
+
+/* Implementation of
+   gdb.lookup_static_symbols (name [, domain]) -> symbol list.
+
+   Returns a list of all static symbols matching NAME in DOMAIN.  */
+
+PyObject *
+gdbpy_lookup_static_symbols (PyObject *self, PyObject *args, PyObject *kw)
+{
+  const char *name;
+  int domain = VAR_DOMAIN;
+  static const char *keywords[] = { "name", "domain", NULL };
+
+  if (!gdb_PyArg_ParseTupleAndKeywords (args, kw, "s|i", keywords, &name,
+					&domain))
+    return NULL;
+
+  gdbpy_ref<> return_list (PyList_New (0));
+  if (return_list == NULL)
+    return NULL;
+
+  try
+    {
+      /* Expand any symtabs that contain potentially matching symbols.  */
+      lookup_name_info lookup_name (name, symbol_name_match_type::FULL);
+      expand_symtabs_matching (NULL, lookup_name, NULL, NULL, ALL_DOMAIN);
+
+      for (objfile *objfile : current_program_space->objfiles ())
+	{
+	  for (compunit_symtab *cust : objfile->compunits ())
+	    {
+	      const struct blockvector *bv;
+	      const struct block *block;
+
+	      bv = COMPUNIT_BLOCKVECTOR (cust);
+	      block = BLOCKVECTOR_BLOCK (bv, STATIC_BLOCK);
+
+	      if (block != nullptr)
+		{
+		  symbol *symbol = lookup_symbol_in_static_block
+		    (name, block, (domain_enum) domain).symbol;
+
+		  if (symbol != nullptr)
+		    {
+		      PyObject *sym_obj
+			= symbol_to_symbol_object (symbol);
+		      if (PyList_Append (return_list.get (), sym_obj) == -1)
+			return NULL;
+		    }
+		}
+	    }
+	}
+    }
+  catch (const gdb_exception &except)
+    {
+      GDB_PY_HANDLE_EXCEPTION (except);
+    }
+
+  return return_list.release ();
 }
 
 /* This function is called when an objfile is about to be freed.
