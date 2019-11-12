@@ -281,9 +281,7 @@ static const arm_feature_set arm_ext_i8mm =
   ARM_FEATURE_CORE_HIGH (ARM_EXT2_I8MM);
 
 static const arm_feature_set arm_arch_any = ARM_ANY;
-#ifdef OBJ_ELF
 static const arm_feature_set fpu_any = FPU_ANY;
-#endif
 static const arm_feature_set arm_arch_full ATTRIBUTE_UNUSED = ARM_FEATURE (-1, -1, -1);
 static const arm_feature_set arm_arch_t2 = ARM_ARCH_THUMB2;
 static const arm_feature_set arm_arch_none = ARM_ARCH_NONE;
@@ -16529,36 +16527,6 @@ nsyn_insert_sp (void)
   inst.operands[0].present = 1;
 }
 
-static void
-do_vfp_nsyn_push (void)
-{
-  nsyn_insert_sp ();
-
-  constraint (inst.operands[1].imm < 1 || inst.operands[1].imm > 16,
-	      _("register list must contain at least 1 and at most 16 "
-		"registers"));
-
-  if (inst.operands[1].issingle)
-    do_vfp_nsyn_opcode ("fstmdbs");
-  else
-    do_vfp_nsyn_opcode ("fstmdbd");
-}
-
-static void
-do_vfp_nsyn_pop (void)
-{
-  nsyn_insert_sp ();
-
-  constraint (inst.operands[1].imm < 1 || inst.operands[1].imm > 16,
-	      _("register list must contain at least 1 and at most 16 "
-		"registers"));
-
-  if (inst.operands[1].issingle)
-    do_vfp_nsyn_opcode ("fldmias");
-  else
-    do_vfp_nsyn_opcode ("fldmiad");
-}
-
 /* Fix up Neon data-processing instructions, ORing in the correct bits for
    ARM mode or Thumb mode and moving the encoded bit 24 to bit 28.  */
 
@@ -19547,8 +19515,6 @@ do_neon_mvn (void)
   if (ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext))
     {
       constraint (!inst.operands[1].isreg && !inst.operands[0].isquad, BAD_FPU);
-      constraint ((inst.instruction & 0xd00) == 0xd00,
-		  _("immediate value out of range"));
     }
 }
 
@@ -20642,6 +20608,9 @@ do_neon_tbl_tbx (void)
 static void
 do_neon_ldm_stm (void)
 {
+  constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_v1xd)
+	      && !ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext),
+	      _(BAD_FPU));
   /* P, U and L bits are part of bitmask.  */
   int is_dbmode = (inst.instruction & (1 << 24)) != 0;
   unsigned offsetbits = inst.operands[1].imm * 2;
@@ -20668,6 +20637,49 @@ do_neon_ldm_stm (void)
 
   do_vfp_cond_or_thumb ();
 }
+
+static void
+do_vfp_nsyn_pop (void)
+{
+  nsyn_insert_sp ();
+  if (ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext)) {
+    return do_vfp_nsyn_opcode ("vldm");
+  }
+
+  constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_v1xd),
+	      _(BAD_FPU));
+
+  constraint (inst.operands[1].imm < 1 || inst.operands[1].imm > 16,
+	      _("register list must contain at least 1 and at most 16 "
+		"registers"));
+
+  if (inst.operands[1].issingle)
+    do_vfp_nsyn_opcode ("fldmias");
+  else
+    do_vfp_nsyn_opcode ("fldmiad");
+}
+
+static void
+do_vfp_nsyn_push (void)
+{
+  nsyn_insert_sp ();
+  if (ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext)) {
+    return do_vfp_nsyn_opcode ("vstmdb");
+  }
+
+  constraint (!ARM_CPU_HAS_FEATURE (cpu_variant, fpu_vfp_ext_v1xd),
+	      _(BAD_FPU));
+
+  constraint (inst.operands[1].imm < 1 || inst.operands[1].imm > 16,
+	      _("register list must contain at least 1 and at most 16 "
+		"registers"));
+
+  if (inst.operands[1].issingle)
+    do_vfp_nsyn_opcode ("fstmdbs");
+  else
+    do_vfp_nsyn_opcode ("fstmdbd");
+}
+
 
 static void
 do_neon_ldr_str (void)
@@ -20749,7 +20761,8 @@ do_vldr_vstr (void)
   /* VLDR/VSTR.  */
   else
     {
-      if (!mark_feature_used (&fpu_vfp_ext_v1xd))
+      if (!mark_feature_used (&fpu_vfp_ext_v1xd)
+	  && !ARM_CPU_HAS_FEATURE (cpu_variant, mve_ext))
 	as_bad (_("Instruction not permitted on this architecture"));
       do_neon_ldr_str ();
     }
@@ -24970,6 +24983,10 @@ static const struct asm_opcode insns[] =
 #define THUMB_VARIANT  & arm_ext_v6t2
  mcCE(vmrs,	ef00a10, 2, (APSR_RR, RVC),   vmrs),
  mcCE(vmsr,	ee00a10, 2, (RVC, RR),        vmsr),
+ mcCE(fldd,	d100b00, 2, (RVD, ADDRGLDC),  vfp_dp_ldst),
+ mcCE(fstd,	d000b00, 2, (RVD, ADDRGLDC),  vfp_dp_ldst),
+ mcCE(flds,	d100a00, 2, (RVS, ADDRGLDC),  vfp_sp_ldst),
+ mcCE(fsts,	d000a00, 2, (RVS, ADDRGLDC),  vfp_sp_ldst),
 #undef THUMB_VARIANT
 
   /* Moves and type conversions.  */
@@ -24984,8 +25001,6 @@ static const struct asm_opcode insns[] =
  cCE("fmxr",	ee00a10, 2, (RVC, RR),	      rn_rd),
 
   /* Memory operations.	 */
- cCE("flds",	d100a00, 2, (RVS, ADDRGLDC),  vfp_sp_ldst),
- cCE("fsts",	d000a00, 2, (RVS, ADDRGLDC),  vfp_sp_ldst),
  cCE("fldmias",	c900a00, 2, (RRnpctw, VRSLST),    vfp_sp_ldstmia),
  cCE("fldmfds",	c900a00, 2, (RRnpctw, VRSLST),    vfp_sp_ldstmia),
  cCE("fldmdbs",	d300a00, 2, (RRnpctw, VRSLST),    vfp_sp_ldstmdb),
@@ -25027,8 +25042,6 @@ static const struct asm_opcode insns[] =
 
  /* Double precision load/store are still present on single precision
     implementations.  */
- cCE("fldd",	d100b00, 2, (RVD, ADDRGLDC),  vfp_dp_ldst),
- cCE("fstd",	d000b00, 2, (RVD, ADDRGLDC),  vfp_dp_ldst),
  cCE("fldmiad",	c900b00, 2, (RRnpctw, VRDLST),    vfp_dp_ldstmia),
  cCE("fldmfdd",	c900b00, 2, (RRnpctw, VRDLST),    vfp_dp_ldstmia),
  cCE("fldmdbd",	d300b00, 2, (RRnpctw, VRDLST),    vfp_dp_ldstmdb),
@@ -25082,6 +25095,19 @@ static const struct asm_opcode insns[] =
 #undef  ARM_VARIANT
 #define ARM_VARIANT    & fpu_vfp_ext_v1xd
 #undef  THUMB_VARIANT
+#define THUMB_VARIANT  & arm_ext_v6t2
+
+ NCE(vldm,      c900b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
+ NCE(vldmia,    c900b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
+ NCE(vldmdb,    d100b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
+ NCE(vstm,      c800b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
+ NCE(vstmia,    c800b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
+ NCE(vstmdb,    d000b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
+
+ NCE(vpop,      0,       1, (VRSDLST),          vfp_nsyn_pop),
+ NCE(vpush,     0,       1, (VRSDLST),          vfp_nsyn_push),
+
+#undef  THUMB_VARIANT
 #define THUMB_VARIANT  & fpu_vfp_ext_v1xd
 
   /* These mnemonics are unique to VFP.  */
@@ -25090,19 +25116,10 @@ static const struct asm_opcode insns[] =
  nCE(vnmul,     _vnmul,   3, (RVSD, RVSD, RVSD), vfp_nsyn_nmul),
  nCE(vnmla,     _vnmla,   3, (RVSD, RVSD, RVSD), vfp_nsyn_nmul),
  nCE(vnmls,     _vnmls,   3, (RVSD, RVSD, RVSD), vfp_nsyn_nmul),
- NCE(vpush,     0,       1, (VRSDLST),          vfp_nsyn_push),
- NCE(vpop,      0,       1, (VRSDLST),          vfp_nsyn_pop),
  NCE(vcvtz,     0,       2, (RVSD, RVSD),       vfp_nsyn_cvtz),
 
   /* Mnemonics shared by Neon and VFP.  */
  nCEF(vmls,     _vmls,    3, (RNSDQ, oRNSDQ, RNSDQ_RNSC), neon_mac_maybe_scalar),
-
- NCE(vldm,      c900b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
- NCE(vldmia,    c900b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
- NCE(vldmdb,    d100b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
- NCE(vstm,      c800b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
- NCE(vstmia,    c800b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
- NCE(vstmdb,    d000b00, 2, (RRnpctw, VRSDLST), neon_ldm_stm),
 
  mnCEF(vcvt,     _vcvt,   3, (RNSDQMQ, RNSDQMQ, oI32z), neon_cvt),
  nCEF(vcvtr,    _vcvt,   2, (RNSDQ, RNSDQ), neon_cvtr),
@@ -32775,6 +32792,7 @@ s_arm_fpu (int ignored ATTRIBUTE_UNUSED)
     if (streq (opt->name, name))
       {
 	selected_fpu = opt->value;
+	ARM_CLEAR_FEATURE (selected_cpu, selected_cpu, fpu_any);
 #ifndef CPU_DEFAULT
 	if (no_cpu_selected ())
 	  ARM_MERGE_FEATURE_SETS (cpu_variant, arm_arch_any, selected_fpu);
