@@ -443,7 +443,11 @@ enum
   No_ldSuf,
   /* instruction needs FWAIT */
   FWait,
-  /* quick test for string instructions */
+  /* IsString provides for a quick test for string instructions, and
+     its actual value also indicates which of the operands (if any)
+     requires use of the %es segment.  */
+#define IS_STRING_ES_OP0 2
+#define IS_STRING_ES_OP1 3
   IsString,
   /* RegMem is for instructions with a modrm byte where the register
      destination operand should be encoded in the mod and regmem fields.
@@ -661,7 +665,7 @@ typedef struct i386_opcode_modifier
   unsigned int no_qsuf:1;
   unsigned int no_ldsuf:1;
   unsigned int fwait:1;
-  unsigned int isstring:1;
+  unsigned int isstring:2;
   unsigned int regmem:1;
   unsigned int bndprefixok:1;
   unsigned int notrackprefixok:1;
@@ -719,12 +723,24 @@ enum operand_class
   RegBND, /* Bound register */
 };
 
+/* Special operand instances.  */
+
+#define INSTANCE_WIDTH 3
+enum operand_instance
+{
+  InstanceNone,
+  Accum, /* Accumulator %al/%ax/%eax/%rax/%st(0)/%xmm0 */
+  RegC,  /* %cl / %cx / %ecx / %rcx, e.g. register to hold shift count */
+  RegD,  /* %dl / %dx / %edx / %rdx, e.g. register to hold I/O port addr */
+  RegB,  /* %bl / %bx / %ebx / %rbx */
+};
+
 /* Position of operand_type bits.  */
 
 enum
 {
-  /* Class */
-  Class = CLASS_WIDTH - 1,
+  /* Class and Instance */
+  ClassInstance = CLASS_WIDTH + INSTANCE_WIDTH - 1,
   /* 1 bit immediate */
   Imm1,
   /* 8 bit immediate */
@@ -756,18 +772,10 @@ enum
   Disp32S,
   /* 64 bit displacement */
   Disp64,
-  /* Accumulator %al/%ax/%eax/%rax/%st(0)/%xmm0 */
-  Acc,
   /* Register which can be used for base or index in memory operand.  */
   BaseIndex,
-  /* Register to hold in/out port addr = dx */
-  InOutPortReg,
-  /* Register to hold shift count = cl */
-  ShiftCount,
   /* Absolute address for jump.  */
   JumpAbsolute,
-  /* String insn operand with fixed es segment */
-  EsSeg,
   /* BYTE size. */
   Byte,
   /* WORD size. 2 byte */
@@ -801,14 +809,16 @@ enum
   (OTNumOfUints * sizeof (unsigned int) * CHAR_BIT)
 
 /* If you get a compiler error for zero width of the unused field,
-   comment it out.  */
+   comment it out.
 #define OTUnused		OTNum
+*/
 
 typedef union i386_operand_type
 {
   struct
     {
       unsigned int class:CLASS_WIDTH;
+      unsigned int instance:INSTANCE_WIDTH;
       unsigned int imm1:1;
       unsigned int imm8:1;
       unsigned int imm8s:1;
@@ -821,12 +831,8 @@ typedef union i386_operand_type
       unsigned int disp32:1;
       unsigned int disp32s:1;
       unsigned int disp64:1;
-      unsigned int acc:1;
       unsigned int baseindex:1;
-      unsigned int inoutportreg:1;
-      unsigned int shiftcount:1;
       unsigned int jumpabsolute:1;
-      unsigned int esseg:1;
       unsigned int byte:1;
       unsigned int word:1;
       unsigned int dword:1;

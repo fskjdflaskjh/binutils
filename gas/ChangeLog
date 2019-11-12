@@ -1,3 +1,38 @@
+2019-11-12  Jan Beulich  <jbeulich@suse.com>
+
+	* config/tc-i386.c (type_names): Remove OPERAND_TYPE_ESSEG
+	entry.
+	(md_assemble): Adjust isstring field use. Add assertion.
+	(check_string): Mostly re-write.
+	(i386_index_check): Adjust isstring field use and related code.
+
+2019-11-12  Jan Beulich  <jbeulich@suse.com>
+
+	* config/tc-i386.c (process_immext): Remove SSE3, SVME, and
+	MWAITX special case logic.
+	(process_suffix): Replace immext field uses by instance ones.
+	* testsuite/gas/i386/arch-13.s,
+	testsuite/gas/i386/x86-64-arch-3.s: Add CLZERO with operand
+	cases.
+	* testsuite/gas/i386/svme.s: Add 16-bit operand cases.
+	* testsuite/gas/i386/x86-64-specific-reg.s: Drop FIXME comments.
+	* testsuite/gas/i386/arch-13.d,
+	testsuite/gas/i386/mwaitx-reg.l, testsuite/gas/i386/svme.d,
+	testsuite/gas/i386/x86-64-arch-3.d,
+	testsuite/gas/i386/x86-64-mwaitx-reg.l,
+	testsuite/gas/i386/x86-64-specific-reg.l: Adjust expectations.
+
+2019-11-12  Jan Beulich  <jbeulich@suse.com>
+
+	* config/tc-i386.c (operand_type_set, operand_type_and,
+	operand_type_and_not, operand_type_or, operand_type_xor): Handle
+	"instance" field specially.
+	(operand_size_match, md_assemble, match_template, process_suffix,
+	check_byte_reg, check_long_reg, check_qword_reg, check_word_reg,
+	process_operands, build_modrm_byte): Use "instance" instead of
+	"acc" / "inoutportreg" / "shiftcount" fields.
+	(optimize_imm): Adjust comment.
+
 2019-11-11  Jan Beulich  <jbeulich@suse.com>
 
 	* testsuite/gas/aarch64/illegal-sve2.s: Add smaxp/sminp cases
