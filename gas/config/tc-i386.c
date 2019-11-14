@@ -353,6 +353,9 @@ struct _i386_insn
     unsigned int prefixes;
     unsigned char prefix[MAX_PREFIXES];
 
+    /* The operand to a branch insn indicates an absolute branch.  */
+    bfd_boolean jumpabsolute;
+
     /* Has MMX register operands.  */
     bfd_boolean has_regmmx;
 
@@ -2063,11 +2066,9 @@ operand_size_match (const insn_template *t)
 {
   unsigned int j, match = MATCH_STRAIGHT;
 
-  /* Don't check jump instructions.  */
+  /* Don't check non-absolute jump instructions.  */
   if (t->opcode_modifier.jump
-      || t->opcode_modifier.jumpbyte
-      || t->opcode_modifier.jumpdword
-      || t->opcode_modifier.jumpintersegment)
+      && t->opcode_modifier.jump != JUMP_ABSOLUTE)
     return match;
 
   /* Check memory and accumulator operand size.  */
@@ -2075,7 +2076,7 @@ operand_size_match (const insn_template *t)
     {
       if (i.types[j].bitfield.class != Reg
 	  && i.types[j].bitfield.class != RegSIMD
-	  && t->operand_types[j].bitfield.anysize)
+	  && t->opcode_modifier.anysize)
 	continue;
 
       if (t->operand_types[j].bitfield.class == Reg
@@ -2147,7 +2148,6 @@ operand_type_match (i386_operand_type overlap,
 {
   i386_operand_type temp = overlap;
 
-  temp.bitfield.jumpabsolute = 0;
   temp.bitfield.unspecified = 0;
   temp.bitfield.byte = 0;
   temp.bitfield.word = 0;
@@ -2161,8 +2161,7 @@ operand_type_match (i386_operand_type overlap,
   if (operand_type_all_zero (&temp))
     goto mismatch;
 
-  if (given.bitfield.baseindex == overlap.bitfield.baseindex
-      && given.bitfield.jumpabsolute == overlap.bitfield.jumpabsolute)
+  if (given.bitfield.baseindex == overlap.bitfield.baseindex)
     return 1;
 
 mismatch:
@@ -3155,7 +3154,6 @@ const type_names[] =
   { OPERAND_TYPE_FLOATREG, "FReg" },
   { OPERAND_TYPE_FLOATACC, "FAcc" },
   { OPERAND_TYPE_SREG, "SReg" },
-  { OPERAND_TYPE_JUMPABSOLUTE, "Jump Absolute" },
   { OPERAND_TYPE_REGMMX, "rMMX" },
   { OPERAND_TYPE_REGXMM, "rXMM" },
   { OPERAND_TYPE_REGYMM, "rYMM" },
@@ -4462,9 +4460,9 @@ md_assemble (char *line)
       i.imm_operands = 0;
     }
 
-  if ((i.tm.opcode_modifier.jump
-       || i.tm.opcode_modifier.jumpbyte
-       || i.tm.opcode_modifier.jumpdword)
+  if ((i.tm.opcode_modifier.jump == JUMP
+       || i.tm.opcode_modifier.jump == JUMP_BYTE
+       || i.tm.opcode_modifier.jump == JUMP_DWORD)
       && i.op[0].disps->X_op == O_constant)
     {
       /* Convert "jmp constant" (and "call constant") to a jump (call) to
@@ -4764,8 +4762,8 @@ check_suffix:
 	}
     }
 
-  if (current_templates->start->opcode_modifier.jump
-      || current_templates->start->opcode_modifier.jumpbyte)
+  if (current_templates->start->opcode_modifier.jump == JUMP
+      || current_templates->start->opcode_modifier.jump == JUMP_BYTE)
     {
       /* Check for a branch hint.  We allow ",pt" and ",pn" for
 	 predict taken and predict not taken respectively.
@@ -5743,6 +5741,18 @@ match_template (char mnem_suffix)
       if (!size_match)
 	continue;
 
+      /* This is intentionally not
+
+	 if (i.jumpabsolute != (t->opcode_modifier.jump == JUMP_ABSOLUTE))
+
+	 as the case of a missing * on the operand is accepted (perhaps with
+	 a warning, issued further down).  */
+      if (i.jumpabsolute && t->opcode_modifier.jump != JUMP_ABSOLUTE)
+	{
+	  i.error = operand_type_mismatch;
+	  continue;
+	}
+
       for (j = 0; j < MAX_OPERANDS; j++)
 	operand_types[j] = t->operand_types[j];
 
@@ -6120,11 +6130,8 @@ check_reverse:
   if (!quiet_warnings)
     {
       if (!intel_syntax
-	  && (i.types[0].bitfield.jumpabsolute
-	      != operand_types[0].bitfield.jumpabsolute))
-	{
-	  as_warn (_("indirect %s without `*'"), t->name);
-	}
+	  && (i.jumpabsolute != (t->opcode_modifier.jump == JUMP_ABSOLUTE)))
+	as_warn (_("indirect %s without `*'"), t->name);
 
       if (t->opcode_modifier.isprefix
 	  && t->opcode_modifier.ignoresize)
@@ -6322,9 +6329,9 @@ process_suffix (void)
     }
   else if (intel_syntax
 	   && !i.suffix
-	   && (i.tm.operand_types[0].bitfield.jumpabsolute
-	       || i.tm.opcode_modifier.jumpbyte
-	       || i.tm.opcode_modifier.jumpintersegment
+	   && (i.tm.opcode_modifier.jump == JUMP_ABSOLUTE
+	       || i.tm.opcode_modifier.jump == JUMP_BYTE
+	       || i.tm.opcode_modifier.jump == JUMP_INTERSEGMENT
 	       || (i.tm.base_opcode == 0x0f01 /* [ls][gi]dt */
 		   && i.tm.extension_opcode <= 3)))
     {
@@ -6434,11 +6441,11 @@ process_suffix (void)
 	       && !is_any_vex_encoding (&i.tm)
 	       && ((i.suffix == LONG_MNEM_SUFFIX) == (flag_code == CODE_16BIT)
 		   || (flag_code == CODE_64BIT
-		       && i.tm.opcode_modifier.jumpbyte)))
+		       && i.tm.opcode_modifier.jump == JUMP_BYTE)))
 	{
 	  unsigned int prefix = DATA_PREFIX_OPCODE;
 
-	  if (i.tm.opcode_modifier.jumpbyte) /* jcxz, loop */
+	  if (i.tm.opcode_modifier.jump == JUMP_BYTE) /* jcxz, loop */
 	    prefix = ADDR_PREFIX_OPCODE;
 
 	  if (!add_prefix (prefix))
@@ -7889,7 +7896,7 @@ output_jump (void)
   fixS *fixP;
   bfd_reloc_code_real_type jump_reloc = i.reloc[0];
 
-  if (i.tm.opcode_modifier.jumpbyte)
+  if (i.tm.opcode_modifier.jump == JUMP_BYTE)
     {
       /* This is a loop or jecxz type instruction.  */
       size = 1;
@@ -8280,12 +8287,12 @@ output_insn (void)
   insn_start_off = frag_now_fix ();
 
   /* Output jumps.  */
-  if (i.tm.opcode_modifier.jump)
+  if (i.tm.opcode_modifier.jump == JUMP)
     output_branch ();
-  else if (i.tm.opcode_modifier.jumpbyte
-	   || i.tm.opcode_modifier.jumpdword)
+  else if (i.tm.opcode_modifier.jump == JUMP_BYTE
+	   || i.tm.opcode_modifier.jump == JUMP_DWORD)
     output_jump ();
-  else if (i.tm.opcode_modifier.jumpintersegment)
+  else if (i.tm.opcode_modifier.jump == JUMP_INTERSEGMENT)
     output_interseg_jump ();
   else
     {
@@ -9464,9 +9471,9 @@ i386_displacement (char *disp_start, char *disp_end)
     }
 
   operand_type_set (&bigdisp, 0);
-  if ((i.types[this_operand].bitfield.jumpabsolute)
-      || (!current_templates->start->opcode_modifier.jump
-	  && !current_templates->start->opcode_modifier.jumpdword))
+  if (i.jumpabsolute
+      || (current_templates->start->opcode_modifier.jump != JUMP
+	  && current_templates->start->opcode_modifier.jump != JUMP_DWORD))
     {
       bigdisp.bitfield.disp32 = 1;
       override = (i.prefix[ADDR_PREFIX] != 0);
@@ -9995,7 +10002,7 @@ i386_att_operand (char *operand_string)
       ++op_string;
       if (is_space_char (*op_string))
 	++op_string;
-      i.types[this_operand].bitfield.jumpabsolute = 1;
+      i.jumpabsolute = TRUE;
     }
 
   /* Check if operand is a register.  */
@@ -10051,7 +10058,7 @@ i386_att_operand (char *operand_string)
 	      ++op_string;
 	      if (is_space_char (*op_string))
 		++op_string;
-	      i.types[this_operand].bitfield.jumpabsolute = 1;
+	      i.jumpabsolute = TRUE;
 	    }
 	  goto do_memory_reference;
 	}
@@ -10085,7 +10092,7 @@ i386_att_operand (char *operand_string)
   else if (*op_string == IMMEDIATE_PREFIX)
     {
       ++op_string;
-      if (i.types[this_operand].bitfield.jumpabsolute)
+      if (i.jumpabsolute)
 	{
 	  as_bad (_("immediate operand illegal with absolute jump"));
 	  return 0;

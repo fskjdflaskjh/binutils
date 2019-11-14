@@ -403,14 +403,17 @@ enum
   Modrm,
   /* register is in low 3 bits of opcode */
   ShortForm,
-  /* special case for jump insns.  */
-  Jump,
+  /* special case for jump insns; value has to be 1 */
+#define JUMP 1
   /* call and jump */
-  JumpDword,
+#define JUMP_DWORD 2
   /* loop and jecxz */
-  JumpByte,
+#define JUMP_BYTE 3
   /* special case for intersegment leaps/calls */
-  JumpInterSegment,
+#define JUMP_INTERSEGMENT 4
+  /* absolute address for jump */
+#define JUMP_ABSOLUTE 5
+  Jump,
   /* FP insn memory format bit, sized by 0x4 */
   FloatMF,
   /* src/dest swap for floats. */
@@ -429,6 +432,8 @@ enum
   IgnoreSize,
   /* default insn size depends on mode */
   DefaultSize,
+  /* any memory size */
+  Anysize,
   /* b suffix on instruction illegal */
   No_bSuf,
   /* w suffix on instruction illegal */
@@ -648,16 +653,14 @@ typedef struct i386_opcode_modifier
   unsigned int load:1;
   unsigned int modrm:1;
   unsigned int shortform:1;
-  unsigned int jump:1;
-  unsigned int jumpdword:1;
-  unsigned int jumpbyte:1;
-  unsigned int jumpintersegment:1;
+  unsigned int jump:3;
   unsigned int floatmf:1;
   unsigned int floatr:1;
   unsigned int size:2;
   unsigned int checkregsize:1;
   unsigned int ignoresize:1;
   unsigned int defaultsize:1;
+  unsigned int anysize:1;
   unsigned int no_bsuf:1;
   unsigned int no_wsuf:1;
   unsigned int no_lsuf:1;
@@ -774,8 +777,6 @@ enum
   Disp64,
   /* Register which can be used for base or index in memory operand.  */
   BaseIndex,
-  /* Absolute address for jump.  */
-  JumpAbsolute,
   /* BYTE size. */
   Byte,
   /* WORD size. 2 byte */
@@ -796,8 +797,6 @@ enum
   Zmmword,
   /* Unspecified memory size.  */
   Unspecified,
-  /* Any memory size.  */
-  Anysize,
 
   /* The number of bits in i386_operand_type.  */
   OTNum
@@ -809,9 +808,8 @@ enum
   (OTNumOfUints * sizeof (unsigned int) * CHAR_BIT)
 
 /* If you get a compiler error for zero width of the unused field,
-   comment it out.
+   comment it out.  */
 #define OTUnused		OTNum
-*/
 
 typedef union i386_operand_type
 {
@@ -832,7 +830,6 @@ typedef union i386_operand_type
       unsigned int disp32s:1;
       unsigned int disp64:1;
       unsigned int baseindex:1;
-      unsigned int jumpabsolute:1;
       unsigned int byte:1;
       unsigned int word:1;
       unsigned int dword:1;
@@ -843,7 +840,6 @@ typedef union i386_operand_type
       unsigned int ymmword:1;
       unsigned int zmmword:1;
       unsigned int unspecified:1;
-      unsigned int anysize:1;
 #ifdef OTUnused
       unsigned int unused:(OTNumOfBits - OTUnused);
 #endif
