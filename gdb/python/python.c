@@ -791,10 +791,10 @@ gdbpy_rbreak (PyObject *self, PyObject *args, PyObject *kw)
 
 	  symbol_name = fullname;
 	  symbol_name  += ":";
-	  symbol_name  += SYMBOL_LINKAGE_NAME (p.symbol);
+	  symbol_name  += p.symbol->linkage_name ();
 	}
       else
-	symbol_name = MSYMBOL_LINKAGE_NAME (p.msymbol.minsym);
+	symbol_name = p.msymbol.minsym->linkage_name ();
 
       gdbpy_ref<> argList (Py_BuildValue("(s)", symbol_name.c_str ()));
       gdbpy_ref<> obj (PyObject_CallObject ((PyObject *)

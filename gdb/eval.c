@@ -1044,12 +1044,12 @@ evaluate_funcall (type *expect_type, expression *exp, int *pos,
 	  if (op == OP_VAR_MSYM_VALUE)
 	    {
 	      minimal_symbol *msym = exp->elts[*pos + 2].msymbol;
-	      var_func_name = MSYMBOL_PRINT_NAME (msym);
+	      var_func_name = msym->print_name ();
 	    }
 	  else if (op == OP_VAR_VALUE)
 	    {
 	      symbol *sym = exp->elts[*pos + 2].symbol;
-	      var_func_name = SYMBOL_PRINT_NAME (sym);
+	      var_func_name = sym->print_name ();
 	    }
 
 	  argvec[0] = evaluate_subexp_with_coercion (exp, pos, noside);
@@ -1300,7 +1300,7 @@ evaluate_subexp_standard (struct type *expect_type,
 	(*pos) += 3;
 	symbol *var = exp->elts[pc + 2].symbol;
 	if (TYPE_CODE (SYMBOL_TYPE (var)) == TYPE_CODE_ERROR)
-	  error_unknown_type (SYMBOL_PRINT_NAME (var));
+	  error_unknown_type (var->print_name ());
 	if (noside != EVAL_SKIP)
 	    return evaluate_var_value (noside, exp->elts[pc + 1].block, var);
 	else
@@ -1323,7 +1323,7 @@ evaluate_subexp_standard (struct type *expect_type,
 	type = value_type (val);
 	if (TYPE_CODE (type) == TYPE_CODE_ERROR
 	    && (noside != EVAL_AVOID_SIDE_EFFECTS || pc != 0))
-	  error_unknown_type (MSYMBOL_PRINT_NAME (msymbol));
+	  error_unknown_type (msymbol->print_name ());
 	return val;
       }
 
@@ -1342,7 +1342,7 @@ evaluate_subexp_standard (struct type *expect_type,
 	if (SYMBOL_COMPUTED_OPS (sym) == NULL
 	    || SYMBOL_COMPUTED_OPS (sym)->read_variable_at_entry == NULL)
 	  error (_("Symbol \"%s\" does not have any specific entry value"),
-		 SYMBOL_PRINT_NAME (sym));
+		 sym->print_name ());
 
 	frame = get_selected_frame (NULL);
 	return SYMBOL_COMPUTED_OPS (sym)->read_variable_at_entry (sym, frame);
@@ -3218,7 +3218,7 @@ evaluate_subexp_for_sizeof (struct expression *exp, int *pos,
 
 	type = value_type (mval);
 	if (TYPE_CODE (type) == TYPE_CODE_ERROR)
-	  error_unknown_type (MSYMBOL_PRINT_NAME (msymbol));
+	  error_unknown_type (msymbol->print_name ());
 
 	return value_from_longest (size_type, TYPE_LENGTH (type));
       }
