@@ -1,5 +1,33 @@
 2019-11-26  Tom Tromey  <tom@tromey.com>
 
+	* python/py-function.c (fnpy_init): Update.
+	* value.h (add_internal_function): Adjust declaration.
+	* value.c (function_destroyer): Remove.
+	(do_add_internal_function): Don't set destroyer or copy name.
+	(add_internal_function): Take unique_xmalloc_ptr<char> for name.
+	Set name_allocated.
+	* python/py-cmd.c (cmdpy_destroyer): Don't free "name".
+	(cmdpy_init): Set name_allocated.
+	* cli/cli-decode.h (struct cmd_list_element) <name_allocated>: New
+	member.
+	(~cmd_list_element): Free "name" if needed.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* value.h (add_internal_function): Add new overload.  Move
+	documentation from value.h.
+	* value.c (do_add_internal_function): New function.
+	(add_internal_function): Use it.  Add new overload.
+	(function_destroyer): Don't free doc.
+	* python/py-function.c (fnpy_init): Update.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* python/py-cmd.c (cmdpy_destroyer): Don't free "doc".
+	(cmdpy_init): Set "doc_allocated".
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
 	* gdbsupport/thread-pool.c (thread_pool::set_thread_count): Set
 	name of worker thread.
 	* gdbsupport/common.m4 (GDB_AC_COMMON): Check for

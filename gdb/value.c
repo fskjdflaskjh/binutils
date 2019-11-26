@@ -2421,33 +2421,43 @@ function_command (const char *command, int from_tty)
   /* Do nothing.  */
 }
 
-/* Clean up if an internal function's command is destroyed.  */
-static void
-function_destroyer (struct cmd_list_element *self, void *ignore)
-{
-  xfree ((char *) self->name);
-  xfree ((char *) self->doc);
-}
+/* Helper function that does the work for add_internal_function.  */
 
-/* Add a new internal function.  NAME is the name of the function; DOC
-   is a documentation string describing the function.  HANDLER is
-   called when the function is invoked.  COOKIE is an arbitrary
-   pointer which is passed to HANDLER and is intended for "user
-   data".  */
-void
-add_internal_function (const char *name, const char *doc,
-		       internal_function_fn handler, void *cookie)
+static struct cmd_list_element *
+do_add_internal_function (const char *name, const char *doc,
+			  internal_function_fn handler, void *cookie)
 {
-  struct cmd_list_element *cmd;
   struct internal_function *ifn;
   struct internalvar *var = lookup_internalvar (name);
 
   ifn = create_internal_function (name, handler, cookie);
   set_internalvar_function (var, ifn);
 
-  cmd = add_cmd (xstrdup (name), no_class, function_command, (char *) doc,
-		 &functionlist);
-  cmd->destroyer = function_destroyer;
+  return add_cmd (name, no_class, function_command, doc, &functionlist);
+}
+
+/* See value.h.  */
+
+void
+add_internal_function (const char *name, const char *doc,
+		       internal_function_fn handler, void *cookie)
+{
+  do_add_internal_function (name, doc, handler, cookie);
+}
+
+/* See value.h.  */
+
+void
+add_internal_function (gdb::unique_xmalloc_ptr<char> &&name,
+		       gdb::unique_xmalloc_ptr<char> &&doc,
+		       internal_function_fn handler, void *cookie)
+{
+  struct cmd_list_element *cmd
+    = do_add_internal_function (name.get (), doc.get (), handler, cookie);
+  doc.release ();
+  cmd->doc_allocated = 1;
+  name.release ();
+  cmd->name_allocated = 1;
 }
 
 /* Update VALUE before discarding OBJFILE.  COPIED_TYPES is used to
