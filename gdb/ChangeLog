@@ -1,3 +1,158 @@
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* sparc-nat.c (sparc_xfer_wcookie): Sync declaration with
+	definition.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* remote-sim.c (simulator_command): Make static, remove
+	declaration.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* unittests/array-view-selftests.c (check_ptr_size_ctor2): Make
+	static.
+	* unittests/basic_string_view/capacity/1.cc (test01): Likewise.
+	* unittests/basic_string_view/cons/char/1.cc (test01): Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/cons/char/2.cc (test03): Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/cons/char/3.cc (test05): Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/element_access/char/1.cc (test01):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/element_access/char/empty.cc (main):
+	Likewise.
+	* unittests/basic_string_view/element_access/char/front_back.cc
+	(test01): Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/inserters/char/2.cc (test05):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/modifiers/remove_prefix/char/1.cc
+	(test01): Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/modifiers/remove_suffix/char/1.cc
+	(test01): Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/modifiers/swap/char/1.cc (test01):
+	Likewise.
+	* unittests/basic_string_view/operations/compare/char/1.cc
+	(test01): Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operations/compare/char/13650.cc
+	(test01): Likewise.
+	* unittests/basic_string_view/operations/copy/char/1.cc (test01):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operations/data/char/1.cc (test01):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operations/find/char/1.cc (test01):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operations/find/char/2.cc (test02):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operations/find/char/3.cc (test03):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operations/find/char/4.cc (main):
+	Likewise.
+	* unittests/basic_string_view/operations/rfind/char/1.cc (test01):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operations/rfind/char/2.cc (test02):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operations/rfind/char/3.cc (test03):
+	Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operations/substr/char/1.cc
+	(test01): Likewise.
+	(main): Likewise.
+	* unittests/basic_string_view/operators/char/2.cc (main):
+	Likewise.
+	* unittests/optional/assignment/1.cc (test): Likewise.
+	* unittests/optional/assignment/2.cc (test): Likewise.
+	* unittests/optional/assignment/3.cc (test): Likewise.
+	* unittests/optional/assignment/4.cc (test): Likewise.
+	* unittests/optional/assignment/5.cc (test): Likewise.
+	* unittests/optional/assignment/6.cc (test): Likewise.
+	* unittests/optional/assignment/7.cc (test): Likewise.
+	* unittests/optional/cons/copy.cc (test): Likewise.
+	* unittests/optional/cons/default.cc (test): Likewise.
+	* unittests/optional/cons/move.cc (test): Likewise.
+	* unittests/optional/cons/value.cc (test): Likewise.
+	* unittests/optional/in_place.cc (test): Likewise.
+	* unittests/optional/observers/1.cc (test): Likewise.
+	* unittests/optional/observers/2.cc (test): Likewise.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* tui-win.h (tui_set_var_cmd): Remove.
+	* tui-win.c (tui_set_var_cmd): Make static.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* breakpoint.h (hbreak_command_wrapper, thbreak_command_wrapper,
+	rbreak_command_wrapper): Remove.
+	* symtab.c (rbreak_command_wrapper): Remove.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* inferior.h (info_terminal_command): Remove declaration.
+	* inflow.c (info_terminal_command): Make static.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* inferior.c (exit_inferior_silent): Remove.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* dictionary.c (dict_empty, mdict_empty): Remove.
+	* dictionary.c (mdict_empty): Remove.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	 * arc-tdep.c (arc_insn_get_memory_base_reg): Make static.
+	 (arc_insn_get_memory_offset): Likewise.
+	 (arc_insn_dump): Likewise.
+	 * cp-support.c (test_cp_symbol_name_matches): Likewise.
+	 * csky-linux-tdep.c (csky_supply_fregset): Likewise.
+	 * dictionary.c (dict_iterator_next): Likewise.
+	 (dict_iter_match_first): Likewise.
+	 (dict_iter_match_next): Likewise.
+	 * f-lang.c (evaluate_subexp_f): Likewise.
+	 * hppa-tdep.c (hppa_read_pc): Likewise.
+	 * i386-tdep.c (i386_floatformat_for_type): Likewise.
+	 * parse.c (write_exp_elt_msym): Likewise.
+	 * ppc-linux-tdep.c (ppc_floatformat_for_type): Likewise.
+	 * remote.c (remote_packet_size): Likewise.
+	 (remote_notif_stop_parse): Likewise.
+	 * rs6000-aix-tdep.c (aix_sighandle_frame_sniffer): Likewise.
+	 * s12z-tdep.c (s12z_disassemble_info): Likewise.
+	 * source.c (prepare_path_for_appending): Likewise.
+	 * sparc64-linux-tdep.c
+	 (sparc64_linux_handle_segmentation_fault); Likewise.
+	 * stack.c (frame_selection_by_function_completer): Likewise.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* completer.c (set_gdb_completion_word_break_characters):
+	Remove.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* dwarf-index-write.c: Include dwarf-index-write.h.
+	* mi/mi-interp.c: Include mi/mi-interp.h.
+
+2019-11-26  Simon Marchi  <simon.marchi@efficios.com>
+
+	* aarch32-tdep.c: Include aarch32-tdep.h.
+	* aarch32-tdep.h: Forward-declare struct target_desc.
+
 2019-11-26  Christian Biesinger  <cbiesinger@google.com>
 
 	* linux-nat.c (detach_one_lwp): Call safe_strerror instead of
