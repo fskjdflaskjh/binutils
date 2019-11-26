@@ -1,3 +1,108 @@
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* gdbsupport/thread-pool.c (thread_pool::set_thread_count): Set
+	name of worker thread.
+	* gdbsupport/common.m4 (GDB_AC_COMMON): Check for
+	pthread_setname_np.
+	* configure, config.in: Rebuild.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* python/python.c (class gdbpy_gil): New.
+	(struct gdbpy_event): Add constructor, destructor, operator().
+	(gdbpy_post_event): Use run_on_main_thread.
+	(gdbpy_initialize_events): Remove.
+	(do_start_initialization): Update.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* NEWS: Add entry.
+	* maint.c (_initialize_maint_cmds): Add "worker-threads" maint
+	commands.  Call update_thread_pool_size.
+	(update_thread_pool_size, maintenance_set_worker_threads): New
+	functions.
+	(n_worker_threads): New global.
+
+2019-11-26  Christian Biesinger  <cbiesinger@google.com>
+	    Tom Tromey  <tom@tromey.com>
+
+	* minsyms.c (minimal_symbol_reader::install): Use
+	parallel_for_each.
+	* gdbsupport/parallel-for.h: New file.
+	* Makefile.in (HFILES_NO_SRCDIR): Add gdbsupport/parallel-for.h.
+
+2019-11-26  Christian Biesinger  <cbiesinger@google.com>
+	    Tom Tromey  <tom@tromey.com>
+
+	* gdbsupport/thread-pool.h: New file.
+	* gdbsupport/thread-pool.c: New file.
+	* Makefile.in (COMMON_SFILES): Add thread-pool.c.
+	(HFILES_NO_SRCDIR): Add thread-pool.h.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* event-top.h (thread_local_segv_handler): Declare.
+	* event-top.c (thread_local_segv_handler): New global.
+	(install_handle_sigsegv, handle_sigsegv): New functions.
+	(async_init_signals): Install SIGSEGV handler.
+	* cp-support.c (gdb_demangle_jmp_buf): Change type.  Now
+	thread-local.
+	(report_failed_demangle): New function.
+	(gdb_demangle): Make core_dump_allowed atomic.  Remove signal
+	handler-setting code, instead use segv_handler.  Run warning code
+	on main thread.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* run-on-main-thread.c: New file.
+	* run-on-main-thread.h: New file.
+	* unittests/main-thread-selftests.c: New file.
+	* Makefile.in (SUBDIR_UNITTESTS_SRCS): Add
+	main-thread-selftests.c.
+	(HFILES_NO_SRCDIR): Add run-on-main-thread.h.
+	(COMMON_SFILES): Add run-on-main-thread.c.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* main.c (setup_alternate_signal_stack): Remove.
+	(captured_main_1): Use gdb::alternate_signal_stack.
+	* gdbsupport/alt-stack.h: New file.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* gdbsupport/signals-state-save-restore.c (original_signal_mask):
+	Remove comment.
+	(save_original_signals_state, restore_original_signals_state): Use
+	gdb_sigmask.
+	* linux-nat.c (block_child_signals, restore_child_signals_mask)
+	(_initialize_linux_nat): Use gdb_sigmask.
+	* guile/guile.c (_initialize_guile): Use block_signals.
+	* Makefile.in (HFILES_NO_SRCDIR): Add gdb-sigmask.h.
+	* gdbsupport/gdb-sigmask.h: New file.
+	* event-top.c (async_sigtstp_handler): Use gdb_sigmask.
+	* cp-support.c (gdb_demangle): Use gdb_sigmask.
+	* gdbsupport/common.m4 (GDB_AC_COMMON): Check for
+	pthread_sigmask.
+	* configure, config.in: Rebuild.
+	* gdbsupport/block-signals.h: New file.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* acinclude.m4: Include ax_pthread.m4.
+	* Makefile.in (PTHREAD_CFLAGS, PTHREAD_LIBS): New variables.
+	(INTERNAL_CFLAGS_BASE): Use PTHREAD_CFLAGS.
+	(CLIBS): Use PTHREAD_LIBS.
+	(aclocal_m4_deps): Add ax_pthread.m4.
+	* config.in, configure: Rebuild.
+	* gdbsupport/common.m4 (GDB_AC_COMMON): Check for std::thread.
+
+2019-11-26  Tom Tromey  <tom@tromey.com>
+
+	* symtab.h (struct minimal_symbol) <name_set>: New member.
+	* minsyms.c (minimal_symbol_reader::record_full): Copy name.
+	Don't call symbol_set_names.
+	(minimal_symbol_reader::install): Call symbol_set_names.
+
 2019-11-26  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
 
 	* python/python.c (gdbpy_enter::~gdbpy_enter): Release GIL after

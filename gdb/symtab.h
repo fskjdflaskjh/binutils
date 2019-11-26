@@ -528,6 +528,16 @@ extern void symbol_set_language (struct general_symbol_info *symbol,
                                  enum language language,
 				 struct obstack *obstack);
 
+
+/* Try to determine the demangled name for a symbol, based on the
+   language of that symbol.  If the language is set to language_auto,
+   it will attempt to find any demangling algorithm that works and
+   then set the language appropriately.  The returned name is allocated
+   by the demangler and should be xfree'd.  */
+
+extern char *symbol_find_demangled_name (struct general_symbol_info *gsymbol,
+					 const char *mangled);
+
 /* Set just the linkage name of a symbol; do not try to demangle
    it.  Used for constructs which do not have a mangled name,
    e.g. struct tags.  Unlike SYMBOL_SET_NAMES, linkage_name must
@@ -667,6 +677,10 @@ struct minimal_symbol : public general_symbol_info
      address in this symbol is used.  */
 
   unsigned maybe_copied : 1;
+
+  /* Non-zero if this symbol ever had its demangled name set (even if
+     it was set to NULL).  */
+  unsigned int name_set : 1;
 
   /* Minimal symbols with the same hash key are kept on a linked
      list.  This is the link.  */
