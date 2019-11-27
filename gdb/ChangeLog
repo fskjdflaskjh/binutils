@@ -1,3 +1,52 @@
+2019-11-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* mi/mi-cmds.c (mi_cmds): Add 'symbol-info-modules' entry.
+	* mi/mi-cmds.h (mi_cmd_symbol_info_modules): Declare.
+	* mi/mi-symbol-cmds.c (mi_cmd_symbol_info_modules): New function.
+	* NEWS: Mention new MI command.
+
+2019-11-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* mi/mi-cmds.c (mi_cmds): Add '-symbol-info-functions',
+	'-symbol-info-types', and '-symbol-info-variables'.
+	* mi/mi-cmds.h (mi_cmd_symbol_info_functions): Declare.
+	(mi_cmd_symbol_info_types): Declare.
+	(mi_cmd_symbol_info_variables): Declare.
+	* mi/mi-symbol-cmds.c: Add 'source.h' and 'mi-getopt.h' includes.
+	(output_debug_symbol): New function.
+	(output_nondebug_symbol): New function.
+	(mi_symbol_info): New function.
+	(mi_info_functions_or_variables): New function.
+	(mi_cmd_symbol_info_functions): New function.
+	(mi_cmd_symbol_info_types): New function.
+	(mi_cmd_symbol_info_variables): New function.
+	* NEWS: Mention new commands.
+
+2019-11-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* symtab.c (symbol_to_info_string): New function, most content
+	moved from print_symbol_info, but updated to return a std::string.
+	(print_symbol_info): Update to use symbol_to_info_string and print
+	returned string.
+	* symtab.h (symbol_to_info_string): Declare new function.
+
+2019-11-27  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* python/python.c (gdbpy_rbreak): Convert to using
+	global_symbol_searcher.
+	* symtab.c (file_matches): Convert return type to bool, change
+	file list to std::vector, update header comment.
+	(search_symbols): Rename to...
+	(global_symbol_searcher::search): ...this and update now its
+	a member function of global_symbol_searcher.  Take account of the
+	changes to file_matches.
+	(symtab_symbol_info): Convert to using global_symbol_searcher.
+	(rbreak_command): Likewise.
+	(search_module_symbols): Likewise.
+	* symtab.h (enum symbol_search): Update comment.
+	(search_symbols): Remove declaration.
+	(class global_symbol_searcher): New class.
+
 2019-11-26  Tom Tromey  <tromey@adacore.com>
 
 	* cp-support.c (_initialize_cp_support): Conditionally initialize
