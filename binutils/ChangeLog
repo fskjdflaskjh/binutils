@@ -1,3 +1,62 @@
+2019-11-22  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* dwarf.c (regname_internal_riscv): New function.
+	(init_dwarf_regnames_riscv): Use new function.
+
+2019-11-22  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* dwarf.c (typedef dwarf_regname_lookup_ftype): New typedef.
+	(dwarf_regnames_lookup_func): New static global.
+	(init_dwarf_regnames_i386): Set dwarf_regnames_lookup_func.
+	(init_dwarf_regnames_iamcu): Likewise.
+	(init_dwarf_regnames_x86_64): Likewise.
+	(init_dwarf_regnames_aarch64): Likewise.
+	(init_dwarf_regnames_s390): Likewise.
+	(init_dwarf_regnames_riscv): Likewise.
+	(init_dwarf_regnames_by_elf_machine_code): Reset
+	dwarf_regnames_lookup_func to NULL.
+	(init_dwarf_regnames_by_bfd_arch_and_mach): Likewise.
+	(regname_internal_by_table_only): New function.
+	(regname): Make use of dwarf_regnames_lookup_func.
+
+2019-11-22  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* dwarf.c (init_dwarf_regnames_i386): Make static.
+	(init_dwarf_regnames_iamcu): Make static.
+	(init_dwarf_regnames_x86_64): Make static.
+	(init_dwarf_regnames_aarch64): Make static.
+	(init_dwarf_regnames_s390): Make static.
+	(init_dwarf_regnames_riscv): Make static.
+	* dwarf.h (init_dwarf_regnames_i386): Delete declaration.
+	(init_dwarf_regnames_iamcu): Delete declaration.
+	(init_dwarf_regnames_x86_64): Delete declaration.
+	(init_dwarf_regnames_aarch64): Delete declaration.
+	(init_dwarf_regnames_s390): Delete declaration.
+	(init_dwarf_regnames_riscv): Delete declaration.
+
+2019-11-22  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* dwarf.c (init_dwarf_regnames_by_bfd_arch_and_mach): New
+	function.
+	* dwarf.h (init_dwarf_regnames_by_bfd_arch_and_mach): Declare.
+	* objdump.c (dump_dwarf): Call new function instead of calling
+	specific initialization routines.  Restrucure so that eh_addr_size
+	is still calculated correctly.
+
+2019-11-22  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* dwarf.c (init_dwarf_regnames): Renamed to...
+	(init_dwarf_regnames_by_elf_machine_code): ...this.
+	* dwarf.h (init_dwarf_regnames): Renamed to...
+	(init_dwarf_regnames_by_elf_machine_code): ...this.
+	* readelf.c (process_file_header): Update call to use new name.
+
+2019-11-22  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* dwarf.c (frame_need_space): Compare dwarf_regnames_count against
+	0, and only warn about large numbers of registers if the number is
+	more than the dwarf_regnames_count.
+
 2019-11-25  Christian Eggers  <ceggers@gmx.de>
 
 	* objdump.c (disassemble_data): Provide section parameter to
