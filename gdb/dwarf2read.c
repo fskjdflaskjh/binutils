@@ -1910,6 +1910,9 @@ static void process_queue (struct dwarf2_per_objfile *dwarf2_per_objfile);
 static struct type *dwarf2_per_cu_addr_type (struct dwarf2_per_cu_data *per_cu);
 static struct type *dwarf2_per_cu_addr_sized_int_type
 	(struct dwarf2_per_cu_data *per_cu, bool unsigned_p);
+static struct type *dwarf2_per_cu_int_type
+	(struct dwarf2_per_cu_data *per_cu, int size_in_bytes,
+	 bool unsigned_p);
 
 /* Class, the destructor of which frees all allocated queue entries.  This
    will only have work to do if an error was thrown while processing the
@@ -17320,29 +17323,90 @@ read_tag_string_type (struct die_info *die, struct dwarf2_cu *cu)
   struct gdbarch *gdbarch = get_objfile_arch (objfile);
   struct type *type, *range_type, *index_type, *char_type;
   struct attribute *attr;
-  unsigned int length;
+  struct dynamic_prop prop;
+  bool length_is_constant = true;
+  LONGEST length;
+
+  /* There are a couple of places where bit sizes might be made use of
+     when parsing a DW_TAG_string_type, however, no producer that we know
+     of make use of these.  Handling bit sizes that are a multiple of the
+     byte size is easy enough, but what about other bit sizes?  Lets deal
+     with that problem when we have to.  Warn about these attributes being
+     unsupported, then parse the type and ignore them like we always
+     have.  */
+  if (dwarf2_attr (die, DW_AT_bit_size, cu) != nullptr
+      || dwarf2_attr (die, DW_AT_string_length_bit_size, cu) != nullptr)
+    {
+      static bool warning_printed = false;
+      if (!warning_printed)
+	{
+	  warning (_("DW_AT_bit_size and DW_AT_string_length_bit_size not "
+		     "currently supported on DW_TAG_string_type."));
+	  warning_printed = true;
+	}
+    }
 
   attr = dwarf2_attr (die, DW_AT_string_length, cu);
-  if (attr != nullptr)
+  if (attr != nullptr && !attr_form_is_constant (attr))
     {
-      length = DW_UNSND (attr);
+      /* The string length describes the location at which the length of
+	 the string can be found.  The size of the length field can be
+	 specified with one of the attributes below.  */
+      struct type *prop_type;
+      struct attribute *len
+	= dwarf2_attr (die, DW_AT_string_length_byte_size, cu);
+      if (len == nullptr)
+	len = dwarf2_attr (die, DW_AT_byte_size, cu);
+      if (len != nullptr && attr_form_is_constant (len))
+	{
+	  /* Pass 0 as the default as we know this attribute is constant
+	     and the default value will not be returned.  */
+	  LONGEST sz = dwarf2_get_attr_constant_value (len, 0);
+	  prop_type = dwarf2_per_cu_int_type (cu->per_cu, sz, true);
+	}
+      else
+	{
+	  /* If the size is not specified then we assume it is the size of
+	     an address on this target.  */
+	  prop_type = dwarf2_per_cu_addr_sized_int_type (cu->per_cu, true);
+	}
+
+      /* Convert the attribute into a dynamic property.  */
+      if (!attr_to_dynamic_prop (attr, die, cu, &prop, prop_type))
+	length = 1;
+      else
+	length_is_constant = false;
+    }
+  else if (attr != nullptr)
+    {
+      /* This DW_AT_string_length just contains the length with no
+	 indirection.  There's no need to create a dynamic property in this
+	 case.  Pass 0 for the default value as we know it will not be
+	 returned in this case.  */
+      length = dwarf2_get_attr_constant_value (attr, 0);
+    }
+  else if ((attr = dwarf2_attr (die, DW_AT_byte_size, cu)) != nullptr)
+    {
+      /* We don't currently support non-constant byte sizes for strings.  */
+      length = dwarf2_get_attr_constant_value (attr, 1);
     }
   else
     {
-      /* Check for the DW_AT_byte_size attribute.  */
-      attr = dwarf2_attr (die, DW_AT_byte_size, cu);
-      if (attr != nullptr)
-        {
-          length = DW_UNSND (attr);
-        }
-      else
-        {
-          length = 1;
-        }
+      /* Use 1 as a fallback length if we have nothing else.  */
+      length = 1;
     }
 
   index_type = objfile_type (objfile)->builtin_int;
-  range_type = create_static_range_type (NULL, index_type, 1, length);
+  if (length_is_constant)
+    range_type = create_static_range_type (NULL, index_type, 1, length);
+  else
+    {
+      struct dynamic_prop low_bound;
+
+      low_bound.kind = PROP_CONST;
+      low_bound.data.const_val = 1;
+      range_type = create_range_type (NULL, index_type, &low_bound, &prop, 0);
+    }
   char_type = language_string_char_type (cu->language_defn, gdbarch);
   type = create_string_type (NULL, char_type, range_type);
 
@@ -17803,7 +17867,15 @@ attr_to_dynamic_prop (const struct attribute *attr, struct die_info *die,
       baton->locexpr.per_cu = cu->per_cu;
       baton->locexpr.size = DW_BLOCK (attr)->size;
       baton->locexpr.data = DW_BLOCK (attr)->data;
-      baton->locexpr.is_reference = false;
+      switch (attr->name)
+	{
+	case DW_AT_string_length:
+	  baton->locexpr.is_reference = true;
+	  break;
+	default:
+	  baton->locexpr.is_reference = false;
+	  break;
+	}
       prop->data.baton = baton;
       prop->kind = PROP_LOCEXPR;
       gdb_assert (prop->data.baton != NULL);
@@ -17887,24 +17959,22 @@ attr_to_dynamic_prop (const struct attribute *attr, struct die_info *die,
   return 1;
 }
 
-/* Find an integer type the same size as the address size given in the
-   compilation unit header for PER_CU.  UNSIGNED_P controls if the integer
-   is unsigned or not.  */
+/* Find an integer type SIZE_IN_BYTES bytes in size and return it.
+   UNSIGNED_P controls if the integer is unsigned or not.  */
 
 static struct type *
-dwarf2_per_cu_addr_sized_int_type (struct dwarf2_per_cu_data *per_cu,
-				   bool unsigned_p)
+dwarf2_per_cu_int_type (struct dwarf2_per_cu_data *per_cu,
+			int size_in_bytes, bool unsigned_p)
 {
   struct objfile *objfile = per_cu->dwarf2_per_objfile->objfile;
-  int addr_size = dwarf2_per_cu_addr_size (per_cu);
   struct type *int_type;
 
   /* Helper macro to examine the various builtin types.  */
-#define TRY_TYPE(F)						\
-  int_type = (unsigned_p					\
-	      ? objfile_type (objfile)->builtin_unsigned_ ## F	\
-	      : objfile_type (objfile)->builtin_ ## F);		\
-  if (int_type != NULL && TYPE_LENGTH (int_type) == addr_size)	\
+#define TRY_TYPE(F)							\
+  int_type = (unsigned_p						\
+	      ? objfile_type (objfile)->builtin_unsigned_ ## F		\
+	      : objfile_type (objfile)->builtin_ ## F);			\
+  if (int_type != NULL && TYPE_LENGTH (int_type) == size_in_bytes)	\
     return int_type
 
   TRY_TYPE (char);
@@ -17916,6 +17986,18 @@ dwarf2_per_cu_addr_sized_int_type (struct dwarf2_per_cu_data *per_cu,
 #undef TRY_TYPE
 
   gdb_assert_not_reached ("unable to find suitable integer type");
+}
+
+/* Find an integer type the same size as the address size given in the
+   compilation unit header for PER_CU.  UNSIGNED_P controls if the integer
+   is unsigned or not.  */
+
+static struct type *
+dwarf2_per_cu_addr_sized_int_type (struct dwarf2_per_cu_data *per_cu,
+				   bool unsigned_p)
+{
+  int addr_size = dwarf2_per_cu_addr_size (per_cu);
+  return dwarf2_per_cu_int_type (per_cu, addr_size, unsigned_p);
 }
 
 /* Read the DW_AT_type attribute for a sub-range.  If this attribute is not
@@ -18065,7 +18147,52 @@ read_subrange_type (struct die_info *die, struct dwarf2_cu *cu)
       && !TYPE_UNSIGNED (base_type) && (high.data.const_val & negative_mask))
     high.data.const_val |= negative_mask;
 
-  range_type = create_range_type (NULL, orig_base_type, &low, &high, bias);
+  /* Check for bit and byte strides.  */
+  struct dynamic_prop byte_stride_prop;
+  attribute *attr_byte_stride = dwarf2_attr (die, DW_AT_byte_stride, cu);
+  if (attr_byte_stride != nullptr)
+    {
+      struct type *prop_type
+	= dwarf2_per_cu_addr_sized_int_type (cu->per_cu, false);
+      attr_to_dynamic_prop (attr_byte_stride, die, cu, &byte_stride_prop,
+			    prop_type);
+    }
+
+  struct dynamic_prop bit_stride_prop;
+  attribute *attr_bit_stride = dwarf2_attr (die, DW_AT_bit_stride, cu);
+  if (attr_bit_stride != nullptr)
+    {
+      /* It only makes sense to have either a bit or byte stride.  */
+      if (attr_byte_stride != nullptr)
+	{
+	  complaint (_("Found DW_AT_bit_stride and DW_AT_byte_stride "
+		       "- DIE at %s [in module %s]"),
+		     sect_offset_str (die->sect_off),
+		     objfile_name (cu->per_cu->dwarf2_per_objfile->objfile));
+	  attr_bit_stride = nullptr;
+	}
+      else
+	{
+	  struct type *prop_type
+	    = dwarf2_per_cu_addr_sized_int_type (cu->per_cu, false);
+	  attr_to_dynamic_prop (attr_bit_stride, die, cu, &bit_stride_prop,
+				prop_type);
+	}
+    }
+
+  if (attr_byte_stride != nullptr
+      || attr_bit_stride != nullptr)
+    {
+      bool byte_stride_p = (attr_byte_stride != nullptr);
+      struct dynamic_prop *stride
+	= byte_stride_p ? &byte_stride_prop : &bit_stride_prop;
+
+      range_type
+	= create_range_type_with_stride (NULL, orig_base_type, &low,
+					 &high, bias, stride, byte_stride_p);
+    }
+  else
+    range_type = create_range_type (NULL, orig_base_type, &low, &high, bias);
 
   if (high_bound_is_count)
     TYPE_RANGE_DATA (range_type)->flag_upper_bound_is_count = 1;
