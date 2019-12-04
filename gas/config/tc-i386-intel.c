@@ -657,11 +657,12 @@ i386_intel_operand (char *operand_string, int got_a_float)
 	       && current_templates->start->name[3] == 0)
 	      || current_templates->start->base_opcode == 0x62 /* bound */)
 	    suffix = WORD_MNEM_SUFFIX;
-	  else if (flag_code == CODE_16BIT
+	  else if (flag_code != CODE_32BIT
 		   && (current_templates->start->opcode_modifier.jump == JUMP
 		       || current_templates->start->opcode_modifier.jump
 			  == JUMP_DWORD))
-	    suffix = LONG_DOUBLE_MNEM_SUFFIX;
+	    suffix = flag_code == CODE_16BIT ? LONG_DOUBLE_MNEM_SUFFIX
+					     : WORD_MNEM_SUFFIX;
 	  else if (got_a_float == 1)	/* "f..." */
 	    suffix = SHORT_MNEM_SUFFIX;
 	  else
@@ -697,6 +698,15 @@ i386_intel_operand (char *operand_string, int got_a_float)
 	  i.types[this_operand].bitfield.tbyte = 1;
 	  if (got_a_float == 1)
 	    suffix = LONG_DOUBLE_MNEM_SUFFIX;
+	  else if (current_templates->start->operand_types[0].bitfield.fword
+		   || current_templates->start->operand_types[0].bitfield.tbyte)
+	    {
+	      /* l[defgs]s, [ls][gi]dt */
+	      if (flag_code == CODE_64BIT)
+		suffix = QWORD_MNEM_SUFFIX;
+	      else
+		i.types[this_operand].bitfield.byte = 1; /* cause an error */
+	    }
 	  else
 	    suffix = BYTE_MNEM_SUFFIX; /* so it will cause an error */
 	  break;
