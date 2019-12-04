@@ -1,3 +1,21 @@
+2019-12-04  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* avr-tdep.c (_initialize_avr_tdep): Improve help of command
+	"info io_registers".
+
+2019-12-04  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* regcache.c (cooked_read_test): Initialize thread list of
+	mock_inferior.
+
+2019-12-04  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* aarch64-linux-tdep.c: Remove includes.
+
+2019-12-04  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* aarch64-tdep.c: Remove includes.
+
 2019-12-04  Simon Marchi  <simon.marchi@efficios.com>
 
 	* filtered-iterator.h (filtered_iterator) <operator==,
