@@ -21,6 +21,10 @@ struct otherendian
 {
   int v;
   short w;
+  unsigned x : 3;
+  float f;
+  __complex__ float cplx;
+  double d;
 }
 #if defined __GNUC__ && (__GNUC__ >= 6)
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -39,7 +43,7 @@ do_nothing (struct otherendian *c)
 int
 main (void)
 {
-  struct otherendian o = {3,2};
+  struct otherendian o = {3, 2, 7, 23.5, 1.25 + 7.25i, 75};
 
   do_nothing (&o); /* START */
 }

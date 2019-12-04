@@ -552,10 +552,9 @@ union type_owner
 union field_location
 {
   /* * Position of this field, counting in bits from start of
-     containing structure.  For gdbarch_bits_big_endian=1
-     targets, it is the bit offset to the MSB.  For
-     gdbarch_bits_big_endian=0 targets, it is the bit offset to
-     the LSB.  */
+     containing structure.  For big-endian targets, it is the bit
+     offset to the MSB.  For little-endian targets, it is the bit
+     offset to the LSB.  */
 
   LONGEST bitpos;
 
@@ -1821,7 +1820,8 @@ extern struct type *init_character_type (struct objfile *, int, int,
 extern struct type *init_boolean_type (struct objfile *, int, int,
 				       const char *);
 extern struct type *init_float_type (struct objfile *, int, const char *,
-				     const struct floatformat **);
+				     const struct floatformat **,
+				     enum bfd_endian = BFD_ENDIAN_UNKNOWN);
 extern struct type *init_decfloat_type (struct objfile *, int, const char *);
 extern struct type *init_complex_type (struct objfile *, const char *,
 				       struct type *);

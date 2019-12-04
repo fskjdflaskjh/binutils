@@ -949,6 +949,9 @@ create_range_type (struct type *result_type, struct type *index_type,
   if (high_bound->kind == PROP_CONST && high_bound->data.const_val < 0)
     TYPE_UNSIGNED (result_type) = 0;
 
+  TYPE_ENDIANITY_NOT_DEFAULT (result_type)
+    = TYPE_ENDIANITY_NOT_DEFAULT (index_type);
+
   return result_type;
 }
 
@@ -2976,15 +2979,22 @@ init_boolean_type (struct objfile *objfile,
 /* Allocate a TYPE_CODE_FLT type structure associated with OBJFILE.
    BIT is the type size in bits; if BIT equals -1, the size is
    determined by the floatformat.  NAME is the type name.  Set the
-   TYPE_FLOATFORMAT from FLOATFORMATS.  */
+   TYPE_FLOATFORMAT from FLOATFORMATS.  BYTE_ORDER is the byte order
+   to use.  If it is BFD_ENDIAN_UNKNOWN (the default), then the byte
+   order of the objfile's architecture is used.  */
 
 struct type *
 init_float_type (struct objfile *objfile,
 		 int bit, const char *name,
-		 const struct floatformat **floatformats)
+		 const struct floatformat **floatformats,
+		 enum bfd_endian byte_order)
 {
-  struct gdbarch *gdbarch = get_objfile_arch (objfile);
-  const struct floatformat *fmt = floatformats[gdbarch_byte_order (gdbarch)];
+  if (byte_order == BFD_ENDIAN_UNKNOWN)
+    {
+      struct gdbarch *gdbarch = get_objfile_arch (objfile);
+      byte_order = gdbarch_byte_order (gdbarch);
+    }
+  const struct floatformat *fmt = floatformats[byte_order];
   struct type *t;
 
   bit = verify_floatformat (bit, fmt);
@@ -3414,6 +3424,26 @@ is_unique_ancestor (struct type *base, struct value *val)
 				    value_contents_for_printing (val),
 				    value_embedded_offset (val),
 				    value_address (val), val) == 1;
+}
+
+/* See gdbtypes.h.  */
+
+enum bfd_endian
+type_byte_order (const struct type *type)
+{
+  bfd_endian byteorder = gdbarch_byte_order (get_type_arch (type));
+  if (TYPE_ENDIANITY_NOT_DEFAULT (type))
+    {
+      if (byteorder == BFD_ENDIAN_BIG)
+        return BFD_ENDIAN_LITTLE;
+      else
+	{
+	  gdb_assert (byteorder == BFD_ENDIAN_LITTLE);
+	  return BFD_ENDIAN_BIG;
+	}
+    }
+
+  return byteorder;
 }
 
 
@@ -5693,22 +5723,4 @@ _initialize_gdbtypes (void)
 			   NULL, NULL,
 			   show_strict_type_checking,
 			   &setchecklist, &showchecklist);
-}
-
-/* See gdbtypes.h.  */
-enum bfd_endian
-type_byte_order (const struct type *type)
-{
-  bfd_endian byteorder = gdbarch_byte_order (get_type_arch (type));
-  if (TYPE_ENDIANITY_NOT_DEFAULT (type))
-    {
-      if (byteorder == BFD_ENDIAN_BIG)
-        return BFD_ENDIAN_LITTLE;
-      else if (byteorder == BFD_ENDIAN_LITTLE)
-        return BFD_ENDIAN_BIG;
-      else
-        return BFD_ENDIAN_UNKNOWN;
-    }
-
-  return byteorder;
 }
