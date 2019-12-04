@@ -1,3 +1,64 @@
+2019-12-04  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* mi/mi-symbol-cmds.c (mi_symbol_info): Take extra parameter, and
+	add it into the search spec.
+	(parse_max_results_option): New function.
+	(mi_info_functions_or_variables): Parse -max-results flag and pass
+	it to mi_symbol_info.
+	(mi_cmd_symbol_info_modules): Likewise.
+	(mi_cmd_symbol_info_types): Likewise.
+	* symtab.c (global_symbol_searcher::add_matching_symbols): Change
+	return type to bool, change result container into a set, and don't
+	add new results if we have enough already.
+	(global_symbol_searcher::add_matching_msymbols): Change return
+	type to bool, and don't add new results if we have enough already.
+	(sort_search_symbols_remove_dups): Delete.
+	(global_symbol_searcher::search): Early exit from search loop when
+	we have enough results.  Use a std::set to collect the results
+	from calling add_matching_symbols.
+	* symtab.h (global_symbol_searcher) <set_max_seach_results>: New
+	member function.
+	(global_symbol_searcher) <m_max_search_results>: New member
+	variable.
+	(global_symbol_searcher) <add_matching_symbols>: Update header
+	comment and change return type to bool.
+	(global_symbol_searcher) <add_matching_msymbols>: Update header
+	comment and change return type to bool.
+
+2019-12-04  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* symtab.c (symbol_search::compare_search_syms): Update header
+	comment.
+	(global_symbol_searcher::is_suitable_msymbol): New function.
+	(global_symbol_searcher::expand_symtabs): New function.
+	(global_symbol_searcher::add_matching_symbols): New function.
+	(global_symbol_searcher::add_matching_msymbols): New function.
+	(global_symbol_searcher::search): Move most of the content
+	into the new functions above, and call them as needed.
+	* symtab.h (global_symbol_searcher) <expand_symtabs>: New member
+	function.
+	(global_symbol_searcher) <add_matching_symbols>: New member
+	function.
+	(global_symbol_searcher) <add_matching_msymbols>: New member
+	function.
+	(global_symbol_searcher) <is_suitable_msymbol>: New member
+	function.
+
+2019-12-04  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* mi/mi-cmds.c (mi_cmds): Add -symbol-info-module-functions and
+	-symbol-info-module-variables entries.
+	* mi/mi-cmds.h (mi_cmd_symbol_info_module_functions): Declare.
+	(mi_cmd_symbol_info_module_variables): Declare.
+	* mi/mi-symbol-cmds.c
+	(module_symbol_search_iterator): New typedef.
+	(output_module_symbols_in_single_module_and_file): New function.
+	(output_module_symbols_in_single_module): New function.
+	(mi_info_module_functions_or_variables): New function.
+	(mi_cmd_symbol_info_module_functions): New function.
+	(mi_cmd_symbol_info_module_variables): New function.
+	* NEWS: Mention new MI command.
+
 2019-12-03  Christian Biesinger  <cbiesinger@google.com>
 
 	* bcache.c (hash): Remove.
