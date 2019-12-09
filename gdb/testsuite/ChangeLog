@@ -1,3 +1,20 @@
+2019-12-09  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb.mi/mi-fortran-modules.exp: Add patterns to skip system
+	modules.
+
+2019-12-09  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb.fortran/derived-type-striding.exp: KFAIL if we are using a
+	broken version of GCC.
+
+2019-12-09  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* gdb.fortran/info-modules.exp: Rewrite to make use of new
+	sym-info-cmds library.
+	* gdb.fortran/info-types.exp: Likewise.
+	* lib/sym-info-cmds.exp: New file.
+
 2019-12-08  Tom de Vries  <tdevries@suse.de>
 
 	* gdb.dwarf2/imported-unit.exp: Fix inter-CU references.
