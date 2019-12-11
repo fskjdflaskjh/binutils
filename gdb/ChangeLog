@@ -1,3 +1,81 @@
+2019-12-11  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_set_win_height_command): Call
+	tui_adjust_window_height.
+	(tui_adjust_win_heights, new_height_ok): Remove.
+	* tui/tui-layout.h (tui_adjust_window_height): Declare.
+	* tui/tui-layout.c (tui_adjust_window_height): New function.
+
+2019-12-11  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_resize_all): Remove code, call
+	tui_apply_current_layout.
+
+2019-12-11  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.h (tui_apply_current_layout): Declare.
+	* tui/tui-layout.c (standard_layouts, applied_layout): New
+	globals.
+	(tui_apply_current_layout): New function.
+	(show_layout): Set applied_layout.  Call
+	tui_apply_current_layout.
+	(show_source_command, show_disasm_command)
+	(show_source_disasm_command, show_data)
+	(show_source_or_disasm_and_command): Remove.
+	(initialize_layouts): New function.
+	(_initialize_tui_layout): Call initialize_layouts.
+
+2019-12-11  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.h (class tui_layout_base)
+	(class tui_layout_window, class tui_layout_split): New.
+	* tui/tui-layout.c (tui_get_window_by_name)
+	(tui_layout_window::clone, tui_layout_window::apply)
+	(tui_layout_window::get_sizes, tui_layout_window::add_split)
+	(tui_layout_split::add_window, tui_layout_split::clone)
+	(tui_layout_split::get_sizes)
+	(tui_layout_split::set_weights_from_heights)
+	(tui_layout_split::adjust_size, tui_layout_split::apply): New
+	functions.
+	(tui_layout_split::add_split, tui_layout_split::add_split)
+	(tui_layout_split::set_weights_from_heights)
+	(tui_layout_split::set_weights_from_heights): New functions.
+
+2019-12-11  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.c (tui_gen_win_info::make_window): Update.
+	* tui/tui-win.c (tui_adjust_win_heights, tui_resize_all): Update.
+	* tui/tui-layout.c (tui_gen_win_info::resize): Update.
+	* tui/tui-data.h (struct tui_point): Remove.
+	(struct tui_gen_win_info) <origin>: Remove.
+	<x, y>: New fields.
+	* tui/tui-command.c (tui_cmd_window::resize): Update.
+
+2019-12-11  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.h (struct tui_locator_window) <min_height>:
+	Implement.
+	* tui/tui-regs.h (struct tui_data_item_window) <min_height>:
+	Implement.
+	* tui/tui-data.h (struct tui_gen_win_info) <min_height>: New
+	method.
+	(struct tui_win_info) <min_height>: Implement.
+
+2019-12-11  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-data.h (struct tui_gen_win_info) <can_box>: New method.
+	(struct tui_win_info) <can_box>: Update.
+
+2019-12-11  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.h (struct tui_locator_window) <max_height>: New
+	method.
+	* tui/tui-regs.h (struct tui_data_item_window) <max_height>: New
+	method.
+	* tui/tui-data.h (struct tui_gen_win_info) <max_height>: New
+	method.
+	(struct tui_win_info) <max_height>: Now override.
+
 2019-12-11  Joel Brobecker  <brobecker@adacore.com>
 
 	* NEWS: Create a new section for the next release branch.
