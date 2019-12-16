@@ -1,3 +1,49 @@
+2019-12-16  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.c (struct gdb_block) <next>: Remove field.
+	(struct gdb_symtab) <~gdb_symtab>: Remove.
+	<blocks>: Change type to std::forward_list<gdb_block>.
+	(compare_block): Remove.
+	(jit_block_open_impl): Adjust to std::forward_list.  Place the new
+	block at the beginning, don't mind about sorting.
+	(finalize_symtab): Adjust to std::forward_list, sort the blocks list
+	before using it.
+
+2019-12-16  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.c (struct gdb_block): Add constructor, initialize
+	real_block and next fields.
+	<name>: Change type to gdb::unique_xmalloc_ptr.
+	(struct gdb_symtab) <~gdb_symtab>: Free blocks with delete.
+	(jit_block_open_impl): Allocate gdb_block with new.
+	(finalize_symtab): Adjust to gdb::unique_xmalloc_ptr.
+
+2019-12-16  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.c: Include forward_list.
+	(struct gdb_symtab) <next>: Remove field.
+	(struct gdb_object) <symtabs>: Change type to
+	std::forward_list<gdb_symtab>.
+	(jit_object_open_impl): Allocate gdb_object with new.
+	(jit_symtab_open_impl): Adjust to std::forward_list.
+	(finalize_symtab): Don't delete symtab.
+	(jit_object_close_impl):  Adjust to std::forward_list.  Free
+	gdb_object with delete.
+
+2019-12-16  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.c (struct gdb_symtab): Add constructor, destructor,
+	initialize fields.
+	<linetable>: Change type to unique_xmalloc_ptr.
+	<file_name>: Change type to std::string.
+	(jit_symtab_open_impl): Allocate gdb_symtab with new.
+	(jit_symtab_line_mapping_add_impl): Adjust.
+	(finalize_symtab): Adjust, call delete on stab.
+
+2019-12-16  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.c (finalize_symtab): Set gdb_block_iter_tmp in loop.
+
 2019-12-16  Tom Tromey  <tromey@adacore.com>
 
 	* windows-nat.c (windows_nat_target::attach): Update.
