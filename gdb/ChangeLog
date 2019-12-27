@@ -1,3 +1,26 @@
+2019-12-27  Tom Tromey  <tom@tromey.com>
+
+	* cli/cli-cmds.c (print_disassembly): Reorder "if".
+
+2019-12-27  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui.c (tui_active): Now bool.
+	(tui_finish_init): Likewise.
+	(tui_enable): Update.
+	(tui_disable): Update.
+	(tui_is_window_visible): Update.
+	* tui/tui.h (tui_active): Now bool.
+
+2019-12-27  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-source.c (tui_source_window::maybe_update): Update.
+	* tui/tui-regs.c (tui_data_window::display_registers_from):
+	Update.
+	* tui/tui-layout.c (tui_gen_win_info::resize): Update.
+	* tui/tui-data.h (struct tui_gen_win_info) <viewport_height>:
+	Remove.
+	* tui/tui-command.c (tui_cmd_window::resize): Update.
+
 2019-12-26  Christian Biesinger  <cbiesinger@google.com>
 
 	* ada-lang.c (ada_decode_symbol): Update.
