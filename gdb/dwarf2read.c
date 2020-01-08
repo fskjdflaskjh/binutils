@@ -1339,15 +1339,6 @@ struct dwarf_block
     const gdb_byte *data;
   };
 
-#ifndef ATTR_ALLOC_CHUNK
-#define ATTR_ALLOC_CHUNK 4
-#endif
-
-/* Allocate fields for structs, unions and enums in this size.  */
-#ifndef DW_FIELD_ALLOC_CHUNK
-#define DW_FIELD_ALLOC_CHUNK 4
-#endif
-
 /* FIXME: We might want to set this from BFD via bfd_arch_bits_per_byte,
    but this would require a corresponding change in unpack_field_as_long
    and friends.  */
@@ -8907,7 +8898,7 @@ partial_die_parent_scope (struct partial_die_info *pdi,
 /* Return the fully scoped name associated with PDI, from compilation unit
    CU.  The result will be allocated with malloc.  */
 
-static char *
+static gdb::unique_xmalloc_ptr<char>
 partial_die_full_name (struct partial_die_info *pdi,
 		       struct dwarf2_cu *cu)
 {
@@ -8933,7 +8924,7 @@ partial_die_full_name (struct partial_die_info *pdi,
 	  attr.u.unsnd = to_underlying (pdi->sect_off);
 	  die = follow_die_ref (NULL, &attr, &ref_cu);
 
-	  return xstrdup (dwarf2_full_name (NULL, die, ref_cu));
+	  return make_unique_xstrdup (dwarf2_full_name (NULL, die, ref_cu));
 	}
     }
 
@@ -8941,7 +8932,8 @@ partial_die_full_name (struct partial_die_info *pdi,
   if (parent_scope == NULL)
     return NULL;
   else
-    return typename_concat (NULL, parent_scope, pdi->name, 0, cu);
+    return gdb::unique_xmalloc_ptr<char> (typename_concat (NULL, parent_scope,
+							   pdi->name, 0, cu));
 }
 
 static void
@@ -8954,13 +8946,13 @@ add_partial_symbol (struct partial_die_info *pdi, struct dwarf2_cu *cu)
   CORE_ADDR addr = 0;
   const char *actual_name = NULL;
   CORE_ADDR baseaddr;
-  char *built_actual_name;
 
   baseaddr = ANOFFSET (objfile->section_offsets, SECT_OFF_TEXT (objfile));
 
-  built_actual_name = partial_die_full_name (pdi, cu);
+  gdb::unique_xmalloc_ptr<char> built_actual_name
+    = partial_die_full_name (pdi, cu);
   if (built_actual_name != NULL)
-    actual_name = built_actual_name;
+    actual_name = built_actual_name.get ();
 
   if (actual_name == NULL)
     actual_name = pdi->name;
@@ -9053,10 +9045,7 @@ add_partial_symbol (struct partial_die_info *pdi, struct dwarf2_cu *cu)
 	  /* Static Variable.  Skip symbols whose value we cannot know (those
 	     without location descriptors or constant values).  */
 	  if (!has_loc && !pdi->has_const_value)
-	    {
-	      xfree (built_actual_name);
-	      return;
-	    }
+	    return;
 
 	  add_psymbol_to_list (actual_name,
 			       built_actual_name != NULL,
@@ -9106,10 +9095,7 @@ add_partial_symbol (struct partial_die_info *pdi, struct dwarf2_cu *cu)
          union or class entry that does not have a byte size attribute
          and that has a DW_AT_declaration attribute."  */
       if (!pdi->has_byte_size && pdi->is_declaration)
-	{
-	  xfree (built_actual_name);
-	  return;
-	}
+	return;
 
       /* NOTE: carlton/2003-10-07: See comment in new_symbol about
 	 static vs. global.  */
@@ -9134,8 +9120,6 @@ add_partial_symbol (struct partial_die_info *pdi, struct dwarf2_cu *cu)
     default:
       break;
     }
-
-  xfree (built_actual_name);
 }
 
 /* Read a partial die corresponding to a namespace; also, add a symbol
@@ -9904,7 +9888,7 @@ compute_delayed_physnames (struct dwarf2_cu *cu)
 static void
 fixup_go_packaging (struct dwarf2_cu *cu)
 {
-  char *package_name = NULL;
+  gdb::unique_xmalloc_ptr<char> package_name;
   struct pending *list;
   int i;
 
@@ -9919,24 +9903,24 @@ fixup_go_packaging (struct dwarf2_cu *cu)
 	  if (sym->language () == language_go
 	      && SYMBOL_CLASS (sym) == LOC_BLOCK)
 	    {
-	      char *this_package_name = go_symbol_package_name (sym);
+	      gdb::unique_xmalloc_ptr<char> this_package_name
+		(go_symbol_package_name (sym));
 
 	      if (this_package_name == NULL)
 		continue;
 	      if (package_name == NULL)
-		package_name = this_package_name;
+		package_name = std::move (this_package_name);
 	      else
 		{
 		  struct objfile *objfile
 		    = cu->per_cu->dwarf2_per_objfile->objfile;
-		  if (strcmp (package_name, this_package_name) != 0)
+		  if (strcmp (package_name.get (), this_package_name.get ()) != 0)
 		    complaint (_("Symtab %s has objects from two different Go packages: %s and %s"),
 			       (symbol_symtab (sym) != NULL
 				? symtab_to_filename_for_display
 				    (symbol_symtab (sym))
 				: objfile_name (objfile)),
-			       this_package_name, package_name);
-		  xfree (this_package_name);
+			       this_package_name.get (), package_name.get ());
 		}
 	    }
 	}
@@ -9946,7 +9930,7 @@ fixup_go_packaging (struct dwarf2_cu *cu)
     {
       struct objfile *objfile = cu->per_cu->dwarf2_per_objfile->objfile;
       const char *saved_package_name
-	= obstack_strdup (&objfile->per_bfd->storage_obstack, package_name);
+	= obstack_strdup (&objfile->per_bfd->storage_obstack, package_name.get ());
       struct type *type = init_type (objfile, TYPE_CODE_MODULE, 0,
 				     saved_package_name);
       struct symbol *sym;
@@ -9961,8 +9945,6 @@ fixup_go_packaging (struct dwarf2_cu *cu)
       SYMBOL_TYPE (sym) = type;
 
       add_symbol_to_list (sym, cu->get_builder ()->get_global_symbols ());
-
-      xfree (package_name);
     }
 }
 
@@ -10912,11 +10894,10 @@ dwarf2_compute_name (const char *name,
 	  prefix = determine_prefix (die, cu);
 	  if (*prefix != '\0')
 	    {
-	      char *prefixed_name = typename_concat (NULL, prefix, name,
-						     physname, cu);
+	      gdb::unique_xmalloc_ptr<char> prefixed_name
+		(typename_concat (NULL, prefix, name, physname, cu));
 
-	      buf.puts (prefixed_name);
-	      xfree (prefixed_name);
+	      buf.puts (prefixed_name.get ());
 	    }
 	  else
 	    buf.puts (name);
@@ -12958,16 +12939,15 @@ open_dwo_file (struct dwarf2_per_objfile *dwarf2_per_objfile,
 
   if (comp_dir != NULL)
     {
-      char *path_to_try = concat (comp_dir, SLASH_STRING,
-				  file_name, (char *) NULL);
+      gdb::unique_xmalloc_ptr<char> path_to_try
+	(concat (comp_dir, SLASH_STRING, file_name, (char *) NULL));
 
       /* NOTE: If comp_dir is a relative path, this will also try the
 	 search path, which seems useful.  */
       gdb_bfd_ref_ptr abfd (try_open_dwop_file (dwarf2_per_objfile,
-						path_to_try,
+						path_to_try.get (),
 						0 /*is_dwp*/,
 						1 /*search_cwd*/));
-      xfree (path_to_try);
       if (abfd != NULL)
 	return abfd;
     }
@@ -16548,8 +16528,7 @@ process_enumeration_scope (struct die_info *die, struct dwarf2_cu *cu)
     {
       struct die_info *child_die;
       struct symbol *sym;
-      struct field *fields = NULL;
-      int num_fields = 0;
+      std::vector<struct field> fields;
       const char *name;
 
       child_die = die->child;
@@ -16566,34 +16545,26 @@ process_enumeration_scope (struct die_info *die, struct dwarf2_cu *cu)
 		{
 		  sym = new_symbol (child_die, this_type, cu);
 
-		  if ((num_fields % DW_FIELD_ALLOC_CHUNK) == 0)
-		    {
-		      fields = (struct field *)
-			xrealloc (fields,
-				  (num_fields + DW_FIELD_ALLOC_CHUNK)
-				  * sizeof (struct field));
-		    }
+		  fields.emplace_back ();
+		  struct field &field = fields.back ();
 
-		  FIELD_NAME (fields[num_fields]) = sym->linkage_name ();
-		  FIELD_TYPE (fields[num_fields]) = NULL;
-		  SET_FIELD_ENUMVAL (fields[num_fields], SYMBOL_VALUE (sym));
-		  FIELD_BITSIZE (fields[num_fields]) = 0;
-
-		  num_fields++;
+		  FIELD_NAME (field) = sym->linkage_name ();
+		  FIELD_TYPE (field) = NULL;
+		  SET_FIELD_ENUMVAL (field, SYMBOL_VALUE (sym));
+		  FIELD_BITSIZE (field) = 0;
 		}
 	    }
 
 	  child_die = sibling_die (child_die);
 	}
 
-      if (num_fields)
+      if (!fields.empty ())
 	{
-	  TYPE_NFIELDS (this_type) = num_fields;
+	  TYPE_NFIELDS (this_type) = fields.size ();
 	  TYPE_FIELDS (this_type) = (struct field *)
-	    TYPE_ALLOC (this_type, sizeof (struct field) * num_fields);
-	  memcpy (TYPE_FIELDS (this_type), fields,
-		  sizeof (struct field) * num_fields);
-	  xfree (fields);
+	    TYPE_ALLOC (this_type, sizeof (struct field) * fields.size ());
+	  memcpy (TYPE_FIELDS (this_type), fields.data (),
+		  sizeof (struct field) * fields.size ());
 	}
     }
 
@@ -18584,8 +18555,7 @@ abbrev_table_read_table (struct dwarf2_per_objfile *dwarf2_per_objfile,
   struct abbrev_info *cur_abbrev;
   unsigned int abbrev_number, bytes_read, abbrev_name;
   unsigned int abbrev_form;
-  struct attr_abbrev *cur_attrs;
-  unsigned int allocated_attrs;
+  std::vector<struct attr_abbrev> cur_attrs;
 
   abbrev_table_up abbrev_table (new struct abbrev_table (sect_off));
 
@@ -18594,12 +18564,10 @@ abbrev_table_read_table (struct dwarf2_per_objfile *dwarf2_per_objfile,
   abbrev_number = read_unsigned_leb128 (abfd, abbrev_ptr, &bytes_read);
   abbrev_ptr += bytes_read;
 
-  allocated_attrs = ATTR_ALLOC_CHUNK;
-  cur_attrs = XNEWVEC (struct attr_abbrev, allocated_attrs);
-
   /* Loop until we reach an abbrev number of 0.  */
   while (abbrev_number)
     {
+      cur_attrs.clear ();
       cur_abbrev = abbrev_table->alloc_abbrev ();
 
       /* read in abbrev header */
@@ -18634,25 +18602,18 @@ abbrev_table_read_table (struct dwarf2_per_objfile *dwarf2_per_objfile,
 	  if (abbrev_name == 0)
 	    break;
 
-	  if (cur_abbrev->num_attrs == allocated_attrs)
-	    {
-	      allocated_attrs += ATTR_ALLOC_CHUNK;
-	      cur_attrs
-		= XRESIZEVEC (struct attr_abbrev, cur_attrs, allocated_attrs);
-	    }
-
-	  cur_attrs[cur_abbrev->num_attrs].name
-	    = (enum dwarf_attribute) abbrev_name;
-	  cur_attrs[cur_abbrev->num_attrs].form
-	    = (enum dwarf_form) abbrev_form;
-	  cur_attrs[cur_abbrev->num_attrs].implicit_const = implicit_const;
+	  cur_attrs.emplace_back ();
+	  struct attr_abbrev &cur_attr = cur_attrs.back ();
+	  cur_attr.name = (enum dwarf_attribute) abbrev_name;
+	  cur_attr.form = (enum dwarf_form) abbrev_form;
+	  cur_attr.implicit_const = implicit_const;
 	  ++cur_abbrev->num_attrs;
 	}
 
       cur_abbrev->attrs =
 	XOBNEWVEC (&abbrev_table->abbrev_obstack, struct attr_abbrev,
 		   cur_abbrev->num_attrs);
-      memcpy (cur_abbrev->attrs, cur_attrs,
+      memcpy (cur_abbrev->attrs, cur_attrs.data (),
 	      cur_abbrev->num_attrs * sizeof (struct attr_abbrev));
 
       abbrev_table->add_abbrev (abbrev_number, cur_abbrev);
@@ -18672,7 +18633,6 @@ abbrev_table_read_table (struct dwarf2_per_objfile *dwarf2_per_objfile,
 	break;
     }
 
-  xfree (cur_attrs);
   return abbrev_table;
 }
 
@@ -19345,16 +19305,15 @@ guess_partial_die_structure_name (struct partial_die_info *struct_pdi,
       if (child_pdi->tag == DW_TAG_subprogram
 	  && child_pdi->linkage_name != NULL)
 	{
-	  char *actual_class_name
-	    = language_class_name_from_physname (cu->language_defn,
-						 child_pdi->linkage_name);
+	  gdb::unique_xmalloc_ptr<char> actual_class_name
+	    (language_class_name_from_physname (cu->language_defn,
+						child_pdi->linkage_name));
 	  if (actual_class_name != NULL)
 	    {
 	      struct objfile *objfile = cu->per_cu->dwarf2_per_objfile->objfile;
 	      struct_pdi->name
 		= obstack_strdup (&objfile->per_bfd->storage_obstack,
-				  actual_class_name);
-	      xfree (actual_class_name);
+				  actual_class_name.get ());
 	    }
 	  break;
 	}
@@ -19419,24 +19378,22 @@ partial_die_info::fixup (struct dwarf2_cu *cu)
 	  || tag == DW_TAG_union_type)
       && linkage_name != NULL)
     {
-      char *demangled;
-
-      demangled = gdb_demangle (linkage_name, DMGL_TYPES);
-      if (demangled)
+      gdb::unique_xmalloc_ptr<char> demangled
+	(gdb_demangle (linkage_name, DMGL_TYPES));
+      if (demangled != nullptr)
 	{
 	  const char *base;
 
 	  /* Strip any leading namespaces/classes, keep only the base name.
 	     DW_AT_name for named DIEs does not contain the prefixes.  */
-	  base = strrchr (demangled, ':');
-	  if (base && base > demangled && base[-1] == ':')
+	  base = strrchr (demangled.get (), ':');
+	  if (base && base > demangled.get () && base[-1] == ':')
 	    base++;
 	  else
-	    base = demangled;
+	    base = demangled.get ();
 
 	  struct objfile *objfile = cu->per_cu->dwarf2_per_objfile->objfile;
 	  name = obstack_strdup (&objfile->per_bfd->storage_obstack, base);
-	  xfree (demangled);
 	}
     }
 
@@ -21716,7 +21673,7 @@ static void
 dwarf2_start_subfile (struct dwarf2_cu *cu, const char *filename,
 		      const char *dirname)
 {
-  char *copy = NULL;
+  gdb::unique_xmalloc_ptr<char> copy;
 
   /* In order not to lose the line information directory,
      we concatenate it to the filename when it makes sense.
@@ -21727,14 +21684,11 @@ dwarf2_start_subfile (struct dwarf2_cu *cu, const char *filename,
 
   if (!IS_ABSOLUTE_PATH (filename) && dirname != NULL)
     {
-      copy = concat (dirname, SLASH_STRING, filename, (char *)NULL);
-      filename = copy;
+      copy.reset (concat (dirname, SLASH_STRING, filename, (char *) NULL));
+      filename = copy.get ();
     }
 
   cu->get_builder ()->start_subfile (filename);
-
-  if (copy != NULL)
-    xfree (copy);
 }
 
 /* Start a symtab for DWARF.  NAME, COMP_DIR, LOW_PC are passed to the
@@ -22702,7 +22656,7 @@ read_type_die_1 (struct die_info *die, struct dwarf2_cu *cu)
    This is the full-die version of guess_partial_die_structure_name.
    In this case we know DIE has no useful parent.  */
 
-static char *
+static const char *
 guess_full_die_structure_name (struct die_info *die, struct dwarf2_cu *cu)
 {
   struct die_info *spec_die;
@@ -22728,33 +22682,32 @@ guess_full_die_structure_name (struct die_info *die, struct dwarf2_cu *cu)
 
 	  if (linkage_name != NULL)
 	    {
-	      char *actual_name
-		= language_class_name_from_physname (cu->language_defn,
-						     linkage_name);
-	      char *name = NULL;
+	      gdb::unique_xmalloc_ptr<char> actual_name
+		(language_class_name_from_physname (cu->language_defn,
+						    linkage_name));
+	      const char *name = NULL;
 
 	      if (actual_name != NULL)
 		{
 		  const char *die_name = dwarf2_name (die, cu);
 
 		  if (die_name != NULL
-		      && strcmp (die_name, actual_name) != 0)
+		      && strcmp (die_name, actual_name.get ()) != 0)
 		    {
 		      /* Strip off the class name from the full name.
 			 We want the prefix.  */
 		      int die_name_len = strlen (die_name);
-		      int actual_name_len = strlen (actual_name);
+		      int actual_name_len = strlen (actual_name.get ());
+		      const char *ptr = actual_name.get ();
 
 		      /* Test for '::' as a sanity check.  */
 		      if (actual_name_len > die_name_len + 2
-			  && actual_name[actual_name_len
-					 - die_name_len - 1] == ':')
+			  && ptr[actual_name_len - die_name_len - 1] == ':')
 			name = obstack_strndup (
 			  &objfile->per_bfd->storage_obstack,
-			  actual_name, actual_name_len - die_name_len - 2);
+			  ptr, actual_name_len - die_name_len - 2);
 		    }
 		}
-	      xfree (actual_name);
 	      return name;
 	    }
 	}
@@ -22941,7 +22894,7 @@ determine_prefix (struct die_info *die, struct dwarf2_cu *cu)
 		|| die->tag == DW_TAG_structure_type
 		|| die->tag == DW_TAG_union_type))
 	  {
-	    char *name = guess_full_die_structure_name (die, cu);
+	    const char *name = guess_full_die_structure_name (die, cu);
 	    if (name != NULL)
 	      return name;
 	  }
@@ -23115,8 +23068,6 @@ dwarf2_name (struct die_info *die, struct dwarf2_cu *cu)
 	 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=47510.  */
       if (!attr || DW_STRING (attr) == NULL)
 	{
-	  char *demangled = NULL;
-
 	  attr = dw2_linkage_name_attr (die, cu);
 	  if (attr == NULL || DW_STRING (attr) == NULL)
 	    return NULL;
@@ -23124,18 +23075,17 @@ dwarf2_name (struct die_info *die, struct dwarf2_cu *cu)
 	  /* Avoid demangling DW_STRING (attr) the second time on a second
 	     call for the same DIE.  */
 	  if (!DW_STRING_IS_CANONICAL (attr))
-	    demangled = gdb_demangle (DW_STRING (attr), DMGL_TYPES);
-
-	  if (demangled)
 	    {
+	      gdb::unique_xmalloc_ptr<char> demangled
+		(gdb_demangle (DW_STRING (attr), DMGL_TYPES));
+
 	      const char *base;
 
 	      /* FIXME: we already did this for the partial symbol... */
 	      DW_STRING (attr)
 		= obstack_strdup (&objfile->per_bfd->storage_obstack,
-				  demangled);
+				  demangled.get ());
 	      DW_STRING_IS_CANONICAL (attr) = 1;
-	      xfree (demangled);
 
 	      /* Strip any leading namespaces/classes, keep only the base name.
 		 DW_AT_name for named DIEs does not contain the prefixes.  */
@@ -24620,7 +24570,7 @@ parse_macro_definition (struct macro_source_file *file, int line,
     {
       /* It's an object-like macro.  */
       int name_len = p - body;
-      char *name = savestring (body, name_len);
+      std::string name (body, name_len);
       const char *replacement;
 
       if (*p == ' ')
@@ -24631,14 +24581,12 @@ parse_macro_definition (struct macro_source_file *file, int line,
           replacement = body + name_len;
         }
 
-      macro_define_object (file, line, name, replacement);
-
-      xfree (name);
+      macro_define_object (file, line, name.c_str (), replacement);
     }
   else if (*p == '(')
     {
       /* It's a function-like macro.  */
-      char *name = savestring (body, p - body);
+      std::string name (body, p - body);
       int argc = 0;
       int argv_size = 1;
       char **argv = XNEWVEC (char *, argv_size);
@@ -24687,14 +24635,14 @@ parse_macro_definition (struct macro_source_file *file, int line,
 
           if (*p == ' ')
             /* Perfectly formed definition, no complaints.  */
-            macro_define_function (file, line, name,
+            macro_define_function (file, line, name.c_str (),
                                    argc, (const char **) argv,
                                    p + 1);
           else if (*p == '\0')
             {
               /* Complain, but do define it.  */
 	      dwarf2_macro_malformed_definition_complaint (body);
-              macro_define_function (file, line, name,
+              macro_define_function (file, line, name.c_str (),
                                      argc, (const char **) argv,
                                      p);
             }
@@ -24706,7 +24654,6 @@ parse_macro_definition (struct macro_source_file *file, int line,
         /* Just complain.  */
 	dwarf2_macro_malformed_definition_complaint (body);
 
-      xfree (name);
       {
         int i;
 
