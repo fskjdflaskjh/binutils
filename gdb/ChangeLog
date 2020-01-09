@@ -1,3 +1,20 @@
+2020-01-09  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* tui/tui-source.c (tui_source_window::do_scroll_vertical): Update
+	all source windows, and maintain horizontal scroll status while
+	doing so.
+
+2020-01-09  Tom Tromey  <tom@tromey.com>
+
+	PR tui/18932:
+	* tui/tui-source.c (tui_source_window::do_scroll_vertical): Call
+	update_source_window, not print_source_lines.
+
+2020-01-09  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* tui/tui.c (tui_enable): Register tui hooks after calling
+	tui_display_main.
+
 2020-01-09  Christian Biesinger  <cbiesinger@google.com>
 
 	* gdbsupport/common-defs.h: Don't define _FORTIFY_SOURCE on MinGW.
