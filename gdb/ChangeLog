@@ -1,3 +1,34 @@
+2020-01-24  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* frame.c (find_frame_sal): Move call to get_next_frame into more
+	inner scope.
+	* inline-frame.c (inilne_state) <inline_state>: Update argument
+	types.
+	(inilne_state) <skipped_symbol>: Rename to...
+	(inilne_state) <skipped_symbols>: ...this, and change to a vector.
+	(skip_inline_frames): Build vector of skipped symbols and use this
+	to reate the inline_state.
+	(inline_skipped_symbol): Add a comment and some assertions, fetch
+	skipped symbol from the list.
+
+2020-01-24  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* buildsym.c (lte_is_less_than): Delete.
+	(buildsym_compunit::end_symtab_with_blockvector): Create local
+	lambda function to sort line table entries, and use
+	std::stable_sort instead of std::sort.
+	* symtab.c (find_pc_sect_line): Skip backward over end of sequence
+	markers when looking for a previous line.
+
+2020-01-24  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* dwarf2read.c (lnp_state_machine::record_line): Include
+	end_sequence parameter in debug print out.  Record the line if we
+	are at an end_sequence marker even if it's not the start of a
+	statement.
+	* symmisc.c (maintenance_print_one_line_table): Print end of
+	sequence markers with 'END' not '0'.
+
 2020-01-24  Pedro Alves  <palves@redhat.com>
 
 	PR gdb/25410
