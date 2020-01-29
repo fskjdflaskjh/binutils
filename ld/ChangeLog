@@ -1,3 +1,30 @@
+2020-01-29  Alan Modra  <amodra@gmail.com>
+
+	Apply from master
+	2020-01-29  Alan Modra  <amodra@gmail.com>
+	PR 25477
+	* ldelf.c (ldelf_check_ld_so_conf): Add prefix parameter and
+	correct concat.
+	(ldelf_after_open): Add prefix parameter.
+	* ldelf.h (ldelf_after_open): Update prototype.
+	* emultempl/elf.em (gld${EMULATION_NAME}_after_open): Pass $prefix
+	to ldelf_after_open.
+	* Makefile.am: Correct z80 dependencies.
+	* Makefile.in: Regenerate.
+
+	2020-01-28  Alan Modra  <amodra@gmail.com>
+	* ldexp.c (fold_name): Don't print bfd_link_hash_lookup failed
+	in first phase.
+
+	2020-01-27  H.J. Lu  <hongjiu.lu@intel.com>
+		    Alan Modra  <amodra@gmail.com>
+	PR ld/25458
+	* testsuite/ld-elf/pr25458.map: New file.
+	* testsuite/ld-elf/pr25458.rd: Likewise.
+	* testsuite/ld-elf/pr25458a.s: Likewise.
+	* testsuite/ld-elf/pr25458b.s: Likewise.
+	* testsuite/ld-elf/shared.exp: Run PR ld/25458 test.
+
 2020-01-20  Nick Clifton  <nickc@redhat.com>
 
 	* po/pt_BR.po: Updated Brazilian Portuguese translation.
