@@ -6368,10 +6368,7 @@ process_suffix (void)
       else
 	abort ();
     }
-  else if (i.tm.opcode_modifier.defaultsize
-	   && !i.suffix
-	   /* exclude fldenv/frstor/fsave/fstenv */
-	   && i.tm.opcode_modifier.no_ssuf)
+  else if (i.tm.opcode_modifier.defaultsize && !i.suffix)
     {
       i.suffix = stackop_size;
       if (stackop_size == LONG_MNEM_SUFFIX)
@@ -6420,8 +6417,14 @@ process_suffix (void)
     }
 
   if (!i.suffix
-      && !i.tm.opcode_modifier.defaultsize
-      && !i.tm.opcode_modifier.ignoresize)
+      && (!i.tm.opcode_modifier.defaultsize
+	  /* Also cover lret/retf/iret in 64-bit mode.  */
+	  || (flag_code == CODE_64BIT
+	      && !i.tm.opcode_modifier.no_lsuf
+	      && !i.tm.opcode_modifier.no_qsuf))
+      && !i.tm.opcode_modifier.ignoresize
+      /* Accept FLDENV et al without suffix.  */
+      && (i.tm.opcode_modifier.no_ssuf || i.tm.opcode_modifier.floatmf))
     {
       unsigned int suffixes;
 
@@ -6440,7 +6443,9 @@ process_suffix (void)
       /* Are multiple suffixes allowed?  */
       if (suffixes & (suffixes - 1))
 	{
-	  if (intel_syntax)
+	  if (intel_syntax
+	      && (!i.tm.opcode_modifier.defaultsize
+		  || operand_check == check_error))
 	    {
 	      as_bad (_("ambiguous operand size for `%s'"), i.tm.name);
 	      return 0;
@@ -6452,9 +6457,12 @@ process_suffix (void)
 	      return 0;
 	    }
 	  if (operand_check == check_warning)
-	    as_warn (_("no instruction mnemonic suffix given and "
-		       "no register operands; using default for `%s'"),
-		     i.tm.name);
+	    as_warn (_("%s; using default for `%s'"),
+		       intel_syntax
+		       ? _("ambiguous operand size")
+		       : _("no instruction mnemonic suffix given and "
+			   "no register operands"),
+		       i.tm.name);
 
 	  if (i.tm.opcode_modifier.floatmf)
 	    i.suffix = SHORT_MNEM_SUFFIX;
