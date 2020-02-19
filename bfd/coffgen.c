@@ -1639,28 +1639,28 @@ copy_name (bfd *abfd, char *name, size_t maxlen)
 bfd_boolean
 _bfd_coff_get_external_symbols (bfd *abfd)
 {
-  bfd_size_type symesz;
-  bfd_size_type size;
+  size_t symesz;
+  size_t size;
   void * syms;
+  ufile_ptr filesize;
 
   if (obj_coff_external_syms (abfd) != NULL)
     return TRUE;
 
-  symesz = bfd_coff_symesz (abfd);
-
-  size = obj_raw_syment_count (abfd) * symesz;
-  if (size == 0)
-    return TRUE;
   /* Check for integer overflow and for unreasonable symbol counts.  */
-  if (size < obj_raw_syment_count (abfd)
-      || (bfd_get_file_size (abfd) > 0
-	  && size > bfd_get_file_size (abfd)))
-
+  filesize = bfd_get_file_size (abfd);
+  symesz = bfd_coff_symesz (abfd);
+  if (_bfd_mul_overflow (obj_raw_syment_count (abfd), symesz, &size)
+      || (filesize != 0 && size > filesize))
     {
+      bfd_set_error (bfd_error_file_truncated);
       _bfd_error_handler (_("%pB: corrupt symbol count: %#" PRIx64 ""),
 			  abfd, (uint64_t) obj_raw_syment_count (abfd));
       return FALSE;
     }
+
+  if (size == 0)
+    return TRUE;
 
   syms = bfd_malloc (size);
   if (syms == NULL)
@@ -1698,6 +1698,7 @@ _bfd_coff_read_string_table (bfd *abfd)
   bfd_size_type strsize;
   char *strings;
   file_ptr pos;
+  ufile_ptr filesize;
 
   if (obj_coff_strings (abfd) != NULL)
     return obj_coff_strings (abfd);
@@ -1731,7 +1732,9 @@ _bfd_coff_read_string_table (bfd *abfd)
 #endif
     }
 
-  if (strsize < STRING_SIZE_SIZE || strsize > bfd_get_file_size (abfd))
+  filesize = bfd_get_file_size (abfd);
+  if (strsize < STRING_SIZE_SIZE
+      || (filesize != 0 && strsize > filesize))
     {
       _bfd_error_handler
 	/* xgettext: c-format */
@@ -2025,7 +2028,7 @@ coff_get_reloc_upper_bound (bfd *abfd, sec_ptr asect)
 asymbol *
 coff_make_empty_symbol (bfd *abfd)
 {
-  bfd_size_type amt = sizeof (coff_symbol_type);
+  size_t amt = sizeof (coff_symbol_type);
   coff_symbol_type *new_symbol = (coff_symbol_type *) bfd_zalloc (abfd, amt);
 
   if (new_symbol == NULL)
@@ -2046,7 +2049,7 @@ coff_bfd_make_debug_symbol (bfd *abfd,
 			    void * ptr ATTRIBUTE_UNUSED,
 			    unsigned long sz ATTRIBUTE_UNUSED)
 {
-  bfd_size_type amt = sizeof (coff_symbol_type);
+  size_t amt = sizeof (coff_symbol_type);
   coff_symbol_type *new_symbol = (coff_symbol_type *) bfd_alloc (abfd, amt);
 
   if (new_symbol == NULL)
@@ -2271,7 +2274,7 @@ coff_find_nearest_line_with_names (bfd *abfd,
   combined_entry_type *pend;
   alent *l;
   struct coff_section_tdata *sec_data;
-  bfd_size_type amt;
+  size_t amt;
 
   /* Before looking through the symbol table, try to use a .stab
      section to find the information.  */
@@ -2594,7 +2597,7 @@ bfd_coff_set_symbol_class (bfd *	 abfd,
 	 coff_write_alien_symbol().  */
 
       combined_entry_type * native;
-      bfd_size_type amt = sizeof (* native);
+      size_t amt = sizeof (* native);
 
       native = (combined_entry_type *) bfd_zalloc (abfd, amt);
       if (native == NULL)

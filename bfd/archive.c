@@ -212,7 +212,7 @@ _bfd_ar_sizepad (char *p, size_t n, bfd_size_type size)
 bfd_boolean
 _bfd_generic_mkarchive (bfd *abfd)
 {
-  bfd_size_type amt = sizeof (struct artdata);
+  size_t amt = sizeof (struct artdata);
 
   abfd->tdata.aout_ar_data = (struct artdata *) bfd_zalloc (abfd, amt);
   if (bfd_ardata (abfd) == NULL)
@@ -847,7 +847,7 @@ bfd_generic_archive_p (bfd *abfd)
 {
   struct artdata *tdata_hold;
   char armag[SARMAG + 1];
-  bfd_size_type amt;
+  size_t amt;
 
   if (bfd_bread (armag, SARMAG, abfd) != SARMAG)
     {
@@ -1837,7 +1837,7 @@ bfd_ar_hdr_from_filesystem (bfd *abfd, const char *filename, bfd *member)
   struct stat status;
   struct areltdata *ared;
   struct ar_hdr *hdr;
-  bfd_size_type amt;
+  size_t amt;
 
   if (member && (member->flags & BFD_IN_MEMORY) != 0)
     {
@@ -2187,17 +2187,13 @@ _bfd_write_archive_contents (bfd *arch)
 
       while (remaining)
 	{
-	  unsigned int amt = DEFAULT_BUFFERSIZE;
+	  size_t amt = DEFAULT_BUFFERSIZE;
 
 	  if (amt > remaining)
 	    amt = remaining;
 	  errno = 0;
 	  if (bfd_bread (buffer, amt, current) != amt)
-	    {
-	      if (bfd_get_error () != bfd_error_system_call)
-		bfd_set_error (bfd_error_file_truncated);
-	      goto input_err;
-	    }
+	    goto input_err;
 	  if (bfd_bwrite (buffer, amt, arch) != amt)
 	    return FALSE;
 	  remaining -= amt;
@@ -2251,7 +2247,7 @@ _bfd_compute_and_write_armap (bfd *arch, unsigned int elength)
   asymbol **syms = NULL;
   long syms_max = 0;
   bfd_boolean ret;
-  bfd_size_type amt;
+  size_t amt;
   static bfd_boolean report_plugin_err = TRUE;
 
   /* Dunno if this is the best place for this info...  */

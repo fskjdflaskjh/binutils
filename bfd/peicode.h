@@ -257,7 +257,7 @@ static bfd_boolean
 pe_mkobject (bfd * abfd)
 {
   pe_data_type *pe;
-  bfd_size_type amt = sizeof (pe_data_type);
+  size_t amt = sizeof (pe_data_type);
 
   abfd->tdata.pe_obj_data = (struct pe_tdata *) bfd_zalloc (abfd, amt);
 
@@ -1408,7 +1408,7 @@ pe_bfd_object_p (bfd * abfd)
   struct external_PEI_IMAGE_hdr image_hdr;
   struct internal_filehdr internal_f;
   struct internal_aouthdr internal_a;
-  file_ptr opt_hdr_size;
+  bfd_size_type opt_hdr_size;
   file_ptr offset;
   const bfd_target *result;
 
@@ -1494,12 +1494,14 @@ pe_bfd_object_p (bfd * abfd)
       if (amt < sizeof (PEAOUTHDR))
 	amt = sizeof (PEAOUTHDR);
 
-      opthdr = bfd_zalloc (abfd, amt);
+      opthdr = bfd_alloc (abfd, amt);
       if (opthdr == NULL)
 	return NULL;
       if (bfd_bread (opthdr, opt_hdr_size, abfd)
 	  != (bfd_size_type) opt_hdr_size)
 	return NULL;
+      if (amt > opt_hdr_size)
+	memset (opthdr + opt_hdr_size, 0, amt - opt_hdr_size);
 
       bfd_set_error (bfd_error_no_error);
       bfd_coff_swap_aouthdr_in (abfd, opthdr, & internal_a);
