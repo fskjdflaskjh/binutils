@@ -1,3 +1,14 @@
+2020-02-27  Alan Modra  <amodra@gmail.com>
+
+	* coff-rs6000.c (_bfd_xcoff_read_ar_hdr): Put all data in one
+	malloc'd block.
+
+2020-02-27  Alan Modra  <amodra@gmail.com>
+
+	* bfd.c (bfd_stat_arch_elt): Use vector of containing archive,
+	if file is an archive element.
+	* bfd-in2.h: Regenerate.
+
 2020-02-26  Alan Modra  <amodra@gmail.com>
 
 	* archive.c (do_slurp_bsd_armap): Increase minimum parsed_size, and
