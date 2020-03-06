@@ -4349,16 +4349,19 @@ md_assemble (char *line)
   /* Now we've parsed the mnemonic into a set of templates, and have the
      operands at hand.  */
 
-  /* All Intel opcodes have reversed operands except for "bound", "enter"
-     "monitor*", and "mwait*".  We also don't reverse intersegment "jmp"
-     and "call" instructions with 2 immediate operands so that the immediate
-     segment precedes the offset, as it does when in AT&T mode. */
+  /* All Intel opcodes have reversed operands except for "bound", "enter",
+     "monitor*", "mwait*", "tpause", and "umwait".  We also don't reverse
+     intersegment "jmp" and "call" instructions with 2 immediate operands so
+     that the immediate segment precedes the offset, as it does when in AT&T
+     mode.  */
   if (intel_syntax
       && i.operands > 1
       && (strcmp (mnemonic, "bound") != 0)
       && (strcmp (mnemonic, "invlpga") != 0)
       && (strncmp (mnemonic, "monitor", 7) != 0)
       && (strncmp (mnemonic, "mwait", 5) != 0)
+      && (strcmp (mnemonic, "tpause") != 0)
+      && (strcmp (mnemonic, "umwait") != 0)
       && !(operand_type_check (i.types[0], imm)
 	   && operand_type_check (i.types[1], imm)))
     swap_operands ();
@@ -4563,9 +4566,6 @@ md_assemble (char *line)
       i.op[0].disps->X_add_symbol = &abs_symbol;
       i.op[0].disps->X_op = O_symbol;
     }
-
-  if (i.tm.opcode_modifier.rex64)
-    i.rex |= REX_W;
 
   /* For 8 bit registers we need an empty rex prefix.  Also if the
      instruction already has a prefix, we need to convert old
@@ -6335,6 +6335,11 @@ process_suffix (void)
 	  || (i.tm.base_opcode == 0x63 && i.tm.cpu_flags.bitfield.cpu64))
 	--i.operands;
 
+      /* crc32 needs REX.W set regardless of suffix / source operand size.  */
+      if (i.tm.base_opcode == 0xf20f38f0
+          && i.tm.operand_types[1].bitfield.qword)
+        i.rex |= REX_W;
+
       /* If there's no instruction mnemonic suffix we try to invent one
 	 based on GPR operands.  */
       if (!i.suffix)
@@ -6662,6 +6667,7 @@ process_suffix (void)
       if (i.suffix == QWORD_MNEM_SUFFIX
 	  && flag_code == CODE_64BIT
 	  && !i.tm.opcode_modifier.norex64
+	  && !i.tm.opcode_modifier.vexw
 	  /* Special case for xchg %rax,%rax.  It is NOP and doesn't
 	     need rex64. */
 	  && ! (i.operands == 2
@@ -10356,6 +10362,21 @@ i386_addressing_mode (void)
 
   if (i.prefix[ADDR_PREFIX])
     addr_mode = flag_code == CODE_32BIT ? CODE_16BIT : CODE_32BIT;
+  else if (flag_code == CODE_16BIT
+	   && current_templates->start->cpu_flags.bitfield.cpumpx
+	   /* Avoid replacing the "16-bit addressing not allowed" diagnostic
+	      from md_assemble() by "is not a valid base/index expression"
+	      when there is a base and/or index.  */
+	   && !i.types[this_operand].bitfield.baseindex)
+    {
+      /* MPX insn memory operands with neither base nor index must be forced
+	 to use 32-bit addressing in 16-bit mode.  */
+      addr_mode = CODE_32BIT;
+      i.prefix[ADDR_PREFIX] = ADDR_PREFIX_OPCODE;
+      ++i.prefixes;
+      gas_assert (!i.types[this_operand].bitfield.disp16);
+      gas_assert (!i.types[this_operand].bitfield.disp32);
+    }
   else
     {
       addr_mode = flag_code;
