@@ -44,16 +44,19 @@ AX_CXX_COMPILE_STDCXX(11, , mandatory)
 AC_HEADER_STDC
 
 GDB_AC_COMMON
+# This is set by GDB_AC_COMMON.
+AC_SUBST(WIN32APILIBS)
 
-GDB_AC_SELFTEST([
-  srv_selftest_objs="gdbsupport/selftest.o"
-])
+GDB_AC_SELFTEST
 
 ACX_NONCANONICAL_TARGET
 ACX_NONCANONICAL_HOST
 
 # Dependency checking.
 ZW_CREATE_DEPDIR
+
+dnl Set up for gettext.
+ZW_GNU_GETTEXT_SISTER_DIR
 
 # Create sub-directories for objects and dependencies.
 CONFIG_SRC_SUBDIR="arch gdbsupport nat target"
@@ -354,7 +357,7 @@ if test "$srv_xmlfiles" != ""; then
   done
 fi
 
-GDBSERVER_DEPFILES="$srv_regobj $srv_tgtobj $srv_hostio_err_objs $srv_thread_depfiles $srv_selftest_objs"
+GDBSERVER_DEPFILES="$srv_regobj $srv_tgtobj $srv_hostio_err_objs $srv_thread_depfiles"
 GDBSERVER_LIBS="$srv_libs"
 
 dnl Check whether the target supports __sync_*_compare_and_swap.
