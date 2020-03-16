@@ -1,3 +1,70 @@
+2020-03-16  Simon Marchi  <simon.marchi@efficios.com>
+
+	PR gdb/21500
+	* amd64-windows-tdep.c (amd64_windows_init_abi): Rename
+	to...
+	(amd64_windows_init_abi_common): ... this.  Don't set size of
+	long type.
+	(amd64_windows_init_abi): New function.
+	(amd64_cygwin_init_abi): New function.
+	(_initialize_amd64_windows_tdep): Use amd64_cygwin_init_abi for
+	the Cygwin OS ABI.
+	* i386-windows-tdep.c (_initialize_i386_windows_tdep): Clarify
+	comment.
+
+2020-03-16  Simon Marchi  <simon.marchi@efficios.com>
+
+	* windows-tdep.h (is_linked_with_cygwin_dll): New declaration.
+	* windows-tdep.c (CYGWIN_DLL_NAME): New.
+	(pe_import_directory_entry): New struct type.
+	(is_linked_with_cygwin_dll): New function.
+	* amd64-windows-tdep.c (amd64_windows_osabi_sniffer): Select
+	GDB_OSABI_CYGWIN if the BFD is linked with the Cygwin DLL.
+	* i386-windows-tdep.c (i386_windows_osabi_sniffer): Likewise.
+
+2020-03-16  Simon Marchi  <simon.marchi@efficios.com>
+
+	* i386-windows-tdep.c: Mass-rename "cygwin" to "windows", except
+	i386_cygwin_core_osabi_sniffer.
+
+2020-03-16  Simon Marchi  <simon.marchi@efficios.com>
+
+	* i386-cygwin-tdep.c: Rename to...
+	* i386-windows-tdep.c: ... this.
+	* Makefile.in (ALL_TARGET_OBS): Rename i386-cygwin-tdep.c to
+	i386-windows-tdep.c.
+	* configure.tgt: Likewise.
+
+2020-03-16  Simon Marchi  <simon.marchi@efficios.com>
+
+	* osabi.h (enum gdb_osabi): Add GDB_OSABI_WINDOWS.
+	* osabi.c (gdb_osabi_names): Add "Windows".
+	* i386-cygwin-tdep.c (i386_cygwin_osabi_sniffer): Return
+	GDB_OSABI_WINDOWS when the binary's target is "pei-i386".
+	(i386_cygwin_core_osabi_sniffer): New function, extracted from
+	i386_cygwin_osabi_sniffer.
+	(_initialize_i386_cygwin_tdep): Register OS ABI
+	GDB_OSABI_WINDOWS for i386.
+	* amd64-windows-tdep.c (amd64_windows_osabi_sniffer): Return
+	GDB_OSABI_WINDOWS when the binary's target is "pei-x86-64".
+	(_initialize_amd64_windows_tdep): Register OS ABI GDB_OSABI_WINDOWS
+	for x86-64.
+	* configure.tgt: Use GDB_OSABI_WINDOWS as the default OS ABI
+	when the target matches '*-*-mingw*'.
+
+2020-03-16  Simon Marchi  <simon.marchi@efficios.com>
+
+	* defs.h (enum gdb_osabi): Move to...
+	* osabi.h (enum gdb_osabi): ... here.
+	* gdbarch.sh: Include osabi.h in gdbarch.h.
+	* gdbarch.h: Re-generate.
+
+2020-03-16  Simon Marchi  <simon.marchi@efficios.com>
+
+	* amd64-windows-tdep.c (amd64_windows_osabi_sniffer): New
+	function.
+	(_initialize_amd64_windows_tdep): Register osabi sniffer.
+
 2020-03-14  Tom Tromey  <tom@tromey.com>
 
 	* c-typeprint.c (cp_type_print_method_args): Print "__restrict__"
