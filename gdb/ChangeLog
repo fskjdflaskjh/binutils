@@ -1,3 +1,38 @@
+2020-04-07  Nitika Achra  <Nitika.Achra@amd.com>
+
+	* dwarf2/loc.c (loclist_describe_location): Call the function decode_debug_loclists_
+	addresses if DWARF version is 5 or more because DW_LLE_start* or DW_LLE_offset_pair
+	with DW_LLE_base_addressx are being emitted in DWARFv5.
+	Add the newly added kind DW_LOC_OFFSET_PAIR also.
+	The length of location description is an unsigned ULEB integer in DWARFv5 instead of
+	unsigned integer.
+
+2020-04-07  Nitika Achra  <Nitika.Achra@amd.com>
+
+	* dwarf2/loc.c (enum debug_loc_kind): Add a new kind DEBUG_LOC_OFFSET_PAIR.
+	(dwarf2_find_location_expression): Call the function decode_debug_loclists_
+	addresses if DWARF version is 5 or more. DW_LLE_start* or DW_LLE_offset_pair
+	with DW_LLE_base_addressx are being emitted in DWARFv5 instead of DW_LLE_GNU*.
+	Add applicable base address if the entry is DW_LLE_offset_pair from DWO.
+	(decode_debug_loclists_addresses): Return DEBUG_LOC_OFFSET_PAIR instead of
+	DEBUG_LOC_START_END in case of DW_LLE_offset_pair.
+
+
+2020-04-07  Nitika Achra  <Nitika.Achra@amd.com>
+
+	* dwarf2/read.c (cu_debug_loc_section): Added the declaration for the function.
+	(read_loclist_index): New function definition.
+	(lookup_loclist_base): New function definition.
+	(read_loclist_header): New function definition.
+	(dwarf2_cu): Add loclist_base and loclist_header field.
+	(dwarf2_locate_dwo_sections): Handle .debug_loclists.dwo section.
+	(read_full_die_1): Read the value of DW_AT_loclists_base.
+	(read_attribute_reprocess): Handle DW_FORM_loclistx.
+	(read_attribute_value): Handle DW_FORM_loclistx.
+	(skip_one_die): Handle DW_FORM_loclistx.
+	(loclist_header): New structure declaration.
+	* dwarf2/attribute.c (form_is_section_offset): Handle DW_FORM_loclistx.
+
 2020-04-07  Simon Marchi  <simon.marchi@polymtl.ca>
 
 	* dwarf2/read.h (struct dwarf2_psymtab): Remove two-parameters
