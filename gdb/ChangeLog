@@ -1,3 +1,12 @@
+2020-04-10  Tom Tromey  <tromey@adacore.com>
+
+	* symfile.c (symbol_file_add_separate): Preserve OBJF_MAINLINE.
+
+2020-04-10  Tom Tromey  <tromey@adacore.com>
+
+	* symtab.c (get_symbol_address, get_msymbol_address): Skip
+	separate debug files.
+
 2020-04-10  Hannes Domani  <ssbssa@yahoo.de>
 
 	* nat/windows-nat.c (STATUS_WX86_BREAKPOINT, STATUS_WX86_SINGLE_STEP):
