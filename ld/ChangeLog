@@ -1,3 +1,10 @@
+2020-04-16  Stephen Casner  <casner@acm.org>
+
+	PR 18963
+	* testsuite/ld-scripts/pr18963.t: Reduce section sizes to fit in
+	16-bit address space.
+	* testsuite/ld-scripts/pr18963.d: Likewise.
+
 2020-04-17  Juan Manuel Guerrero  <juan.guerrero@gmx.de>
             Jan W. Jagersma  <jwjagersma@gmail.com>
 
@@ -12,14 +19,6 @@
 	* testsuite/ld-elf/pr22269-1.c: Add a missing return statement.
 	* testsuite/ld-elfvers/vers.exp: Add checks to detect if files
 	were built before attempting to copy them.
-
-2020-04-16  Stephen Casner  <casner@acm.org>
-
-	PR ld/18963
-	* testsuite/ld-scripts/pr18963.s: New, replaces empty data.s to
-	allocate space in text, data, bss here rather than pr18963.t.
-	* testsuite/ld-scripts/pr18963.t: Remove assignments to dot.
-	* testsuite/ld-scripts/pr18963.d: Change addresses to fit 16 bits.
 
 2020-04-15  Fangrui Song <maskray@google.com>
 
