@@ -1,3 +1,35 @@
+2020-04-29  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbarch.sh (do_read): Add shellcheck disable directive for
+	warning SC2162.
+
+2020-04-29  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbarch.sh: Use ${foo:-} where shellcheck would report a
+	"referenced but not assigned" warning.
+
+2020-04-29  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbarch.sh: Remove code that sets fallbackdefault.
+
+2020-04-29  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbarch.sh: Use shell operators && and || instead of
+	-a and -o.
+
+2020-04-29  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbarch.sh: Use $(...) instead of `...`.
+
+2020-04-29  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbarch.sh: Use double quotes around variables.
+
+2020-04-29  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbarch.sh: Use %s with printf, instead of variables in the
+	format string.
+
 2020-04-29  Sterling Augustine <saugustine@google.com>
 
        * dwarf2/read.c (setup_type_unit_groups): Set list_in_scope.
