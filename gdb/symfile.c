@@ -717,12 +717,11 @@ default_symfile_offsets (struct objfile *objfile,
    It assumes that object files do not have segments, and fully linked
    files have a single segment.  */
 
-struct symfile_segment_data *
+symfile_segment_data_up
 default_symfile_segments (bfd *abfd)
 {
   int num_sections, i;
   asection *sect;
-  struct symfile_segment_data *data;
   CORE_ADDR low, high;
 
   /* Relocatable files contain enough information to position each
@@ -745,13 +744,12 @@ default_symfile_segments (bfd *abfd)
   low = bfd_section_vma (sect);
   high = low + bfd_section_size (sect);
 
-  data = XCNEW (struct symfile_segment_data);
-  data->num_segments = 1;
-  data->segment_bases = XCNEW (CORE_ADDR);
-  data->segment_sizes = XCNEW (CORE_ADDR);
+  symfile_segment_data_up data (new symfile_segment_data);
 
   num_sections = bfd_count_sections (abfd);
-  data->segment_info = XCNEWVEC (int, num_sections);
+
+  /* All elements are initialized to 0 (map to no segment).  */
+  data->segment_info.resize (num_sections);
 
   for (i = 0, sect = abfd->sections; sect != NULL; i++, sect = sect->next)
     {
@@ -769,8 +767,7 @@ default_symfile_segments (bfd *abfd)
       data->segment_info[i] = 1;
     }
 
-  data->segment_bases[0] = low;
-  data->segment_sizes[0] = high - low;
+  data->segments.emplace_back (low, high - low);
 
   return data;
 }
@@ -3621,7 +3618,7 @@ symfile_relocate_debug_section (struct objfile *objfile,
   return (*objfile->sf->sym_relocate) (objfile, sectp, buf);
 }
 
-struct symfile_segment_data *
+symfile_segment_data_up
 get_symfile_segment_data (bfd *abfd)
 {
   const struct sym_fns *sf = find_sym_fns (abfd);
@@ -3630,15 +3627,6 @@ get_symfile_segment_data (bfd *abfd)
     return NULL;
 
   return sf->sym_segments (abfd);
-}
-
-void
-free_symfile_segment_data (struct symfile_segment_data *data)
-{
-  xfree (data->segment_bases);
-  xfree (data->segment_sizes);
-  xfree (data->segment_info);
-  xfree (data);
 }
 
 /* Given:
@@ -3673,13 +3661,13 @@ symfile_map_offsets_to_segments (bfd *abfd,
   /* If we do not have segment mappings for the object file, we
      can not relocate it by segments.  */
   gdb_assert (data != NULL);
-  gdb_assert (data->num_segments > 0);
+  gdb_assert (data->segments.size () > 0);
 
   for (i = 0, sect = abfd->sections; sect != NULL; i++, sect = sect->next)
     {
       int which = data->segment_info[i];
 
-      gdb_assert (0 <= which && which <= data->num_segments);
+      gdb_assert (0 <= which && which <= data->segments.size ());
 
       /* Don't bother computing offsets for sections that aren't
          loaded as part of any segment.  */
@@ -3691,7 +3679,7 @@ symfile_map_offsets_to_segments (bfd *abfd,
       if (which > num_segment_bases)
         which = num_segment_bases;
 
-      offsets[i] = segment_bases[which - 1] - data->segment_bases[which - 1];
+      offsets[i] = segment_bases[which - 1] - data->segments[which - 1].base;
     }
 
   return 1;
@@ -3703,17 +3691,14 @@ symfile_find_segment_sections (struct objfile *objfile)
   bfd *abfd = objfile->obfd;
   int i;
   asection *sect;
-  struct symfile_segment_data *data;
 
-  data = get_symfile_segment_data (objfile->obfd);
+  symfile_segment_data_up data
+    = get_symfile_segment_data (objfile->obfd);
   if (data == NULL)
     return;
 
-  if (data->num_segments != 1 && data->num_segments != 2)
-    {
-      free_symfile_segment_data (data);
-      return;
-    }
+  if (data->segments.size () != 1 && data->segments.size () != 2)
+    return;
 
   for (i = 0, sect = abfd->sections; sect != NULL; i++, sect = sect->next)
     {
@@ -3736,8 +3721,6 @@ symfile_find_segment_sections (struct objfile *objfile)
 	    objfile->sect_index_bss = sect->index;
 	}
     }
-
-  free_symfile_segment_data (data);
 }
 
 /* Listen for free_objfile events.  */
