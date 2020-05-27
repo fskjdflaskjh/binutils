@@ -1,3 +1,42 @@
+2020-05-27  Tom Tromey  <tromey@adacore.com>
+
+	* dwarf2/read.c (load_partial_dies): Use add_partial_symbol.
+
+2020-05-27  Tom Tromey  <tromey@adacore.com>
+
+	* dwarf2/abbrev.h (struct abbrev_table) <lookup_abbrev>: Inline.
+	Use htab_find_with_hash.
+	<add_abbrev>: Remove "abbrev_number" parameter.
+	* dwarf2/abbrev.c (abbrev_table::add_abbrev): Remove
+	"abbrev_number" parameter.  Use htab_find_slot_with_hash.
+	(hash_abbrev): Add comment.
+	(abbrev_table::lookup_abbrev): Move to header file.
+	(abbrev_table::read): Update.
+
+2020-05-27  Tom Tromey  <tromey@adacore.com>
+
+	* dwarf2/read.c (struct partial_die_info) <name>: Declare new
+	method.
+	<canonical_name>: New member.
+	<raw_name>: Rename from "name".
+	(partial_die_info): Initialize canonical_name.
+	(scan_partial_symbols): Check raw_name.
+	(partial_die_parent_scope, partial_die_full_name)
+	(add_partial_symbol, add_partial_subprogram)
+	(add_partial_enumeration, load_partial_dies): Use "name" method.
+	(partial_die_info::name): New method.
+	(partial_die_info::read, guess_partial_die_structure_name)
+	(partial_die_info::fixup): Update.
+
+2020-05-27  Tom Tromey  <tromey@adacore.com>
+
+	* dwarf2/attribute.h (struct attribute) <form_is_ref>: Inline.
+	<get_ref_die_offset>: Inline.
+	<get_ref_die_offset_complaint>: New method.
+	* dwarf2/attribute.c (attribute::form_is_ref): Move to header.
+	(attribute::get_ref_die_offset_complaint): Rename from
+	get_ref_die_offset.  Just issue complaint.
+
 2020-05-27  Hannes Domani  <ssbssa@yahoo.de>
 
 	* cli/cli-cmds.c (shell_escape): Move exit_status_set_internal_vars.
