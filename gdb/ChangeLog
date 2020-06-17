@@ -1,3 +1,25 @@
+2020-06-17  Simon Marchi  <simon.marchi@efficios.com>
+
+	* regformats/reg-arm.dat: Remove.
+	* regformats/reg-bfin.dat: Remove.
+	* regformats/reg-cris.dat: Remove.
+	* regformats/reg-crisv32.dat: Remove.
+	* regformats/reg-m32r.dat: Remove.
+	* regformats/reg-tilegx.dat: Remove.
+	* regformats/reg-tilegx32.dat: Remove.
+
+2020-06-17  Simon Marchi  <simon.marchi@efficios.com>
+
+	* features/Makefile (WHICH): Remove arm files.
+	* regformats/arm/arm-with-iwmmxt.dat: Remove.
+	* regformats/arm/arm-with-neon.dat: Remove.
+	* regformats/arm/arm-with-vfpv2.dat: Remove.
+	* regformats/arm/arm-with-vfpv3.dat: Remove.
+
+2020-06-17  Simon Marchi  <simon.marchi@efficios.com>
+
+	* features/Makefile (XMLTOC): Remove rx.xml.
+
 2020-06-17  Pedro Alves  <palves@redhat.com>
 
 	* gdbthread.h (thread_control_state) <trap_expected> Update
