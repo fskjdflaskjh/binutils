@@ -4097,7 +4097,7 @@ dw2_expand_symtabs_matching_symbol
 
       const language_defn *lang = language_def (lang_e);
       symbol_name_matcher_ftype *name_matcher
-	= get_symbol_name_matcher (lang, lookup_name_without_params);
+	= lang->get_symbol_name_matcher (lookup_name_without_params);
 
       name_and_matcher key {
          name_matcher,
@@ -18874,8 +18874,8 @@ guess_partial_die_structure_name (struct partial_die_info *struct_pdi,
 	  && child_pdi->linkage_name != NULL)
 	{
 	  gdb::unique_xmalloc_ptr<char> actual_class_name
-	    (language_class_name_from_physname (cu->language_defn,
-						child_pdi->linkage_name));
+	    (cu->language_defn->class_name_from_physname
+	     (child_pdi->linkage_name));
 	  if (actual_class_name != NULL)
 	    {
 	      struct objfile *objfile = cu->per_objfile->objfile;
@@ -21715,8 +21715,7 @@ guess_full_die_structure_name (struct die_info *die, struct dwarf2_cu *cu)
 	  if (linkage_name != NULL)
 	    {
 	      gdb::unique_xmalloc_ptr<char> actual_name
-		(language_class_name_from_physname (cu->language_defn,
-						    linkage_name));
+		(cu->language_defn->class_name_from_physname (linkage_name));
 	      const char *name = NULL;
 
 	      if (actual_name != NULL)
