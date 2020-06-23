@@ -1,3 +1,33 @@
+2020-06-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* target-descriptions.c (tdesc_architecture_name): Protect against
+	NULL pointer dereference.
+	(maint_print_xml_tdesc_cmd): New function.
+	(_initialize_target_descriptions): Register new 'maint print
+	xml-tdesc' command and give it the filename completer.
+	* NEWS: Mention new 'maint print xml-tdesc' command.
+
+2020-06-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* target-descriptions.c (class tdesc_compatible_info): New class.
+	(struct target_desc): Change type of compatible vector.
+	(tdesc_compatible_p): Update for change in type of
+	target_desc::compatible.
+	(tdesc_compatible_info_list): New function.
+	(tdesc_compatible_info_arch_name): New function.
+	(tdesc_add_compatible): Update for change in type of
+	target_desc::compatible.
+	(print_c_tdesc::visit_pre): Likewise.
+
+2020-06-23  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* target-descriptions.c (print_c_tdesc::print_c_tdesc): Change
+	whitespace to underscore.
+	(maint_print_c_tdesc_cmd): Use fake filename for target
+	descriptions that came from the target.
+	(_initialize_target_descriptions): Add filename command completion
+	for 'maint print c-tdesc'.
+
 2020-06-23  Simon Marchi  <simon.marchi@efficios.com>
 
 	* dwarf2/loc.c (decode_debug_loclists_addresses): Add empty
