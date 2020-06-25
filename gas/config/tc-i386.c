@@ -4867,11 +4867,6 @@ md_assemble (char *line)
 	  && !i.types[j].bitfield.xmmword)
 	i.reg_operands--;
 
-  /* ImmExt should be processed after SSE2AVX.  */
-  if (!i.tm.opcode_modifier.sse2avx
-      && i.tm.opcode_modifier.immext)
-    process_immext ();
-
   /* For insns with operands there are more diddles to do to the opcode.  */
   if (i.operands)
     {
@@ -6873,6 +6868,8 @@ process_suffix (void)
 	      && !i.tm.opcode_modifier.no_lsuf
 	      && !i.tm.opcode_modifier.no_qsuf))
       && i.tm.opcode_modifier.mnemonicsize != IGNORESIZE
+      /* Explicit sizing prefixes are assumed to disambiguate insns.  */
+      && !i.prefix[DATA_PREFIX] && !(i.prefix[REX_PREFIX] & REX_W)
       /* Accept FLDENV et al without suffix.  */
       && (i.tm.opcode_modifier.no_ssuf || i.tm.opcode_modifier.floatmf))
     {
@@ -7071,6 +7068,23 @@ process_suffix (void)
 		&& i.types[1].bitfield.qword))
 	i.rex |= REX_W;
 
+      break;
+
+    case 0:
+      /* Select word/dword/qword operation with explict data sizing prefix
+	 when there are no suitable register operands.  */
+      if (i.tm.opcode_modifier.w
+	  && (i.prefix[DATA_PREFIX] || (i.prefix[REX_PREFIX] & REX_W))
+	  && (!i.reg_operands
+	      || (i.reg_operands == 1
+		      /* ShiftCount */
+		  && (i.tm.operand_types[0].bitfield.instance == RegC
+		      /* InOutPortReg */
+		      || i.tm.operand_types[0].bitfield.instance == RegD
+		      || i.tm.operand_types[1].bitfield.instance == RegD
+		      /* CRC32 */
+		      || i.tm.base_opcode == 0xf20f38f0))))
+	i.tm.base_opcode |= 1;
       break;
     }
 
@@ -7373,6 +7387,11 @@ update_imm (unsigned int j)
 	  else
 	    overlap = imm32s;
 	}
+      else if (i.prefix[REX_PREFIX] & REX_W)
+	overlap = operand_type_and (overlap, imm32s);
+      else if (i.prefix[DATA_PREFIX])
+	overlap = operand_type_and (overlap,
+				    flag_code != CODE_16BIT ? imm16 : imm32);
       if (!operand_type_equal (&overlap, &imm8)
 	  && !operand_type_equal (&overlap, &imm8s)
 	  && !operand_type_equal (&overlap, &imm16)
@@ -7426,6 +7445,9 @@ process_operands (void)
       i.prefix[REX_PREFIX] = 0;
       i.rex_encoding = 0;
     }
+  /* ImmExt should be processed after SSE2AVX.  */
+  else if (i.tm.opcode_modifier.immext)
+    process_immext ();
 
   if (i.tm.opcode_modifier.sse2avx && i.tm.opcode_modifier.vexvvvv)
     {
