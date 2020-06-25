@@ -1,3 +1,88 @@
+2020-06-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* riscv-tdep.c (riscv_print_registers_info): Loop over all
+	registers, not just the known core set of registers.
+
+2020-06-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* riscv-tdep.c (riscv_register_name): Return NULL for duplicate
+	fflags, frm, and fcsr registers.
+	(riscv_register_reggroup_p): Remove unknown CSRs from save and
+	restore groups.
+	(riscv_tdesc_unknown_reg): New function.
+	(riscv_gdbarch_init): Pass riscv_tdesc_unknown_reg to
+	tdesc_use_registers.
+	* riscv-tdep.h (struct gdbarch_tdep): Add
+	unknown_csrs_first_regnum, unknown_csrs_count,
+	duplicate_fflags_regnum, duplicate_frm_regnum, and
+	duplicate_fcsr_regnum fields.
+
+2020-06-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* target-descriptions.c (tdesc_use_registers): Add new parameter a
+	callback, use the callback (when not null) to help number unknown
+	registers.
+	* target-descriptions.h (tdesc_unknown_register_ftype): New typedef.
+	(tdesc_use_registers): Add extra parameter to declaration.
+
+2020-06-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* riscv-tdep.c (value_of_riscv_user_reg): Moved to here from later
+	in the file.
+	(class riscv_pending_register_alias): Likewise.
+	(riscv_register_feature::register_info): Change 'required_p' field
+	to 'required', and change its type.  Add 'check' member function.
+	(riscv_register_feature::register_info::check): Define new member
+	function.
+	(riscv_xreg_feature): Change initialisation of 'required' field.
+	(riscv_freg_feature): Likewise.
+	(riscv_virtual_feature): Likewise.
+	(riscv_csr_feature): Likewise.
+	(riscv_check_tdesc_feature): Take extra parameter, the csr
+	tdesc_feature, rewrite the function to use the new
+	riscv_register_feature::register_info::check function.
+	(riscv_gdbarch_init): Pass the csr tdesc_feature where needed.
+
+2020-06-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* features/Makefile: Remove all references to the deleted files
+	below.
+	* features/riscv/32bit-csr.c: Deleted.
+	* features/riscv/32bit-csr.xml: Deleted.
+	* features/riscv/64bit-csr.c: Deleted.
+	* features/riscv/64bit-csr.xml: Deleted.
+	* features/riscv/rebuild-csr-xml.sh: Deleted.
+
+2020-06-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* riscv-tdep.c (struct riscv_register_feature::register_info): Fix
+	whitespace error for declaration of names member variable.
+	(struct riscv_register_feature): Add new prefer_first_name member
+	variable, and fix whitespace error in declaration of registers.
+	(riscv_xreg_feature): Initialize prefer_first_name field.
+	(riscv_freg_feature): Likewise.
+	(riscv_virtual_feature): Likewise.
+	(riscv_csr_feature): Likewise.
+	(riscv_register_name): Expand on comments.  Remove register name
+	modifications for CSR and virtual registers.
+
+2020-06-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* riscv-tdep.c (struct riscv_register_feature): Fix whitespace
+	errors.
+
+2020-06-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* riscv-tdep.c (riscv_create_csr_aliases): Handle csr aliases from
+	riscv-opc.h.
+	(class riscv_pending_register_alias): New class.
+	(riscv_check_tdesc_feature): Take vector of pending aliases and
+	populate it as appropriate.
+	(riscv_setup_register_aliases): Delete.
+	(riscv_gdbarch_init): Create vector of pending aliases and pass it
+	to riscv_check_tdesc_feature in all cases.  Use the vector to
+	create the register aliases.
+
 2020-06-25  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
 
 	* sol2-tdep.c (sol2_static_transform_name): Remove.
