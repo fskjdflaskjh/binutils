@@ -1,5 +1,37 @@
 2020-07-02  Simon Marchi  <simon.marchi@polymtl.ca>
 
+	* macroexp.h (macro_stringify): Return
+	gdb::unique_xmalloc_ptr<char>.
+	* macroexp.c (macro_stringify): Likewise.
+	* macrotab.c (fixup_definition): Update.
+
+2020-07-02  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* c-exp.y (scan_macro_expansion): Don't free `expansion`.
+	(lex_one_token): Update.
+	* macroexp.c (struct macro_buffer) <release>: Return
+	gdb::unique_xmalloc_ptr<char>.
+	(macro_stringify): Update.
+	(macro_expand): Update.
+	(macro_expand_next): Return gdb::unique_xmalloc_ptr<char>.
+	* macroexp.h (macro_expand_next): Likewise.
+
+2020-07-02  Simon Marchi  <simon.marchi@efficios.com>
+
+	* macroexp.h (macro_lookup_ftype): Remove.
+	(macro_expand, macro_expand_once, macro_expand_next): Remove
+	lookup function parameters, add scope parameter.
+	* macroexp.c (scan, substitute_args, expand, maybe_expand,
+	macro_expand, macro_expand_once, macro_expand_next): Likewise.
+	* macroscope.h (standard_macro_lookup): Change parameter type
+	to macro_scope.
+	* macroscope.c (standard_macro_lookup): Likewise.
+	* c-exp.y (lex_one_token): Update.
+	* macrocmd.c (macro_expand_command): Likewise.
+	(macro_expand_once_command): Likewise.
+
+2020-07-02  Simon Marchi  <simon.marchi@polymtl.ca>
+
 	* inf-loop.c (inferior_event_handler): Remove client_data param.
 	* inf-loop.h (inferior_event_handler): Likewise.
 	* infcmd.c (step_1): Adjust.
