@@ -1,3 +1,28 @@
+2020-07-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (OP_Vex_2src_1, OP_Vex_2src_2, Vex_2src_1,
+	Vex_2src_2): Delete.
+	(OP_VexW, VexW): New.
+	(xop_table): Use EXx for rotates by immediate. Use EXx and VexW
+	for shifts and rotates by register.
+
+2020-07-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (OP_EX_VexImmW, OP_XMM_VexW, EXVexImmW, XMVexW,
+	VEX_W_0F3A48_P_2, VEX_W_0F3A49_P_2, vex_w_done, get_vex_imm8,
+	OP_EX_VexReg): Delete.
+	(OP_VexI4, VexI4): New.
+	(vex_w_table): Move vpermil2ps and vpermil2pd entries ...
+	(prefix_table): ... here.
+	(print_insn): Drop setting of vex_w_done.
+
+2020-07-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (OP_EX_VexW, EXVexW, EXdVexW, EXqVexW): Delete.
+	(prefix_table, vex_len_table): Replace operands for FMA4 insns.
+	(xop_table): Replace operands of 4-operand insns.
+	(OP_REG_VexI4): Move VEX.W based operand swaping here.
+
 2020-07-07  Claudiu Zissulescu  <claziss@synopsys.com>
 
 	* arc-opc.c (insert_rbd): New function.
