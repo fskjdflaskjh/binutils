@@ -95,7 +95,6 @@ static void OP_Rounding (int, int);
 static void OP_REG_VexI4 (int, int);
 static void OP_VexI4 (int, int);
 static void PCLMUL_Fixup (int, int);
-static void VCMP_Fixup (int, int);
 static void VPCMP_Fixup (int, int);
 static void VPCOM_Fixup (int, int);
 static void OP_0f07 (int, int);
@@ -115,11 +114,8 @@ static void HLE_Fixup2 (int, int);
 static void HLE_Fixup3 (int, int);
 static void CMPXCHG8B_Fixup (int, int);
 static void XMM_Fixup (int, int);
-static void CRC32_Fixup (int, int);
 static void FXSAVE_Fixup (int, int);
-static void PCMPESTR_Fixup (int, int);
 
-static void MOVBE_Fixup (int, int);
 static void MOVSXD_Fixup (int, int);
 
 static void OP_Mask (int, int);
@@ -267,6 +263,7 @@ fetch_data (struct disassemble_info *info, bfd_byte *addr)
 #define Mo { OP_M, o_mode }
 #define Mp { OP_M, f_mode }		/* 32 or 48 bit memory operand for LDS, LES etc */
 #define Mq { OP_M, q_mode }
+#define Mv { OP_M, v_mode }
 #define Mv_bnd { OP_M, v_bndmk_mode }
 #define Mx { OP_M, x_mode }
 #define Mxmm { OP_M, xmm_mode }
@@ -326,23 +323,8 @@ fetch_data (struct disassemble_info *info, bfd_byte *addr)
 #define RMDX { OP_REG, dx_reg }
 
 #define eAX { OP_IMREG, eAX_reg }
-#define eBX { OP_IMREG, eBX_reg }
-#define eCX { OP_IMREG, eCX_reg }
-#define eDX { OP_IMREG, eDX_reg }
-#define eSP { OP_IMREG, eSP_reg }
-#define eBP { OP_IMREG, eBP_reg }
-#define eSI { OP_IMREG, eSI_reg }
-#define eDI { OP_IMREG, eDI_reg }
 #define AL { OP_IMREG, al_reg }
 #define CL { OP_IMREG, cl_reg }
-#define DL { OP_IMREG, dl_reg }
-#define BL { OP_IMREG, bl_reg }
-#define AH { OP_IMREG, ah_reg }
-#define CH { OP_IMREG, ch_reg }
-#define DH { OP_IMREG, dh_reg }
-#define BH { OP_IMREG, bh_reg }
-#define AX { OP_IMREG, ax_reg }
-#define DX { OP_IMREG, dx_reg }
 #define zAX { OP_IMREG, z_mode_ax_reg }
 #define indirDX { OP_IMREG, indir_dx_reg }
 
@@ -425,7 +407,6 @@ fetch_data (struct disassemble_info *info, bfd_byte *addr)
 #define XMVexScalarI4 { OP_REG_VexI4, scalar_mode }
 #define VexI4 { OP_VexI4, 0 }
 #define PCLMUL { PCLMUL_Fixup, 0 }
-#define VCMP { VCMP_Fixup, 0 }
 #define VPCMP { VPCMP_Fixup, 0 }
 #define VPCOM { VPCOM_Fixup, 0 }
 
@@ -2305,8 +2286,8 @@ struct dis386 {
    "XZ" => print 'x', 'y', or 'z' if suffix_always is true or no
 	   register operands and no broadcast.
    "XW" => print 's', 'd' depending on the VEX.W bit (for FMA)
-   "LQ" => print 'l' ('d' in Intel mode) or 'q' for memory
-	   operand or no operand at all in 64bit mode, or if suffix_always
+   "LQ" => print 'l' ('d' in Intel mode) or 'q' for memory operand, cond
+	   being false, or no operand at all in 64bit mode, or if suffix_always
 	   is true.
    "LB" => print "abs" in 64bit mode and behave as 'B' otherwise
    "LS" => print "abs" in 64bit mode and behave as 'S' otherwise
@@ -3721,9 +3702,9 @@ static const struct dis386 prefix_table[][4] = {
   /* PREFIX_0F2A */
   {
     { "cvtpi2ps", { XM, EMCq }, PREFIX_OPCODE },
-    { "cvtsi2ss%LQ", { XM, Edq }, PREFIX_OPCODE },
+    { "cvtsi2ss{%LQ|}", { XM, Edq }, PREFIX_OPCODE },
     { "cvtpi2pd", { XM, EMCq }, PREFIX_OPCODE },
-    { "cvtsi2sd%LQ", { XM, Edq }, 0 },
+    { "cvtsi2sd{%LQ|}", { XM, Edq }, 0 },
   },
 
   /* PREFIX_0F2B */
@@ -3984,13 +3965,13 @@ static const struct dis386 prefix_table[][4] = {
   /* PREFIX_0FAE_REG_4_MOD_0 */
   {
     { "xsave",	{ FXSAVE }, 0 },
-    { "ptwrite%LQ", { Edq }, 0 },
+    { "ptwrite{%LQ|}", { Edq }, 0 },
   },
 
   /* PREFIX_0FAE_REG_4_MOD_3 */
   {
     { Bad_Opcode },
-    { "ptwrite%LQ", { Edq }, 0 },
+    { "ptwrite{%LQ|}", { Edq }, 0 },
   },
 
   /* PREFIX_0FAE_REG_5_MOD_0 */
@@ -4438,18 +4419,18 @@ static const struct dis386 prefix_table[][4] = {
 
   /* PREFIX_0F38F0 */
   {
-    { "movbeS",	{ Gv, { MOVBE_Fixup, v_mode } }, PREFIX_OPCODE },
+    { "movbeS",	{ Gv, Mv }, PREFIX_OPCODE },
     { Bad_Opcode },
-    { "movbeS",	{ Gv, { MOVBE_Fixup, v_mode } }, PREFIX_OPCODE },
-    { "crc32",	{ Gdq, { CRC32_Fixup, b_mode } }, PREFIX_OPCODE },
+    { "movbeS",	{ Gv, Mv }, PREFIX_OPCODE },
+    { "crc32A",	{ Gdq, Eb }, PREFIX_OPCODE },
   },
 
   /* PREFIX_0F38F1 */
   {
-    { "movbeS",	{ { MOVBE_Fixup, v_mode }, Gv }, PREFIX_OPCODE },
+    { "movbeS",	{ Mv, Gv }, PREFIX_OPCODE },
     { Bad_Opcode },
-    { "movbeS",	{ { MOVBE_Fixup, v_mode }, Gv }, PREFIX_OPCODE },
-    { "crc32",	{ Gdq, { CRC32_Fixup, v_mode } }, PREFIX_OPCODE },
+    { "movbeS",	{ Mv, Gv }, PREFIX_OPCODE },
+    { "crc32Q",	{ Gdq, Ev }, PREFIX_OPCODE },
   },
 
   /* PREFIX_0F38F5 */
@@ -4610,14 +4591,14 @@ static const struct dis386 prefix_table[][4] = {
   {
     { Bad_Opcode },
     { Bad_Opcode },
-    { "pcmpestrm", { XM, { PCMPESTR_Fixup, x_mode }, Ib }, PREFIX_OPCODE },
+    { "pcmpestrm!%LQ", { XM, EXx, Ib }, PREFIX_OPCODE },
   },
 
   /* PREFIX_0F3A61 */
   {
     { Bad_Opcode },
     { Bad_Opcode },
-    { "pcmpestri", { XM, { PCMPESTR_Fixup, x_mode }, Ib }, PREFIX_OPCODE },
+    { "pcmpestri!%LQ", { XM, EXx, Ib }, PREFIX_OPCODE },
   },
 
   /* PREFIX_0F3A62 */
@@ -4694,9 +4675,9 @@ static const struct dis386 prefix_table[][4] = {
   /* PREFIX_VEX_0F2A */
   {
     { Bad_Opcode },
-    { "vcvtsi2ss%LQ",	{ XMScalar, VexScalar, Edq }, 0 },
+    { "vcvtsi2ss{%LQ|}",	{ XMScalar, VexScalar, Edq }, 0 },
     { Bad_Opcode },
-    { "vcvtsi2sd%LQ",	{ XMScalar, VexScalar, Edq }, 0 },
+    { "vcvtsi2sd{%LQ|}",	{ XMScalar, VexScalar, Edq }, 0 },
   },
 
   /* PREFIX_VEX_0F2C */
@@ -5160,10 +5141,10 @@ static const struct dis386 prefix_table[][4] = {
 
   /* PREFIX_VEX_0FC2 */
   {
-    { "vcmpps",		{ XM, Vex, EXx, VCMP }, 0 },
-    { "vcmpss",		{ XMScalar, VexScalar, EXxmm_md, VCMP }, 0 },
-    { "vcmppd",		{ XM, Vex, EXx, VCMP }, 0 },
-    { "vcmpsd",		{ XMScalar, VexScalar, EXxmm_mq, VCMP }, 0 },
+    { "vcmpps",		{ XM, Vex, EXx, CMP }, 0 },
+    { "vcmpss",		{ XMScalar, VexScalar, EXxmm_md, CMP }, 0 },
+    { "vcmppd",		{ XM, Vex, EXx, CMP }, 0 },
+    { "vcmpsd",		{ XMScalar, VexScalar, EXxmm_mq, CMP }, 0 },
   },
 
   /* PREFIX_VEX_0FC4 */
@@ -9865,12 +9846,12 @@ static const struct dis386 vex_len_table[][2] = {
 
   /* VEX_LEN_0F3A60_P_2 */
   {
-    { "vpcmpestrm",	{ XM, { PCMPESTR_Fixup, x_mode }, Ib }, 0 },
+    { "vpcmpestrm!%LQ",	{ XM, EXx, Ib }, 0 },
   },
 
   /* VEX_LEN_0F3A61_P_2 */
   {
-    { "vpcmpestri",	{ XM, { PCMPESTR_Fixup, x_mode }, Ib }, 0 },
+    { "vpcmpestri!%LQ",	{ XM, EXx, Ib }, 0 },
   },
 
   /* VEX_LEN_0F3A62_P_2 */
@@ -13662,15 +13643,15 @@ putop (const char *in_template, int sizeflag)
 	    }
 	  else if (l == 1 && last[0] == 'L')
 	    {
-	      if ((intel_syntax && need_modrm)
-		  || (modrm.mod == 3 && !(sizeflag & SUFFIX_ALWAYS)))
+	      if (cond ? modrm.mod == 3 && !(sizeflag & SUFFIX_ALWAYS)
+		       : address_mode != mode_64bit)
 		break;
 	      if ((rex & REX_W))
 		{
 		  USED_REX (REX_W);
 		  *obufp++ = 'q';
 		}
-	      else if((address_mode == mode_64bit && need_modrm)
+	      else if((address_mode == mode_64bit && need_modrm && cond)
 		      || (sizeflag & SUFFIX_ALWAYS))
 		*obufp++ = intel_syntax? 'd' : 'l';
 	    }
@@ -14413,7 +14394,8 @@ OP_E_register (int bytemode, int sizeflag)
     {
     case b_mode:
     case b_swap_mode:
-      USED_REX (0);
+      if (reg & 4)
+	USED_REX (0);
       if (rex)
 	names = names8rex;
       else
@@ -15042,7 +15024,8 @@ OP_G (int bytemode, int sizeflag)
   switch (bytemode)
     {
     case b_mode:
-      USED_REX (0);
+      if (modrm.reg & 4)
+	USED_REX (0);
       if (rex)
 	oappend (names8rex[modrm.reg + add]);
       else
@@ -15233,9 +15216,10 @@ OP_REG (int code, int sizeflag)
     case sp_reg: case bp_reg: case si_reg: case di_reg:
       s = names16[code - ax_reg + add];
       break;
-    case al_reg: case ah_reg: case cl_reg: case ch_reg:
-    case dl_reg: case dh_reg: case bl_reg: case bh_reg:
+    case ah_reg: case ch_reg: case dh_reg: case bh_reg:
       USED_REX (0);
+      /* Fall through.  */
+    case al_reg: case cl_reg: case dl_reg: case bl_reg:
       if (rex)
 	s = names8rex[code - al_reg + add];
       else
@@ -15285,36 +15269,17 @@ OP_IMREG (int code, int sizeflag)
       else
 	s = "(%dx)";
       break;
-    case ax_reg: case cx_reg: case dx_reg: case bx_reg:
-    case sp_reg: case bp_reg: case si_reg: case di_reg:
-      s = names16[code - ax_reg];
+    case al_reg: case cl_reg:
+      s = names8[code - al_reg];
       break;
-    case es_reg: case ss_reg: case cs_reg:
-    case ds_reg: case fs_reg: case gs_reg:
-      s = names_seg[code - es_reg];
-      break;
-    case al_reg: case ah_reg: case cl_reg: case ch_reg:
-    case dl_reg: case dh_reg: case bl_reg: case bh_reg:
-      USED_REX (0);
-      if (rex)
-	s = names8rex[code - al_reg];
-      else
-	s = names8[code - al_reg];
-      break;
-    case eAX_reg: case eCX_reg: case eDX_reg: case eBX_reg:
-    case eSP_reg: case eBP_reg: case eSI_reg: case eDI_reg:
+    case eAX_reg:
       USED_REX (REX_W);
       if (rex & REX_W)
-	s = names64[code - eAX_reg];
-      else
 	{
-	  if (sizeflag & DFLAG)
-	    s = names32[code - eAX_reg];
-	  else
-	    s = names16[code - eAX_reg];
-	  used_prefixes |= (prefixes & PREFIX_DATA);
+	  s = *names64;
+	  break;
 	}
-      break;
+      /* Fall through.  */
     case z_mode_ax_reg:
       if ((rex & REX_W) || (sizeflag & DFLAG))
 	s = *names32;
@@ -16143,7 +16108,7 @@ OP_3DNowSuffix (int bytemode ATTRIBUTE_UNUSED, int sizeflag ATTRIBUTE_UNUSED)
   mnemonicendp = obufp;
 }
 
-static struct op simd_cmp_op[] =
+static const struct op simd_cmp_op[] =
 {
   { STRING_COMMA_LEN ("eq") },
   { STRING_COMMA_LEN ("lt") },
@@ -16153,6 +16118,34 @@ static struct op simd_cmp_op[] =
   { STRING_COMMA_LEN ("nlt") },
   { STRING_COMMA_LEN ("nle") },
   { STRING_COMMA_LEN ("ord") }
+};
+
+static const struct op vex_cmp_op[] =
+{
+  { STRING_COMMA_LEN ("eq_uq") },
+  { STRING_COMMA_LEN ("nge") },
+  { STRING_COMMA_LEN ("ngt") },
+  { STRING_COMMA_LEN ("false") },
+  { STRING_COMMA_LEN ("neq_oq") },
+  { STRING_COMMA_LEN ("ge") },
+  { STRING_COMMA_LEN ("gt") },
+  { STRING_COMMA_LEN ("true") },
+  { STRING_COMMA_LEN ("eq_os") },
+  { STRING_COMMA_LEN ("lt_oq") },
+  { STRING_COMMA_LEN ("le_oq") },
+  { STRING_COMMA_LEN ("unord_s") },
+  { STRING_COMMA_LEN ("neq_us") },
+  { STRING_COMMA_LEN ("nlt_uq") },
+  { STRING_COMMA_LEN ("nle_uq") },
+  { STRING_COMMA_LEN ("ord_s") },
+  { STRING_COMMA_LEN ("eq_us") },
+  { STRING_COMMA_LEN ("nge_uq") },
+  { STRING_COMMA_LEN ("ngt_uq") },
+  { STRING_COMMA_LEN ("false_os") },
+  { STRING_COMMA_LEN ("neq_os") },
+  { STRING_COMMA_LEN ("ge_oq") },
+  { STRING_COMMA_LEN ("gt_oq") },
+  { STRING_COMMA_LEN ("true_us") },
 };
 
 static void
@@ -16171,6 +16164,18 @@ CMP_Fixup (int bytemode ATTRIBUTE_UNUSED, int sizeflag ATTRIBUTE_UNUSED)
       suffix[2] = '\0';
       sprintf (p, "%s%s", simd_cmp_op[cmp_type].name, suffix);
       mnemonicendp += simd_cmp_op[cmp_type].len;
+    }
+  else if (need_vex
+	   && cmp_type < ARRAY_SIZE (simd_cmp_op) + ARRAY_SIZE (vex_cmp_op))
+    {
+      char suffix [3];
+      char *p = mnemonicendp - 2;
+      suffix[0] = p[0];
+      suffix[1] = p[1];
+      suffix[2] = '\0';
+      cmp_type -= ARRAY_SIZE (simd_cmp_op);
+      sprintf (p, "%s%s", vex_cmp_op[cmp_type].name, suffix);
+      mnemonicendp += vex_cmp_op[cmp_type].len;
     }
   else
     {
@@ -16401,77 +16406,6 @@ XMM_Fixup (int reg, int sizeflag ATTRIBUTE_UNUSED)
 }
 
 static void
-CRC32_Fixup (int bytemode, int sizeflag)
-{
-  /* Add proper suffix to "crc32".  */
-  char *p = mnemonicendp;
-
-  switch (bytemode)
-    {
-    case b_mode:
-      if (intel_syntax)
-	goto skip;
-
-      *p++ = 'b';
-      break;
-    case v_mode:
-      if (intel_syntax)
-	goto skip;
-
-      USED_REX (REX_W);
-      if (rex & REX_W)
-	*p++ = 'q';
-      else
-	{
-	  if (sizeflag & DFLAG)
-	    *p++ = 'l';
-	  else
-	    *p++ = 'w';
-	  used_prefixes |= (prefixes & PREFIX_DATA);
-	}
-      break;
-    default:
-      oappend (INTERNAL_DISASSEMBLER_ERROR);
-      break;
-    }
-  mnemonicendp = p;
-  *p = '\0';
-
- skip:
-  if (modrm.mod == 3)
-    {
-      int add;
-
-      /* Skip mod/rm byte.  */
-      MODRM_CHECK;
-      codep++;
-
-      USED_REX (REX_B);
-      add = (rex & REX_B) ? 8 : 0;
-      if (bytemode == b_mode)
-	{
-	  USED_REX (0);
-	  if (rex)
-	    oappend (names8rex[modrm.rm + add]);
-	  else
-	    oappend (names8[modrm.rm + add]);
-	}
-      else
-	{
-	  USED_REX (REX_W);
-	  if (rex & REX_W)
-	    oappend (names64[modrm.rm + add]);
-	  else if ((prefixes & PREFIX_DATA))
-	    oappend (names16[modrm.rm + add]);
-	  else
-	    oappend (names32[modrm.rm + add]);
-	}
-    }
-  else
-    OP_E (bytemode, sizeflag);
-}
-
-static void
 FXSAVE_Fixup (int bytemode, int sizeflag)
 {
   /* Add proper suffix to "fxsave" and "fxrstor".  */
@@ -16485,27 +16419,6 @@ FXSAVE_Fixup (int bytemode, int sizeflag)
       mnemonicendp = p;
     }
   OP_M (bytemode, sizeflag);
-}
-
-static void
-PCMPESTR_Fixup (int bytemode, int sizeflag)
-{
-  /* Add proper suffix to "{,v}pcmpestr{i,m}".  */
-  if (!intel_syntax)
-    {
-      char *p = mnemonicendp;
-
-      USED_REX (REX_W);
-      if (rex & REX_W)
-	*p++ = 'q';
-      else if (sizeflag & SUFFIX_ALWAYS)
-	*p++ = 'l';
-
-      *p = '\0';
-      mnemonicendp = p;
-    }
-
-  OP_EX (bytemode, sizeflag);
 }
 
 /* Display the destination register operand for instructions with
@@ -16700,69 +16613,6 @@ OP_XMM_Vex (int bytemode, int sizeflag)
   OP_XMM (bytemode, sizeflag);
 }
 
-static struct op vex_cmp_op[] =
-{
-  { STRING_COMMA_LEN ("eq") },
-  { STRING_COMMA_LEN ("lt") },
-  { STRING_COMMA_LEN ("le") },
-  { STRING_COMMA_LEN ("unord") },
-  { STRING_COMMA_LEN ("neq") },
-  { STRING_COMMA_LEN ("nlt") },
-  { STRING_COMMA_LEN ("nle") },
-  { STRING_COMMA_LEN ("ord") },
-  { STRING_COMMA_LEN ("eq_uq") },
-  { STRING_COMMA_LEN ("nge") },
-  { STRING_COMMA_LEN ("ngt") },
-  { STRING_COMMA_LEN ("false") },
-  { STRING_COMMA_LEN ("neq_oq") },
-  { STRING_COMMA_LEN ("ge") },
-  { STRING_COMMA_LEN ("gt") },
-  { STRING_COMMA_LEN ("true") },
-  { STRING_COMMA_LEN ("eq_os") },
-  { STRING_COMMA_LEN ("lt_oq") },
-  { STRING_COMMA_LEN ("le_oq") },
-  { STRING_COMMA_LEN ("unord_s") },
-  { STRING_COMMA_LEN ("neq_us") },
-  { STRING_COMMA_LEN ("nlt_uq") },
-  { STRING_COMMA_LEN ("nle_uq") },
-  { STRING_COMMA_LEN ("ord_s") },
-  { STRING_COMMA_LEN ("eq_us") },
-  { STRING_COMMA_LEN ("nge_uq") },
-  { STRING_COMMA_LEN ("ngt_uq") },
-  { STRING_COMMA_LEN ("false_os") },
-  { STRING_COMMA_LEN ("neq_os") },
-  { STRING_COMMA_LEN ("ge_oq") },
-  { STRING_COMMA_LEN ("gt_oq") },
-  { STRING_COMMA_LEN ("true_us") },
-};
-
-static void
-VCMP_Fixup (int bytemode ATTRIBUTE_UNUSED, int sizeflag ATTRIBUTE_UNUSED)
-{
-  unsigned int cmp_type;
-
-  FETCH_DATA (the_info, codep + 1);
-  cmp_type = *codep++ & 0xff;
-  if (cmp_type < ARRAY_SIZE (vex_cmp_op))
-    {
-      char suffix [3];
-      char *p = mnemonicendp - 2;
-      suffix[0] = p[0];
-      suffix[1] = p[1];
-      suffix[2] = '\0';
-      sprintf (p, "%s%s", vex_cmp_op[cmp_type].name, suffix);
-      mnemonicendp += vex_cmp_op[cmp_type].len;
-    }
-  else
-    {
-      /* We have a reserved extension byte.  Output it directly.  */
-      scratchbuf[0] = '$';
-      print_operand_value (scratchbuf + 1, 1, cmp_type);
-      oappend_maybe_intel (scratchbuf);
-      scratchbuf[0] = '\0';
-    }
-}
-
 static void
 VPCMP_Fixup (int bytemode ATTRIBUTE_UNUSED,
 	     int sizeflag ATTRIBUTE_UNUSED)
@@ -16908,44 +16758,6 @@ PCLMUL_Fixup (int bytemode ATTRIBUTE_UNUSED,
       oappend_maybe_intel (scratchbuf);
       scratchbuf[0] = '\0';
     }
-}
-
-static void
-MOVBE_Fixup (int bytemode, int sizeflag)
-{
-  /* Add proper suffix to "movbe".  */
-  char *p = mnemonicendp;
-
-  switch (bytemode)
-    {
-    case v_mode:
-      if (intel_syntax)
-	goto skip;
-
-      USED_REX (REX_W);
-      if (sizeflag & SUFFIX_ALWAYS)
-	{
-	  if (rex & REX_W)
-	    *p++ = 'q';
-	  else
-	    {
-	      if (sizeflag & DFLAG)
-		*p++ = 'l';
-	      else
-		*p++ = 'w';
-	      used_prefixes |= (prefixes & PREFIX_DATA);
-	    }
-	}
-      break;
-    default:
-      oappend (INTERNAL_DISASSEMBLER_ERROR);
-      break;
-    }
-  mnemonicendp = p;
-  *p = '\0';
-
- skip:
-  OP_M (bytemode, sizeflag);
 }
 
 static void

@@ -28,7 +28,7 @@
   /* PREFIX_EVEX_0F2A */
   {
     { Bad_Opcode },
-    { "vcvtsi2ss%LQ",	{ XMScalar, VexScalar, EXxEVexR, Edq }, 0 },
+    { "vcvtsi2ss{%LQ|}",	{ XMScalar, VexScalar, EXxEVexR, Edq }, 0 },
     { Bad_Opcode },
     { VEX_W_TABLE (EVEX_W_0F2A_P_3) },
   },
@@ -272,7 +272,7 @@
   /* PREFIX_EVEX_0F7B */
   {
     { Bad_Opcode },
-    { "vcvtusi2ss%LQ",	{ XMScalar, VexScalar, EXxEVexR, Edq }, 0 },
+    { "vcvtusi2ss{%LQ|}",	{ XMScalar, VexScalar, EXxEVexR, Edq }, 0 },
     { VEX_W_TABLE (EVEX_W_0F7B_P_2) },
     { VEX_W_TABLE (EVEX_W_0F7B_P_3) },
   },
@@ -291,9 +291,9 @@
   },
   /* PREFIX_EVEX_0FC2 */
   {
-    { "vcmppX",	{ XMask, Vex, EXx, EXxEVexS, VCMP }, PREFIX_OPCODE },
+    { "vcmppX",	{ XMask, Vex, EXx, EXxEVexS, CMP }, PREFIX_OPCODE },
     { VEX_W_TABLE (EVEX_W_0FC2_P_1) },
-    { "vcmppX",	{ XMask, Vex, EXx, EXxEVexS, VCMP }, PREFIX_OPCODE },
+    { "vcmppX",	{ XMask, Vex, EXx, EXxEVexS, CMP }, PREFIX_OPCODE },
     { VEX_W_TABLE (EVEX_W_0FC2_P_3) },
   },
   /* PREFIX_EVEX_0FC4 */

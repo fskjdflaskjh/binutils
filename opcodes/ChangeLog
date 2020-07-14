@@ -1,3 +1,50 @@
+2020-07-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (PCMPESTR_Fixup): Delete.
+	(dis386): Adjust "LQ" description.
+	(prefix_table): Make %LQ apply to AT&T case only for cvtsi2ss,
+	cvtsi2sd, ptwrite, vcvtsi2ss, and vcvtsi2sd. Replace use of
+	PCMPESTR_Fixup by !%LQ and EXx for pcmpestrm, pcmpestri,
+	vpcmpestrm, and vpcmpestri.
+	(putop): Honor "cond" when handling LQ.
+	* i386-dis-evex-prefix.h: Make %LQ apply to AT&T case only for
+	vcvtsi2ss and vcvtusi2ss.
+	* i386-dis-evex-w.h: Make %LQ apply to AT&T case only for
+	vcvtsi2sd and vcvtusi2sd.
+
+2020-07-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (VCMP_Fixup, VCMP): Delete.
+	(simd_cmp_op): Add const.
+	(vex_cmp_op): Move up and drop initial 8 entries. Add const.
+	(CMP_Fixup): Handle VEX case.
+	(prefix_table): Replace VCMP by CMP.
+	* i386-dis-evex-prefix.h, i386-dis-evex-w.h: Likewise.
+
+2020-07-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (MOVBE_Fixup): Delete.
+	(Mv): Define.
+	(prefix_table): Use Mv for movbe entries.
+
+2020-07-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (CRC32_Fixup): Delete.
+	(prefix_table): Use Eb/Ev for crc32 entries.
+
+2020-07-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (OP_E_register, OP_G, OP_REG, CRC32_Fixup):
+	Conditionalize invocations of "USED_REX (0)".
+
+2020-07-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (eBX, eCX, eDX, eSP, eBP, eSI, eDI, DL, BL, AH,
+	CH, DH, BH, AX, DX): Delete.
+	(OP_IMREG): Drop handling of eBX_reg, eCX_reg, eDX_reg, eSP_reg,
+	eBP_reg, eSI_reg, eDI_reg, dl_reg, bl_reg, ah_reg, ch_reg,
+	dh_reg, bh_reg, ax_reg, and dx_reg. Simplify what's left.
+
 2020-07-10  Lili Cui  <lili.cui@intel.com>
 
 	* i386-dis.c (TMM): New.
