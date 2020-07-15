@@ -1738,18 +1738,16 @@ struct dis386 {
    'M' => print 'r' if intel_mnemonic is false.
    'N' => print 'n' if instruction has no wait "prefix"
    'O' => print 'd' or 'o' (or 'q' in Intel mode)
-   'P' => print 'w', 'l' or 'q' if instruction has an operand size prefix,
-	  or suffix_always is true.  print 'q' if rex prefix is present.
+   'P' => behave as 'T' except with register operand outside of suffix_always
+	  mode
    'Q' => print 'w', 'l' or 'q' for memory operand or suffix_always
 	  is true
    'R' => print 'w', 'l' or 'q' ('d' for 'l' and 'e' in Intel mode)
    'S' => print 'w', 'l' or 'q' if suffix_always is true
-   'T' => print 'q' in 64bit mode if instruction has no operand size
-	  prefix and behave as 'P' otherwise
-   'U' => print 'q' in 64bit mode if instruction has no operand size
-	  prefix and behave as 'Q' otherwise
-   'V' => print 'q' in 64bit mode if instruction has no operand size
-	  prefix and behave as 'S' otherwise
+   'T' => print 'w', 'l'/'d', or 'q' if instruction has an operand size
+	  prefix or if suffix_always is true.
+   'U' unused.
+   'V' unused.
    'W' => print 'b', 'w' or 'l' ('d' in Intel mode)
    'X' => print 's', 'd' depending on data16 prefix (for XMM)
    'Y' unused.
@@ -1758,11 +1756,9 @@ struct dis386 {
    '%' => add 1 upper case letter to the macro.
    '^' => print 'w', 'l', or 'q' (Intel64 ISA only) depending on operand size
 	  prefix or suffix_always is true (lcall/ljmp).
-   '@' => print 'q' for Intel64 ISA, 'w' or 'q' for AMD64 ISA depending
-	  on operand size prefix.
-   '&' => print 'q' in 64bit mode for Intel64 ISA or if instruction
-	  has no operand size prefix for AMD64 ISA, behave as 'P'
-	  otherwise
+   '@' => in 64bit mode for Intel64 ISA or if instruction
+	  has no operand sizing prefix, print 'q' if suffix_always is true or
+	  nothing otherwise; behave as 'P' in all other cases
 
    2 upper case letter macros:
    "XY" => print 'x' or 'y' if suffix_always is true or no register
@@ -1880,23 +1876,23 @@ static const struct dis386 dis386[] = {
   { "dec{S|}",		{ RMeSI }, 0 },
   { "dec{S|}",		{ RMeDI }, 0 },
   /* 50 */
-  { "pushV",		{ RMrAX }, 0 },
-  { "pushV",		{ RMrCX }, 0 },
-  { "pushV",		{ RMrDX }, 0 },
-  { "pushV",		{ RMrBX }, 0 },
-  { "pushV",		{ RMrSP }, 0 },
-  { "pushV",		{ RMrBP }, 0 },
-  { "pushV",		{ RMrSI }, 0 },
-  { "pushV",		{ RMrDI }, 0 },
+  { "push{!P|}",		{ RMrAX }, 0 },
+  { "push{!P|}",		{ RMrCX }, 0 },
+  { "push{!P|}",		{ RMrDX }, 0 },
+  { "push{!P|}",		{ RMrBX }, 0 },
+  { "push{!P|}",		{ RMrSP }, 0 },
+  { "push{!P|}",		{ RMrBP }, 0 },
+  { "push{!P|}",		{ RMrSI }, 0 },
+  { "push{!P|}",		{ RMrDI }, 0 },
   /* 58 */
-  { "popV",		{ RMrAX }, 0 },
-  { "popV",		{ RMrCX }, 0 },
-  { "popV",		{ RMrDX }, 0 },
-  { "popV",		{ RMrBX }, 0 },
-  { "popV",		{ RMrSP }, 0 },
-  { "popV",		{ RMrBP }, 0 },
-  { "popV",		{ RMrSI }, 0 },
-  { "popV",		{ RMrDI }, 0 },
+  { "pop{!P|}",		{ RMrAX }, 0 },
+  { "pop{!P|}",		{ RMrCX }, 0 },
+  { "pop{!P|}",		{ RMrDX }, 0 },
+  { "pop{!P|}",		{ RMrBX }, 0 },
+  { "pop{!P|}",		{ RMrSP }, 0 },
+  { "pop{!P|}",		{ RMrBP }, 0 },
+  { "pop{!P|}",		{ RMrSI }, 0 },
+  { "pop{!P|}",		{ RMrDI }, 0 },
   /* 60 */
   { X86_64_TABLE (X86_64_60) },
   { X86_64_TABLE (X86_64_61) },
@@ -1907,9 +1903,9 @@ static const struct dis386 dis386[] = {
   { Bad_Opcode },	/* op size prefix */
   { Bad_Opcode },	/* adr size prefix */
   /* 68 */
-  { "pushT",		{ sIv }, 0 },
+  { "pushP",		{ sIv }, 0 },
   { "imulS",		{ Gv, Ev, Iv }, 0 },
-  { "pushT",		{ sIbT }, 0 },
+  { "pushP",		{ sIbT }, 0 },
   { "imulS",		{ Gv, Ev, sIb }, 0 },
   { "ins{b|}",		{ Ybr, indirDX }, 0 },
   { X86_64_TABLE (X86_64_6D) },
@@ -1965,8 +1961,8 @@ static const struct dis386 dis386[] = {
   { "cR{t|}O",		{ XX }, 0 },
   { X86_64_TABLE (X86_64_9A) },
   { Bad_Opcode },	/* fwait */
-  { "pushfT",		{ XX }, 0 },
-  { "popfT",		{ XX }, 0 },
+  { "pushfP",		{ XX }, 0 },
+  { "popfP",		{ XX }, 0 },
   { "sahf",		{ XX }, 0 },
   { "lahf",		{ XX }, 0 },
   /* a0 */
@@ -2015,10 +2011,10 @@ static const struct dis386 dis386[] = {
   { REG_TABLE (REG_C6) },
   { REG_TABLE (REG_C7) },
   /* c8 */
-  { "enterT",		{ Iw, Ib }, 0 },
-  { "leaveT",		{ XX }, 0 },
-  { "{l|}ret{|f}P",	{ Iw }, 0 },
-  { "{l|}ret{|f}P",	{ XX }, 0 },
+  { "enterP",		{ Iw, Ib }, 0 },
+  { "leaveP",		{ XX }, 0 },
+  { "{l|}ret{|f}%LP",	{ Iw }, 0 },
+  { "{l|}ret{|f}%LP",	{ XX }, 0 },
   { "int3",		{ XX }, 0 },
   { "int",		{ Ib }, 0 },
   { X86_64_TABLE (X86_64_CE) },
@@ -2261,8 +2257,8 @@ static const struct dis386 dis386_twobyte[] = {
   { "setle",		{ Eb }, 0 },
   { "setg",		{ Eb }, 0 },
   /* a0 */
-  { "pushT",		{ fs }, 0 },
-  { "popT",		{ fs }, 0 },
+  { "pushP",		{ fs }, 0 },
+  { "popP",		{ fs }, 0 },
   { "cpuid",		{ XX }, 0 },
   { "btS",		{ Ev, Gv }, 0 },
   { "shldS",		{ Ev, Gv, Ib }, 0 },
@@ -2270,8 +2266,8 @@ static const struct dis386 dis386_twobyte[] = {
   { REG_TABLE (REG_0FA6) },
   { REG_TABLE (REG_0FA7) },
   /* a8 */
-  { "pushT",		{ gs }, 0 },
-  { "popT",		{ gs }, 0 },
+  { "pushP",		{ gs }, 0 },
+  { "popP",		{ gs }, 0 },
   { "rsm",		{ XX }, 0 },
   { "btsS",		{ Evh1, Gv }, 0 },
   { "shrdS",		{ Ev, Gv, Ib }, 0 },
@@ -2695,7 +2691,7 @@ static const struct dis386 reg_table[][8] = {
   },
   /* REG_8F */
   {
-    { "popU",	{ stackEv }, 0 },
+    { "pop{P|}", { stackEv }, 0 },
     { XOP_8F_TABLE (XOP_09) },
     { Bad_Opcode },
     { Bad_Opcode },
@@ -2821,11 +2817,11 @@ static const struct dis386 reg_table[][8] = {
   {
     { "incQ",	{ Evh1 }, 0 },
     { "decQ",	{ Evh1 }, 0 },
-    { "call{&|}", { NOTRACK, indirEv, BND }, 0 },
+    { "call{@|}", { NOTRACK, indirEv, BND }, 0 },
     { MOD_TABLE (MOD_FF_REG_3) },
-    { "jmp{&|}", { NOTRACK, indirEv, BND }, 0 },
+    { "jmp{@|}", { NOTRACK, indirEv, BND }, 0 },
     { MOD_TABLE (MOD_FF_REG_5) },
-    { "pushU",	{ stackEv }, 0 },
+    { "push{P|}", { stackEv }, 0 },
     { Bad_Opcode },
   },
   /* REG_0F00 */
@@ -4072,7 +4068,7 @@ static const struct dis386 x86_64_table[][2] = {
 
   /* X86_64_9A */
   {
-    { "{l|}call{T|}", { Ap }, 0 },
+    { "{l|}call{P|}", { Ap }, 0 },
   },
 
   /* X86_64_C2 */
@@ -4128,7 +4124,7 @@ static const struct dis386 x86_64_table[][2] = {
 
   /* X86_64_EA */
   {
-    { "{l|}jmp{T|}", { Ap }, 0 },
+    { "{l|}jmp{P|}", { Ap }, 0 },
   },
 
   /* X86_64_0F01_REG_0 */
@@ -10637,56 +10633,34 @@ putop (const char *in_template, int sizeflag)
 	  if (!(rex & REX_W))
 	    used_prefixes |= (prefixes & PREFIX_DATA);
 	  break;
-	case '&':
-	  if (!intel_syntax
-	      && address_mode == mode_64bit
-	      && isa64 == intel64)
+	case '@':
+	  if (address_mode == mode_64bit
+	      && (isa64 == intel64 || (rex & REX_W)
+		  || !(prefixes & PREFIX_DATA)))
 	    {
-	      *obufp++ = 'q';
+	      if (sizeflag & SUFFIX_ALWAYS)
+		*obufp++ = 'q';
 	      break;
 	    }
 	  /* Fall through.  */
-	case 'T':
-	  if (!intel_syntax
-	      && address_mode == mode_64bit
-	      && ((sizeflag & DFLAG) || (rex & REX_W)))
-	    {
-	      *obufp++ = 'q';
-	      break;
-	    }
-	  /* Fall through.  */
-	  goto case_P;
 	case 'P':
 	  if (l == 0)
 	    {
-	    case_P:
-	      if (intel_syntax)
+	      if (((need_modrm && modrm.mod == 3) || !cond)
+		  && !(sizeflag & SUFFIX_ALWAYS))
+		break;
+	  /* Fall through.  */
+	case 'T':
+	      if ((!(rex & REX_W) && (prefixes & PREFIX_DATA))
+		  || ((sizeflag & SUFFIX_ALWAYS)
+		      && address_mode != mode_64bit))
 		{
-		  if ((rex & REX_W) == 0
-		      && (prefixes & PREFIX_DATA))
-		    {
-		      if ((sizeflag & DFLAG) == 0)
-			*obufp++ = 'w';
-		      used_prefixes |= (prefixes & PREFIX_DATA);
-		    }
-		  break;
+		  *obufp++ = (sizeflag & DFLAG) ?
+			     intel_syntax ? 'd' : 'l' : 'w';
+		  used_prefixes |= (prefixes & PREFIX_DATA);
 		}
-	      if ((prefixes & PREFIX_DATA)
-		  || (rex & REX_W)
-		  || (sizeflag & SUFFIX_ALWAYS))
-		{
-		  USED_REX (REX_W);
-		  if (rex & REX_W)
-		    *obufp++ = 'q';
-		  else
-		    {
-		      if (sizeflag & DFLAG)
-			*obufp++ = 'l';
-		      else
-			*obufp++ = 'w';
-		      used_prefixes |= (prefixes & PREFIX_DATA);
-		    }
-		}
+	      else if (sizeflag & SUFFIX_ALWAYS)
+		*obufp++ = 'q';
 	    }
 	  else if (l == 1 && last[0] == 'L')
 	    {
@@ -10710,22 +10684,9 @@ putop (const char *in_template, int sizeflag)
 	  else
 	    abort ();
 	  break;
-	case 'U':
-	  if (intel_syntax)
-	    break;
-	  if (address_mode == mode_64bit
-	      && ((sizeflag & DFLAG) || (rex & REX_W)))
-	    {
-	      if (modrm.mod != 3 || (sizeflag & SUFFIX_ALWAYS))
-		*obufp++ = 'q';
-	      break;
-	    }
-	  /* Fall through.  */
-	  goto case_Q;
 	case 'Q':
 	  if (l == 0)
 	    {
-	    case_Q:
 	      if (intel_syntax && !alt)
 		break;
 	      USED_REX (REX_W);
@@ -10781,32 +10742,6 @@ putop (const char *in_template, int sizeflag)
 	  if (!(rex & REX_W))
 	    used_prefixes |= (prefixes & PREFIX_DATA);
 	  break;
-	case 'V':
-	  if (l == 0)
-	    {
-	      if (intel_syntax)
-		break;
-	      if (address_mode == mode_64bit
-		  && ((sizeflag & DFLAG) || (rex & REX_W)))
-		{
-		  if (sizeflag & SUFFIX_ALWAYS)
-		    *obufp++ = 'q';
-		  break;
-		}
-	    }
-	  else if (l == 1 && last[0] == 'L')
-	    {
-	      if (rex & REX_W)
-		{
-		  *obufp++ = 'a';
-		  *obufp++ = 'b';
-		  *obufp++ = 's';
-		}
-	    }
-	  else
-	    abort ();
-	  /* Fall through.  */
-	  goto case_S;
 	case 'S':
 	  if (l == 0)
 	    {
@@ -10838,6 +10773,54 @@ putop (const char *in_template, int sizeflag)
 		}
 
 	      goto case_S;
+	    }
+	  else
+	    abort ();
+	  break;
+	case 'V':
+	  if (l == 0)
+	    abort ();
+	  else if (l == 1 && last[0] == 'L')
+	    {
+	      if (rex & REX_W)
+		{
+		  *obufp++ = 'a';
+		  *obufp++ = 'b';
+		  *obufp++ = 's';
+		}
+	    }
+	  else
+	    abort ();
+	  goto case_S;
+	case 'W':
+	  if (l == 0)
+	    {
+	      /* operand size flag for cwtl, cbtw */
+	      USED_REX (REX_W);
+	      if (rex & REX_W)
+		{
+		  if (intel_syntax)
+		    *obufp++ = 'd';
+		  else
+		    *obufp++ = 'l';
+		}
+	      else if (sizeflag & DFLAG)
+		*obufp++ = 'w';
+	      else
+		*obufp++ = 'b';
+	      if (!(rex & REX_W))
+		used_prefixes |= (prefixes & PREFIX_DATA);
+	    }
+	  else if (l == 1)
+	    {
+	      if (!need_vex)
+		abort ();
+	      if (last[0] == 'X')
+		*obufp++ = vex.w ? 'd': 's';
+	      else if (last[0] == 'B')
+		*obufp++ = vex.w ? 'w': 'b';
+	      else
+		abort ();
 	    }
 	  else
 	    abort ();
@@ -10913,39 +10896,6 @@ putop (const char *in_template, int sizeflag)
 	  else
 	    abort ();
 	  break;
-	case 'W':
-	  if (l == 0)
-	    {
-	      /* operand size flag for cwtl, cbtw */
-	      USED_REX (REX_W);
-	      if (rex & REX_W)
-		{
-		  if (intel_syntax)
-		    *obufp++ = 'd';
-		  else
-		    *obufp++ = 'l';
-		}
-	      else if (sizeflag & DFLAG)
-		*obufp++ = 'w';
-	      else
-		*obufp++ = 'b';
-	      if (!(rex & REX_W))
-		used_prefixes |= (prefixes & PREFIX_DATA);
-	    }
-	  else if (l == 1)
-	    {
-	      if (!need_vex)
-		abort ();
-	      if (last[0] == 'X')
-		*obufp++ = vex.w ? 'd': 's';
-	      else if (last[0] == 'B')
-		*obufp++ = vex.w ? 'w': 'b';
-	      else
-		abort ();
-	    }
-	  else
-	    abort ();
-	  break;
 	case '^':
 	  if (intel_syntax)
 	    break;
@@ -10960,20 +10910,6 @@ putop (const char *in_template, int sizeflag)
 	      if (sizeflag & DFLAG)
 		*obufp++ = 'l';
 	      else
-		*obufp++ = 'w';
-	      used_prefixes |= (prefixes & PREFIX_DATA);
-	    }
-	  break;
-	case '@':
-	  if (intel_syntax)
-	    break;
-	  if (address_mode == mode_64bit
-	      && (isa64 == intel64
-		  || ((sizeflag & DFLAG) || (rex & REX_W))))
-	      *obufp++ = 'q';
-	  else if ((prefixes & PREFIX_DATA))
-	    {
-	      if (!(sizeflag & DFLAG))
 		*obufp++ = 'w';
 	      used_prefixes |= (prefixes & PREFIX_DATA);
 	    }
@@ -12563,9 +12499,7 @@ OP_J (int bytemode, int sizeflag)
 	disp -= 0x100;
       break;
     case v_mode:
-      if (isa64 != intel64)
     case dqw_mode:
-	USED_REX (REX_W);
       if ((sizeflag & DFLAG)
 	  || (address_mode == mode_64bit
 	      && ((isa64 == intel64 && bytemode != dqw_mode)
