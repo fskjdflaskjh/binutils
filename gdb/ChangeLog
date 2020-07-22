@@ -1,3 +1,107 @@
+2020-07-22  Simon Marchi  <simon.marchi@polymtl.ca>
+	    Tankut Baris Aktemur  <tankut.baris.aktemur@intel.com>
+
+	* objfiles.h (struct objfile) <skip_jit_symbol_lookup>: New field.
+	* jit.c (jit_breakpoint_re_set_internal): Use the
+	`skip_jit_symbol_lookup` field.
+
+2020-07-22  Simon Marchi  <simon.marchi@polymtl.ca>
+	    Tankut Baris Aktemur  <tankut.baris.aktemur@intel.com>
+
+	* jit.c (jit_read_descriptor): Define the descriptor address once,
+	use twice.
+	(jit_breakpoint_deleted): Move the declaration of the loop variable
+	`iter` into the loop header.
+	(jit_breakpoint_re_set_internal): Move the declaration of the local
+	variable `objf_data` to the first point of definition.
+	(jit_event_handler): Move the declaration of local variables
+	`code_entry`, `entry_addr`, and `objf` to their first point of use.
+	Rename `objf` to `jited`.
+
+2020-07-22  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.h (struct jiter_objfile_data) <jiter_objfile_data, objfile>:
+	Remove.
+	* jit.c (get_jiter_objfile_data): Update.
+
+2020-07-22  Tankut Baris Aktemur  <tankut.baris.aktemur@intel.com>
+	    Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.c (struct jit_program_space_data): Remove.
+	(jit_program_space_key): Remove.
+	(jiter_objfile_data::~jiter_objfile_data): Remove program space
+	stuff.
+	(get_jit_program_space_data): Remove.
+	(jit_breakpoint_deleted): Iterate on all of the program space's
+	objfiles.
+	(jit_inferior_init): Likewise.
+	(jit_breakpoint_re_set_internal): Likewise.  Also change return
+	type to void.
+	(jit_breakpoint_re_set): Pass current_program_space to
+	jit_breakpoint_re_set_internal.
+
+2020-07-22  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.h (struct jiter_objfile_data) <cached_code_address,
+	jit_breakpoint>: Move to here from ...
+	* jit.c (jit_program_space_data): ... here.
+	(jiter_objfile_data::~jiter_objfile_data): Update.
+	(jit_breakpoint_deleted): Update.
+	(jit_breakpoint_re_set_internal): Update.
+
+2020-07-22  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.c (jiter_objfile_data::~jiter_objfile_data): Remove some
+	checks.
+	(jit_read_descriptor): Remove NULL check.
+	(jit_event_handler): Add an assertion.
+
+2020-07-22  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.h (struct jit_objfile_data):  Split into...
+	(struct jiter_objfile_data): ... this ...
+	(struct jited_objfile_data): ... and this.
+	* objfiles.h (struct objfile) <jit_data>: Remove.
+	<jiter_data, jited_data>: New fields.
+	* jit.c (jit_objfile_data::~jit_objfile_data): Rename to ...
+	(jiter_objfile_data::~jiter_objfile_data): ... this.
+	(get_jit_objfile_data): Rename to ...
+	(get_jiter_objfile_data): ... this.
+	(add_objfile_entry): Update.
+	(jit_read_descriptor): Use get_jiter_objfile_data.
+	(jit_find_objf_with_entry_addr): Use objfile's jited_data field.
+	(jit_breakpoint_re_set_internal): Use get_jiter_objfile_data.
+	(jit_inferior_exit_hook): Use objfile's jited_data field.
+
+2020-07-22  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* jit.h: Forward-declare `struct minimal_symbol`.
+	(struct jit_objfile_data): Migrate to here from jit.c; also add a
+	constructor, destructor, and an objfile* field.
+	* jit.c (jit_objfile_data): Remove.
+	(struct jit_objfile_data): Migrate from here to jit.h.
+	(jit_objfile_data::~jit_objfile_data): New destructor
+	implementation with code moved from free_objfile_data.
+	(free_objfile_data): Delete.
+	(get_jit_objfile_data): Update to use the jit_data field of objfile.
+	(jit_find_objf_with_entry_addr): Ditto.
+	(jit_inferior_exit_hook): Ditto.
+	(_initialize_jit): Remove the call to
+	register_objfile_data_with_cleanup.
+	* objfiles.h (struct objfile) <jit_data>: New field.
+
+2020-07-22  Tankut Baris Aktemur  <tankut.baris.aktemur@intel.com>
+
+	* jit.h: Forward-declare `struct objfile`.
+	(jit_event_handler): Add a second parameter, the JITer objfile.
+	* jit.c (jit_read_descriptor): Change the signature to take the
+	JITer objfile as an argument instead of the jit_program_space_data.
+	(jit_inferior_init): Update the call to jit_read_descriptor.
+	(jit_event_handler): Use the new JITer objfile argument when calling
+	jit_read_descriptor.
+	* breakpoint.c (handle_jit_event): Update the call to
+	jit_event_handler to pass the JITer objfile.
+
 2020-07-21  John Baldwin  <jhb@FreeBSD.org>
 
 	* gdbarch.c: Regenerate.
