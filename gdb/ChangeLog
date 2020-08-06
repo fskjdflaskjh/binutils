@@ -1,3 +1,35 @@
+2020-08-06  Simon Marchi  <simon.marchi@efficios.com>
+
+	* regcache.h (class regcache): Remove friend
+	registers_changed_ptid.
+	<regcache_thread_ptid_changed>: Remove.
+	<regcaches>: Remove.
+	* regcache.c (regcache::regcaches): Rename to...
+	(regcaches): ... this.  Make static.
+	(get_thread_arch_aspace_regcache): Update.
+	(regcache::regcache_thread_ptid_changed): Rename to...
+	(regcache_thread_ptid_changed): ... this.  Update.
+	(class regcache_access): Remove.
+	(regcaches_test): Update.
+	(_initialize_regcache): Update.
+	* sparc64-tdep.c, dwarf2/index-write.c, record-btrace.c: Include
+	<forward_list>.
+
+2020-08-06  Simon Marchi  <simon.marchi@efficios.com>
+
+	* regcache.h (class regcache) <current_regcache>: Rename to...
+	<regcaches>: ... this.  Move doc here.
+	* regcache.c (regcache::current_regcache) Rename to...
+	(regcache::regcaches): ... this.  Move doc to header.
+	(get_thread_arch_aspace_regcache): Update.
+	(regcache::regcache_thread_ptid_changed): Update.
+	(registers_changed_ptid): Update.
+	(class regcache_access) <current_regcache_size>: Rename to...
+	<regcaches_size>: ... this.
+	(current_regcache_test): Rename to...
+	(regcaches_test): ... this.
+	(_initialize_regcache): Update.
+
 2020-08-06  Victor Collod  <vcollod@nvidia.com>
 
 	* amd64-tdep.c (amd64_analyze_prologue): Fix incorrect comment.
