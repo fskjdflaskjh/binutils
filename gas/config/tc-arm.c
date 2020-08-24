@@ -8898,16 +8898,13 @@ move_or_literal_pool (int i, enum lit_type t, bfd_boolean mode_3)
 		  /* Check if on thumb2 it can be done with a mov.w, mvn or
 		     movw instruction.  */
 		  unsigned int newimm;
-		  bfd_boolean isNegated;
+		  bfd_boolean isNegated = FALSE;
 
 		  newimm = encode_thumb32_immediate (v);
-		  if (newimm != (unsigned int) FAIL)
-		    isNegated = FALSE;
-		  else
+		  if (newimm == (unsigned int) FAIL)
 		    {
 		      newimm = encode_thumb32_immediate (~v);
-		      if (newimm != (unsigned int) FAIL)
-			isNegated = TRUE;
+		      isNegated = TRUE;
 		    }
 
 		  /* The number can be loaded with a mov.w or mvn
@@ -22622,6 +22619,7 @@ opcode_lookup (char **str)
   /* Look for unaffixed or special-case affixed mnemonic.  */
   opcode = (const struct asm_opcode *) str_hash_find_n (arm_ops_hsh, base,
 							end - base);
+  cond = NULL;
   if (opcode)
     {
       /* step U */
@@ -30719,16 +30717,15 @@ md_begin (void)
   unsigned mach;
   unsigned int i;
 
-  if (	 (arm_ops_hsh = str_htab_create ()) == NULL
-      || (arm_cond_hsh = str_htab_create ()) == NULL
-      || (arm_vcond_hsh = str_htab_create ()) == NULL
-      || (arm_shift_hsh = str_htab_create ()) == NULL
-      || (arm_psr_hsh = str_htab_create ()) == NULL
-      || (arm_v7m_psr_hsh = str_htab_create ()) == NULL
-      || (arm_reg_hsh = str_htab_create ()) == NULL
-      || (arm_reloc_hsh = str_htab_create ()) == NULL
-      || (arm_barrier_opt_hsh = str_htab_create ()) == NULL)
-    as_fatal (_("virtual memory exhausted"));
+  arm_ops_hsh = str_htab_create ();
+  arm_cond_hsh = str_htab_create ();
+  arm_vcond_hsh = str_htab_create ();
+  arm_shift_hsh = str_htab_create ();
+  arm_psr_hsh = str_htab_create ();
+  arm_v7m_psr_hsh = str_htab_create ();
+  arm_reg_hsh = str_htab_create ();
+  arm_reloc_hsh = str_htab_create ();
+  arm_barrier_opt_hsh = str_htab_create ();
 
   for (i = 0; i < sizeof (insns) / sizeof (struct asm_opcode); i++)
     if (str_hash_find (arm_ops_hsh, insns[i].template_name) == NULL)
