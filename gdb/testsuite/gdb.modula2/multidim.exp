@@ -19,12 +19,13 @@
 
 standard_testfile multidim.c
 
-if {[prepare_for_testing "failed to prepare" $testfile $srcfile {debug quiet}]} {
+if {[prepare_for_testing "failed to prepare" $testfile $srcfile \
+	 {debug quiet}]} {
     return -1
 }
 
 if ![runto here] then {
-    perror "couldn't run to breakpoint foo"
+    perror "couldn't run to breakpoint 'here'"
     continue
 }
 
@@ -32,3 +33,5 @@ gdb_test "set lang modula-2" ".*does not match.*" "switch to modula-2"
 
 gdb_test "print a\[1,2\]" ".*= 22.*" "second row third column"
 gdb_test "print a\[2,1\]" ".*= 41.*" "fifth row second column"
+gdb_test "print a\[a\[0,1\],a\[0,2\]\]" ".*= 22.*" \
+    "second row third column again"
