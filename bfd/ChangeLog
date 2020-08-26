@@ -1,3 +1,64 @@
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26507
+	* elf32-xtensa.c (find_removed_literal): Don't bsearch empty map.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26506
+	* elf32-xtensa.c (elf_xtensa_combine_prop_entries): Return early
+	when section is empty.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26498
+	* elf32-spu.c (find_function_stack_adjust): Use unsigned vars to
+	avoid UB left shift.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26484
+	PR 26485
+	PR 26486
+	PR 26487
+	PR 26488
+	PR 26490
+	* elf64-ppc.c (is_tls_get_addr): Avoid UB &h->elf when h is NULL.
+	(ppc64_elf_tls_setup): Likewise.
+	(branch_reloc_hash_match): Likewise.
+	(build_plt_stub): Likewise.
+	(ppc64_elf_relocate_section): Likewise.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26478
+	* mmo.c (mmo_write_symbols_and_terminator): Don't memcpy empty table.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26475
+	* elfxx-mips.c (_bfd_mips_elf_finish_dynamic_sections): Check
+	sstubs->contents != NULL.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26453
+	* som.c (som_prep_for_fixups): Return early when no symbols.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26418
+	* ecofflink.c (WRITE): Don't write size 0 chunks.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	* bfdio.c (bfd_get_file_size): Don't segv on NULL adata.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26415
+	* vms-misc.c (vms_time_t_to_vms_time): Don't use unsigned short vars.
+
 2020-08-26  David Faust  <david.faust@oracle.com>
 
 	* archures.c (bfd_mach_xbpf): Define.
