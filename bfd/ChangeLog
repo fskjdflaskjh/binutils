@@ -1,3 +1,14 @@
+2020-08-28  Alan Modra  <amodra@gmail.com>
+
+	PR 26418
+	* ecofflink.c (WRITE): Really don't write zero size chunks.
+
+2020-08-28  Tuckker  <tuckkern+sourceware@gmail.com>
+
+	PR 26543
+	* linker.c (bfd_generic_define_common_symbol): Force the alignment
+	to 1 if the section has now alignment requirement.
+
 2020-08-28  Cooper Qu  <cooper.qu@linux.alibaba.com>
 
 	* elf32-csky.c (csky_archs): Fix arch names.
