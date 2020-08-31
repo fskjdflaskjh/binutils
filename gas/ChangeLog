@@ -1,3 +1,93 @@
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26510
+	* config/tc-z8k.c (buffer): Use unsigned char.
+	(apply_fix): Use unsigned char* pointers.
+	(build_bytes): Likewise and mask nibbles when packing.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26503
+	* config/tc-v850.c (parse_register_list): Shift 1u left.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26502
+	* config/tc-tic6x.c (md_apply_fix): Use unsigned variables.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26497
+	* config/tc-sh.c (assemble_ppi): Use unsigned variables.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26495
+	* config/tc-score.c (s3_apply_fix): Use unsigned variables.
+	* config/tc-score7.c (s7_apply_fix): Likewise.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26480
+	* config/tc-nios2.c (nios2_parse_reglist): Shift 1UL left.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26479
+	* config/tc-nios2.c (md_chars_to_number): Cast buf[i] before shifting.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26472
+	PR 26473
+	PR 26474
+	* config/tc-mips.c (operand_reg_mask): Shift 1u left.
+	(load_register): Shift 0xffffU left.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26471
+	* config/tc-metag.c (md_chars_to_number): Make retval unsigned.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26468
+	* config/tc-mep.c (md_convert_frag): Use uint32_t for addend and
+	other variables.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26493
+	* config/tc-riscv.c (riscv_ip): Cast X_add_number passed to
+	VALID_* macros to unsigned.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	* config/tc-crx.c: Formatting.
+	(CRX_PRINT): Wrap params in parentheses.  Remove parens from uses
+	throughout file.
+	(reset_vars, get_register, get_copregister, get_optype, get_opbits),
+	(get_opflags, get_number_of_operands, parse_operand, gettrap),
+	(handle_LoadStor, getconstant, check_range, getreg_image),
+	(parse_operands, parse_insn, print_operand, print_constant),
+	(exponent2scale, mask_reg, process_label_constant, set_operand),
+	(assemble_insn, print_insn): Delete unnecessary forward declaration.
+	(print_insn): Make static.
+	(print_constant): Make "constant" unsigned.
+	(assemble_insn): Tidy REVERSE_MATCH index calc.
+	* expr.c (generic_bignum_to_int32): Cast elements to valueT.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26509
+	* config/tc-z80.c (is_overflow): Use 1UL in mask shift expression.
+
+2020-08-30  Alan Modra  <amodra@gmail.com>
+
+	* config/tc-tic4x.c (tic4x_gen_to_words): Rewrite mantissa
+	overflow test without UB.  Avoid other UB shifts by making them
+	unsigned.
+
 2020-08-31  Cooper Qu  <cooper.qu@linux.alibaba.com>
 
 	* config/tc-csky.c (csky_error_state): New member 'arg_int'.

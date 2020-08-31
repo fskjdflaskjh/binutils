@@ -238,10 +238,10 @@ md_chars_to_number (char *buf, int n)
   val = 0;
   if (target_big_endian)
     for (i = 0; i < n; ++i)
-      val = val | ((buf[i] & 0xff) << 8 * (n - (i + 1)));
+      val = val | ((valueT) (buf[i] & 0xff) << 8 * (n - (i + 1)));
   else
     for (i = 0; i < n; ++i)
-      val = val | ((buf[i] & 0xff) << 8 * i);
+      val = val | ((valueT) (buf[i] & 0xff) << 8 * i);
   return val;
 }
 
@@ -1631,7 +1631,7 @@ nios2_parse_reglist (char *token, const struct nios2_opcode *op)
 	    }
 	}
 
-      mask |= 1 << regno;
+      mask |= 1UL << regno;
       last = regno;
     }
 

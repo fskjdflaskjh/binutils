@@ -1,3 +1,51 @@
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26493
+	* elfnn-riscv.c (riscv_make_plt_header): Cast PLT_HEADER_SIZE to
+	unsigned when using with RISCV_ITYPE.
+	(_bfd_riscv_relax_call): Use an unsigned foff.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26476
+	PR 26477
+	* elfxx-mips.c (CRINFO_CTYPE, CRINFO_RTYPE, CRINFO_DIST2TO),
+	(CRINFO_RELVADDR): Make unsigned.
+	(mips_elf_nullify_got_load): Use unsigned constant when shifting
+	into sign bit.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26466
+	* mep-relocs.pl (emit_apply): Handle HI16S adjustment.  Use "u"
+	variable and rewrite signed overflow check.
+	* elf32-mep.c: Regenerate.
+	(mep_final_link_relocate): Delete "s".
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26461
+	* elfxx-ia64.c (ia64_elf_install_value): Make expressions unsigned
+	that might shift values into sign bit.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26445
+	* elf32-csky.c (csky_relocate_contents): Make relocation a bfd_vma,
+	and similarly for variables dealing with overflow.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26442
+	* elf32-crx.c (crx_elf_final_link_relocate): Calculate reloc_bits
+	without undefined behaviour.  Tidy excess casts.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	* elf-m10300.c (mn10300_elf_relax_delete_bytes): Calculate
+	alignment from reloc addend after reloc type R_MN10300_ALIGN is
+	found.
+
 2020-08-30  Alan Modra  <amodra@gmail.com>
 
 	PR 26435
