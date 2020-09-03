@@ -1,3 +1,29 @@
+2020-09-03  Nelson Chu  <nelson.chu@sifive.com>
+
+	* elfnn-riscv.c (riscv_i_or_e_p): Minor cleanup for warnings/errors.
+	(riscv_merge_std_ext): Likewise.
+	(riscv_merge_arch_attr_info): Likewise.
+	(riscv_merge_attributes): Likewise and fix comment typos.
+
+2020-09-03  Nelson Chu  <nelson.chu@sifive.com>
+
+	* elfnn-riscv.c (riscv_version_mismatch): Change the return type
+	from void to bfd_boolean.  Report warnings rather than errors
+	when the ISA versions are mis-matched.  Afterwards, remember to
+	update the output ISA versions to the newest ones.
+	(riscv_merge_std_ext): Allow to link objects with different
+	standard ISA versions.  Try to add output ISA versions to
+	merged_subsets first.
+	(riscv_merge_multi_letter_ext): Likewise.  But for standard additional
+	ISA and non-standard ISA versions.
+
+2020-09-03  Kito Cheng  <kito.cheng@sifive.com>
+
+	* elfnn-riscv.c (riscv_merge_std_ext): Fix to report the correct
+	error message when the versions of extension are mis-matched.
+	* elfxx-riscv.c (riscv_parse_subset): Don't issue the error when
+	the string is empty.
+
 2020-09-03  Alan Modra  <amodra@gmail.com>
 
 	* xcofflink.c (xcoff_get_archive_info): Allocate xcoff_archive_info
