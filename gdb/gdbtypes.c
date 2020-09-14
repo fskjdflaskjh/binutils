@@ -375,7 +375,7 @@ make_pointer_type (struct type *type, struct type **typeptr)
   /* Mark pointers as unsigned.  The target converts between pointers
      and addresses (CORE_ADDRs) using gdbarch_pointer_to_address and
      gdbarch_address_to_pointer.  */
-  TYPE_UNSIGNED (ntype) = 1;
+  ntype->set_is_unsigned (true);
 
   /* Update the length of all the other variants of this type.  */
   chain = TYPE_CHAIN (ntype);
@@ -552,7 +552,7 @@ lookup_function_type_with_arguments (struct type *type,
       if (param_types[nparams - 1] == NULL)
 	{
 	  --nparams;
-	  TYPE_VARARGS (fn) = 1;
+	  fn->set_has_varargs (true);
 	}
       else if (check_typedef (param_types[nparams - 1])->code ()
 	       == TYPE_CODE_VOID)
@@ -560,10 +560,10 @@ lookup_function_type_with_arguments (struct type *type,
 	  --nparams;
 	  /* Caller should have ensured this.  */
 	  gdb_assert (nparams == 0);
-	  TYPE_PROTOTYPED (fn) = 1;
+	  fn->set_is_prototyped (true);
 	}
       else
-	TYPE_PROTOTYPED (fn) = 1;
+	fn->set_is_prototyped (true);
     }
 
   fn->set_num_fields (nparams);
@@ -867,7 +867,7 @@ allocate_stub_method (struct type *type)
   mtype = alloc_type_copy (type);
   mtype->set_code (TYPE_CODE_METHOD);
   TYPE_LENGTH (mtype) = 1;
-  TYPE_STUB (mtype) = 1;
+  mtype->set_is_stub (true);
   TYPE_TARGET_TYPE (mtype) = type;
   /* TYPE_SELF_TYPE (mtype) = unknown yet */
   return mtype;
@@ -934,8 +934,8 @@ create_range_type (struct type *result_type, struct type *index_type,
     result_type = alloc_type_copy (index_type);
   result_type->set_code (TYPE_CODE_RANGE);
   TYPE_TARGET_TYPE (result_type) = index_type;
-  if (TYPE_STUB (index_type))
-    TYPE_TARGET_STUB (result_type) = 1;
+  if (index_type->is_stub ())
+    result_type->set_target_is_stub (true);
   else
     TYPE_LENGTH (result_type) = TYPE_LENGTH (check_typedef (index_type));
 
@@ -949,17 +949,17 @@ create_range_type (struct type *result_type, struct type *index_type,
   result_type->set_bounds (bounds);
 
   if (low_bound->kind () == PROP_CONST && low_bound->const_val () >= 0)
-    TYPE_UNSIGNED (result_type) = 1;
+    result_type->set_is_unsigned (true);
 
   /* Ada allows the declaration of range types whose upper bound is
      less than the lower bound, so checking the lower bound is not
      enough.  Make sure we do not mark a range type whose upper bound
      is negative as unsigned.  */
   if (high_bound->kind () == PROP_CONST && high_bound->const_val () < 0)
-    TYPE_UNSIGNED (result_type) = 0;
+    result_type->set_is_unsigned (false);
 
-  TYPE_ENDIANITY_NOT_DEFAULT (result_type)
-    = TYPE_ENDIANITY_NOT_DEFAULT (index_type);
+  result_type->set_endianity_is_not_default
+    (index_type->endianity_is_not_default ());
 
   return result_type;
 }
@@ -1073,9 +1073,7 @@ get_discrete_bounds (struct type *type, LONGEST *lowp, LONGEST *highp)
 
 	  /* Set unsigned indicator if warranted.  */
 	  if (*lowp >= 0)
-	    {
-	      TYPE_UNSIGNED (type) = 1;
-	    }
+	    type->set_is_unsigned (true);
 	}
       else
 	{
@@ -1090,7 +1088,7 @@ get_discrete_bounds (struct type *type, LONGEST *lowp, LONGEST *highp)
     case TYPE_CODE_INT:
       if (TYPE_LENGTH (type) > sizeof (LONGEST))	/* Too big */
 	return -1;
-      if (!TYPE_UNSIGNED (type))
+      if (!type->is_unsigned ())
 	{
 	  *lowp = -(1 << (TYPE_LENGTH (type) * TARGET_CHAR_BIT - 1));
 	  *highp = -*lowp - 1;
@@ -1309,7 +1307,7 @@ create_array_type_with_stride (struct type *result_type,
 
   /* TYPE_TARGET_STUB will take care of zero length arrays.  */
   if (TYPE_LENGTH (result_type) == 0)
-    TYPE_TARGET_STUB (result_type) = 1;
+    result_type->set_target_is_stub (true);
 
   return result_type;
 }
@@ -1390,7 +1388,7 @@ create_set_type (struct type *result_type, struct type *domain_type)
   result_type->set_fields
     ((struct field *) TYPE_ZALLOC (result_type, sizeof (struct field)));
 
-  if (!TYPE_STUB (domain_type))
+  if (!domain_type->is_stub ())
     {
       LONGEST low_bound, high_bound, bit_length;
 
@@ -1400,7 +1398,7 @@ create_set_type (struct type *result_type, struct type *domain_type)
       TYPE_LENGTH (result_type)
 	= (bit_length + TARGET_CHAR_BIT - 1) / TARGET_CHAR_BIT;
       if (low_bound >= 0)
-	TYPE_UNSIGNED (result_type) = 1;
+	result_type->set_is_unsigned (true);
     }
   result_type->field (0).set_type (domain_type);
 
@@ -1430,7 +1428,7 @@ make_vector_type (struct type *array_type)
       TYPE_TARGET_TYPE (inner_array) = elt_type;
     }
 
-  TYPE_VECTOR (array_type) = 1;
+  array_type->set_is_vector (true);
 }
 
 struct type *
@@ -1558,7 +1556,7 @@ smash_to_method_type (struct type *type, struct type *self_type,
   type->set_fields (args);
   type->set_num_fields (nargs);
   if (varargs)
-    TYPE_VARARGS (type) = 1;
+    type->set_has_varargs (true);
   TYPE_LENGTH (type) = 1;	/* In practice, this is never needed.  */
 }
 
@@ -1813,7 +1811,7 @@ get_unsigned_type_max (struct type *type, ULONGEST *max)
   unsigned int n;
 
   type = check_typedef (type);
-  gdb_assert (type->code () == TYPE_CODE_INT && TYPE_UNSIGNED (type));
+  gdb_assert (type->code () == TYPE_CODE_INT && type->is_unsigned ());
   gdb_assert (TYPE_LENGTH (type) <= sizeof (ULONGEST));
 
   /* Written this way to avoid overflow.  */
@@ -1830,7 +1828,7 @@ get_signed_type_minmax (struct type *type, LONGEST *min, LONGEST *max)
   unsigned int n;
 
   type = check_typedef (type);
-  gdb_assert (type->code () == TYPE_CODE_INT && !TYPE_UNSIGNED (type));
+  gdb_assert (type->code () == TYPE_CODE_INT && !type->is_unsigned ());
   gdb_assert (TYPE_LENGTH (type) <= sizeof (LONGEST));
 
   n = TYPE_LENGTH (type) * TARGET_CHAR_BIT;
@@ -2839,7 +2837,7 @@ check_typedef (struct type *type)
     }
   /* Otherwise, rely on the stub flag being set for opaque/stubbed
      types.  */
-  else if (TYPE_STUB (type) && !currently_reading_symtab)
+  else if (type->is_stub () && !currently_reading_symtab)
     {
       const char *name = type->name ();
       /* FIXME: shouldn't we look in STRUCT_DOMAIN and/or VAR_DOMAIN
@@ -2866,22 +2864,22 @@ check_typedef (struct type *type)
         }
     }
 
-  if (TYPE_TARGET_STUB (type))
+  if (type->target_is_stub ())
     {
       struct type *target_type = check_typedef (TYPE_TARGET_TYPE (type));
 
-      if (TYPE_STUB (target_type) || TYPE_TARGET_STUB (target_type))
+      if (target_type->is_stub () || target_type->target_is_stub ())
 	{
 	  /* Nothing we can do.  */
 	}
       else if (type->code () == TYPE_CODE_RANGE)
 	{
 	  TYPE_LENGTH (type) = TYPE_LENGTH (target_type);
-	  TYPE_TARGET_STUB (type) = 0;
+	  type->set_target_is_stub (false);
 	}
       else if (type->code () == TYPE_CODE_ARRAY
 	       && update_static_array_size (type))
-	TYPE_TARGET_STUB (type) = 0;
+	type->set_target_is_stub (false);
     }
 
   type = make_qualified_type (type, instance_flags, NULL);
@@ -3035,7 +3033,7 @@ check_stub_method (struct type *type, int method_id, int signature_id)
      We want a method (TYPE_CODE_METHOD).  */
   smash_to_method_type (mtype, type, TYPE_TARGET_TYPE (mtype),
 			argtypes, argcount, p[-2] == '.');
-  TYPE_STUB (mtype) = 0;
+  mtype->set_is_stub (false);
   TYPE_FN_FIELD_STUB (f, signature_id) = 0;
 
   xfree (demangled_name);
@@ -3191,7 +3189,7 @@ init_integer_type (struct objfile *objfile,
 
   t = init_type (objfile, TYPE_CODE_INT, bit, name);
   if (unsigned_p)
-    TYPE_UNSIGNED (t) = 1;
+    t->set_is_unsigned (true);
 
   return t;
 }
@@ -3208,7 +3206,7 @@ init_character_type (struct objfile *objfile,
 
   t = init_type (objfile, TYPE_CODE_CHAR, bit, name);
   if (unsigned_p)
-    TYPE_UNSIGNED (t) = 1;
+    t->set_is_unsigned (true);
 
   return t;
 }
@@ -3225,7 +3223,7 @@ init_boolean_type (struct objfile *objfile,
 
   t = init_type (objfile, TYPE_CODE_BOOL, bit, name);
   if (unsigned_p)
-    TYPE_UNSIGNED (t) = 1;
+    t->set_is_unsigned (true);
 
   return t;
 }
@@ -3319,7 +3317,7 @@ init_pointer_type (struct objfile *objfile,
 
   t = init_type (objfile, TYPE_CODE_PTR, bit, name);
   TYPE_TARGET_TYPE (t) = target_type;
-  TYPE_UNSIGNED (t) = 1;
+  t->set_is_unsigned (true);
   return t;
 }
 
@@ -3707,7 +3705,7 @@ enum bfd_endian
 type_byte_order (const struct type *type)
 {
   bfd_endian byteorder = gdbarch_byte_order (get_type_arch (type));
-  if (TYPE_ENDIANITY_NOT_DEFAULT (type))
+  if (type->endianity_is_not_default ())
     {
       if (byteorder == BFD_ENDIAN_BIG)
         return BFD_ENDIAN_LITTLE;
@@ -3991,11 +3989,11 @@ check_types_equal (struct type *type1, struct type *type2,
 
   if (type1->code () != type2->code ()
       || TYPE_LENGTH (type1) != TYPE_LENGTH (type2)
-      || TYPE_UNSIGNED (type1) != TYPE_UNSIGNED (type2)
-      || TYPE_NOSIGN (type1) != TYPE_NOSIGN (type2)
-      || TYPE_ENDIANITY_NOT_DEFAULT (type1) != TYPE_ENDIANITY_NOT_DEFAULT (type2)
-      || TYPE_VARARGS (type1) != TYPE_VARARGS (type2)
-      || TYPE_VECTOR (type1) != TYPE_VECTOR (type2)
+      || type1->is_unsigned () != type2->is_unsigned ()
+      || type1->has_no_signedness () != type2->has_no_signedness ()
+      || type1->endianity_is_not_default () != type2->endianity_is_not_default ()
+      || type1->has_varargs () != type2->has_varargs ()
+      || type1->is_vector () != type2->is_vector ()
       || TYPE_NOTTEXT (type1) != TYPE_NOTTEXT (type2)
       || TYPE_INSTANCE_FLAGS (type1) != TYPE_INSTANCE_FLAGS (type2)
       || type1->num_fields () != type2->num_fields ())
@@ -4266,17 +4264,17 @@ rank_one_type_parm_int (struct type *parm, struct type *arg, struct value *value
 	{
 	  /* Deal with signed, unsigned, and plain chars and
 	     signed and unsigned ints.  */
-	  if (TYPE_NOSIGN (parm))
+	  if (parm->has_no_signedness ())
 	    {
 	      /* This case only for character types.  */
-	      if (TYPE_NOSIGN (arg))
+	      if (arg->has_no_signedness ())
 		return EXACT_MATCH_BADNESS;	/* plain char -> plain char */
 	      else		/* signed/unsigned char -> plain char */
 		return INTEGER_CONVERSION_BADNESS;
 	    }
-	  else if (TYPE_UNSIGNED (parm))
+	  else if (parm->is_unsigned ())
 	    {
-	      if (TYPE_UNSIGNED (arg))
+	      if (arg->is_unsigned ())
 		{
 		  /* unsigned int -> unsigned int, or
 		     unsigned long -> unsigned long */
@@ -4306,7 +4304,7 @@ rank_one_type_parm_int (struct type *parm, struct type *arg, struct value *value
 		    return INTEGER_CONVERSION_BADNESS;
 		}
 	    }
-	  else if (!TYPE_NOSIGN (arg) && !TYPE_UNSIGNED (arg))
+	  else if (!arg->has_no_signedness () && !arg->is_unsigned ())
 	    {
 	      if (integer_types_same_name_p (parm->name (),
 					     arg->name ()))
@@ -4389,21 +4387,21 @@ rank_one_type_parm_char (struct type *parm, struct type *arg, struct value *valu
     case TYPE_CODE_CHAR:
       /* Deal with signed, unsigned, and plain chars for C++ and
 	 with int cases falling through from previous case.  */
-      if (TYPE_NOSIGN (parm))
+      if (parm->has_no_signedness ())
 	{
-	  if (TYPE_NOSIGN (arg))
+	  if (arg->has_no_signedness ())
 	    return EXACT_MATCH_BADNESS;
 	  else
 	    return INTEGER_CONVERSION_BADNESS;
 	}
-      else if (TYPE_UNSIGNED (parm))
+      else if (parm->is_unsigned ())
 	{
-	  if (TYPE_UNSIGNED (arg))
+	  if (arg->is_unsigned ())
 	    return EXACT_MATCH_BADNESS;
 	  else
 	    return INTEGER_PROMOTION_BADNESS;
 	}
-      else if (!TYPE_NOSIGN (arg) && !TYPE_UNSIGNED (arg))
+      else if (!arg->has_no_signedness () && !arg->is_unsigned ())
 	return EXACT_MATCH_BADNESS;
       else
 	return INTEGER_CONVERSION_BADNESS;
@@ -5066,46 +5064,46 @@ recursive_dump_type (struct type *type, int spaces)
   puts_filtered ("\n");
 
   printfi_filtered (spaces, "flags");
-  if (TYPE_UNSIGNED (type))
+  if (type->is_unsigned ())
     {
       puts_filtered (" TYPE_UNSIGNED");
     }
-  if (TYPE_NOSIGN (type))
+  if (type->has_no_signedness ())
     {
       puts_filtered (" TYPE_NOSIGN");
     }
-  if (TYPE_ENDIANITY_NOT_DEFAULT (type))
+  if (type->endianity_is_not_default ())
     {
       puts_filtered (" TYPE_ENDIANITY_NOT_DEFAULT");
     }
-  if (TYPE_STUB (type))
+  if (type->is_stub ())
     {
       puts_filtered (" TYPE_STUB");
     }
-  if (TYPE_TARGET_STUB (type))
+  if (type->target_is_stub ())
     {
       puts_filtered (" TYPE_TARGET_STUB");
     }
-  if (TYPE_PROTOTYPED (type))
+  if (type->is_prototyped ())
     {
       puts_filtered (" TYPE_PROTOTYPED");
     }
-  if (TYPE_VARARGS (type))
+  if (type->has_varargs ())
     {
       puts_filtered (" TYPE_VARARGS");
     }
   /* This is used for things like AltiVec registers on ppc.  Gcc emits
      an attribute for the array type, which tells whether or not we
      have a vector, instead of a regular array.  */
-  if (TYPE_VECTOR (type))
+  if (type->is_vector ())
     {
       puts_filtered (" TYPE_VECTOR");
     }
-  if (TYPE_FIXED_INSTANCE (type))
+  if (type->is_fixed_instance ())
     {
       puts_filtered (" TYPE_FIXED_INSTANCE");
     }
-  if (TYPE_STUB_SUPPORTED (type))
+  if (type->stub_is_supported ())
     {
       puts_filtered (" TYPE_STUB_SUPPORTED");
     }
@@ -5477,7 +5475,7 @@ arch_integer_type (struct gdbarch *gdbarch,
 
   t = arch_type (gdbarch, TYPE_CODE_INT, bit, name);
   if (unsigned_p)
-    TYPE_UNSIGNED (t) = 1;
+    t->set_is_unsigned (true);
 
   return t;
 }
@@ -5494,7 +5492,7 @@ arch_character_type (struct gdbarch *gdbarch,
 
   t = arch_type (gdbarch, TYPE_CODE_CHAR, bit, name);
   if (unsigned_p)
-    TYPE_UNSIGNED (t) = 1;
+    t->set_is_unsigned (true);
 
   return t;
 }
@@ -5511,7 +5509,7 @@ arch_boolean_type (struct gdbarch *gdbarch,
 
   t = arch_type (gdbarch, TYPE_CODE_BOOL, bit, name);
   if (unsigned_p)
-    TYPE_UNSIGNED (t) = 1;
+    t->set_is_unsigned (true);
 
   return t;
 }
@@ -5561,7 +5559,7 @@ arch_pointer_type (struct gdbarch *gdbarch,
 
   t = arch_type (gdbarch, TYPE_CODE_PTR, bit, name);
   TYPE_TARGET_TYPE (t) = target_type;
-  TYPE_UNSIGNED (t) = 1;
+  t->set_is_unsigned (true);
   return t;
 }
 
@@ -5574,7 +5572,7 @@ arch_flags_type (struct gdbarch *gdbarch, const char *name, int bit)
   struct type *type;
 
   type = arch_type (gdbarch, TYPE_CODE_FLAGS, bit, name);
-  TYPE_UNSIGNED (type) = 1;
+  type->set_is_unsigned (true);
   type->set_num_fields (0);
   /* Pre-allocate enough space assuming every field is one bit.  */
   type->set_fields
@@ -5727,7 +5725,7 @@ gdbtypes_post_init (struct gdbarch *gdbarch)
   builtin_type->builtin_char
     = arch_integer_type (gdbarch, TARGET_CHAR_BIT,
 			 !gdbarch_char_signed (gdbarch), "char");
-  TYPE_NOSIGN (builtin_type->builtin_char) = 1;
+  builtin_type->builtin_char->set_has_no_signedness (true);
   builtin_type->builtin_signed_char
     = arch_integer_type (gdbarch, TARGET_CHAR_BIT,
 			 0, "signed char");
@@ -5886,7 +5884,7 @@ objfile_type (struct objfile *objfile)
   objfile_type->builtin_char
     = init_integer_type (objfile, TARGET_CHAR_BIT,
 			 !gdbarch_char_signed (gdbarch), "char");
-  TYPE_NOSIGN (objfile_type->builtin_char) = 1;
+  objfile_type->builtin_char->set_has_no_signedness (true);
   objfile_type->builtin_signed_char
     = init_integer_type (objfile, TARGET_CHAR_BIT,
 			 0, "signed char");
@@ -5936,10 +5934,12 @@ objfile_type (struct objfile *objfile)
   objfile_type->nodebug_text_symbol
     = init_type (objfile, TYPE_CODE_FUNC, TARGET_CHAR_BIT,
 		 "<text variable, no debug info>");
+
   objfile_type->nodebug_text_gnu_ifunc_symbol
     = init_type (objfile, TYPE_CODE_FUNC, TARGET_CHAR_BIT,
 		 "<text gnu-indirect-function variable, no debug info>");
-  TYPE_GNU_IFUNC (objfile_type->nodebug_text_gnu_ifunc_symbol) = 1;
+  objfile_type->nodebug_text_gnu_ifunc_symbol->set_is_gnu_ifunc (true);
+
   objfile_type->nodebug_got_plt_symbol
     = init_pointer_type (objfile, gdbarch_addr_bit (gdbarch),
 			 "<text from jump slot in .got.plt, no debug info>",

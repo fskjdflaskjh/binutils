@@ -475,7 +475,7 @@ compile_cplus_convert_array (compile_cplus_instance *instance,
   if (range->bounds ()->high.kind () == PROP_LOCEXPR
       || range->bounds ()->high.kind () == PROP_LOCLIST)
     {
-      if (TYPE_VECTOR (type))
+      if (type->is_vector ())
 	{
 	  const char *s = _("variably-sized vector type is not supported");
 
@@ -499,7 +499,7 @@ compile_cplus_convert_array (compile_cplus_instance *instance,
 	  count = high_bound + 1;
 	}
 
-      if (TYPE_VECTOR (type))
+      if (type->is_vector ())
 	return instance->plugin ().build_vector_type (element_type, count);
 
       return instance->plugin ().build_array_type (element_type, count);
@@ -929,7 +929,7 @@ compile_cplus_convert_enum (compile_cplus_instance *instance, struct type *type,
   instance->enter_scope (std::move (scope));
 
   gcc_type int_type
-    = instance->plugin ().get_int_type (TYPE_UNSIGNED (type),
+    = instance->plugin ().get_int_type (type->is_unsigned (),
 					TYPE_LENGTH (type), nullptr);
   gcc_type result
     = instance->plugin ().start_enum_type (name.get (), int_type,
@@ -964,7 +964,7 @@ static gcc_type
 compile_cplus_convert_func (compile_cplus_instance *instance,
 			    struct type *type, bool strip_artificial)
 {
-  int is_varargs = TYPE_VARARGS (type);
+  int is_varargs = type->has_varargs ();
   struct type *target_type = TYPE_TARGET_TYPE (type);
 
   /* Functions with no debug info have no return type.  Ideally we'd
@@ -1015,14 +1015,14 @@ compile_cplus_convert_func (compile_cplus_instance *instance,
 static gcc_type
 compile_cplus_convert_int (compile_cplus_instance *instance, struct type *type)
 {
-  if (TYPE_NOSIGN (type))
+  if (type->has_no_signedness ())
     {
       gdb_assert (TYPE_LENGTH (type) == 1);
       return instance->plugin ().get_char_type ();
     }
 
   return instance->plugin ().get_int_type
-    (TYPE_UNSIGNED (type), TYPE_LENGTH (type), type->name ());
+    (type->is_unsigned (), TYPE_LENGTH (type), type->name ());
 }
 
 /* Convert a floating-point type to its gcc representation.  */

@@ -3417,7 +3417,7 @@ static ULONGEST
 arm_type_align (gdbarch *gdbarch, struct type *t)
 {
   t = check_typedef (t);
-  if (t->code () == TYPE_CODE_ARRAY && TYPE_VECTOR (t))
+  if (t->code () == TYPE_CODE_ARRAY && t->is_vector ())
     {
       /* Use the natural alignment for vector types (the same for
 	 scalar type), but the maximum alignment is 64-bit.  */
@@ -3562,7 +3562,7 @@ arm_vfp_cprc_sub_candidate (struct type *t,
 
     case TYPE_CODE_ARRAY:
       {
-	if (TYPE_VECTOR (t))
+	if (t->is_vector ())
 	  {
 	    /* A 64-bit or 128-bit containerized vector type are VFP
 	       CPRCs.  */
@@ -3694,7 +3694,7 @@ arm_vfp_abi_for_function (struct gdbarch *gdbarch, struct type *func_type)
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
   /* Variadic functions always use the base ABI.  Assume that functions
      without debug info are not variadic.  */
-  if (func_type && TYPE_VARARGS (check_typedef (func_type)))
+  if (func_type && check_typedef (func_type)->has_varargs ())
     return 0;
   /* The VFP ABI is only supported as a variant of AAPCS.  */
   if (tdep->arm_abi != ARM_ABI_AAPCS)
@@ -4030,7 +4030,7 @@ arm_neon_double_type (struct gdbarch *gdbarch)
       elem = builtin_type (gdbarch)->builtin_double;
       append_composite_type_field (t, "f64", elem);
 
-      TYPE_VECTOR (t) = 1;
+      t->set_is_vector (true);
       t->set_name ("neon_d");
       tdep->neon_double_type = t;
     }
@@ -4069,7 +4069,7 @@ arm_neon_quad_type (struct gdbarch *gdbarch)
       elem = builtin_type (gdbarch)->builtin_double;
       append_composite_type_field (t, "f64", init_vector_type (elem, 2));
 
-      TYPE_VECTOR (t) = 1;
+      t->set_is_vector (true);
       t->set_name ("neon_q");
       tdep->neon_quad_type = t;
     }
@@ -8017,7 +8017,7 @@ arm_return_in_memory (struct gdbarch *gdbarch, struct type *type)
       && TYPE_CODE_ARRAY != code && TYPE_CODE_COMPLEX != code)
     return 0;
 
-  if (TYPE_CODE_ARRAY == code && TYPE_VECTOR (type))
+  if (TYPE_CODE_ARRAY == code && type->is_vector ())
     {
       /* Vector values should be returned using ARM registers if they
 	 are not over 16 bytes.  */

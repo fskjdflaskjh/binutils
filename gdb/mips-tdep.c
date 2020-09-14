@@ -686,7 +686,7 @@ mips_register_reggroup_p (struct gdbarch *gdbarch, int regnum,
   int pseudo = regnum / gdbarch_num_regs (gdbarch);
   if (reggroup == all_reggroup)
     return pseudo;
-  vector_p = TYPE_VECTOR (register_type (gdbarch, regnum));
+  vector_p = register_type (gdbarch, regnum)->is_vector ();
   float_p = register_type (gdbarch, regnum)->code () == TYPE_CODE_FLT;
   /* FIXME: cagney/2003-04-13: Can't yet use gdbarch_num_regs
      (gdbarch), as not all architectures are multi-arch.  */
@@ -5091,7 +5091,7 @@ mips_n32n64_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 			   || typecode == TYPE_CODE_INT))
 		      || (partial_len < 4
 			  && typecode == TYPE_CODE_INT
-			  && !TYPE_UNSIGNED (arg_type)))
+			  && !arg_type->is_unsigned ()))
 		    regval = extract_signed_integer (val, partial_len,
 						     byte_order);
 		  else

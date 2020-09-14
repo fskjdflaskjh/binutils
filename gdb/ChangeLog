@@ -1,3 +1,131 @@
+2020-09-14  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* gdbtypes.h (TYPE_ENDIANITY_NOT_DEFAULT): Remove, replace all
+	uses with type::endianity_is_not_default.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <endianity_is_not_default,
+	set_endianity_is_not_default>: New methods.
+	(TYPE_ENDIANITY_NOT_DEFAULT): Use
+	type::endianity_is_not_default, change all write call sites to
+	use type::set_endianity_is_not_default.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_FIXED_INSTANCE): Remove, replace all
+	uses with type::is_fixed_instance.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <is_fixed_instance,
+	set_is_fixed_instance>: New methods.
+	(TYPE_FIXED_INSTANCE): Use type::is_fixed_instance, change all
+	write call sites to use type::set_is_fixed_instance.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_GNU_IFUNC): Remove, replace all
+	uses with type::is_gnu_ifunc.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <is_gnu_ifunc, set_is_gnu_ifunc>: New methods.
+	(TYPE_GNU_IFUNC): Use type::is_gnu_ifunc, change all write call sites to
+	use type::set_is_gnu_ifunc.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_STUB_SUPPORTED): Remove, replace all
+	uses with type::stub_is_supported.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <stub_is_supported, set_stub_is_supported>: New methods.
+	(TYPE_STUB_SUPPORTED): Use type::stub_is_supported, change all write call sites to
+	use type::set_stub_is_supported.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_VECTOR): Remove, replace all
+	uses with type::is_vector.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <is_vector, set_is_vector>: New methods.
+	(TYPE_VECTOR): Use type::is_vector, change all write call sites to
+	use type::set_is_vector.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_VARARGS): Remove, replace all
+	uses with type::has_varargs.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <has_varargs, set_has_varargs>: New methods.
+	(TYPE_VARARGS): Use type::has_varargs, change all write call sites to
+	use type::set_has_varargs.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_PROTOTYPED): Remove, replace all
+	uses with type::is_prototyped.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <is_prototyped, set_is_prototyped>:
+	New methods.
+	(TYPE_PROTOTYPED): Use type::is_prototyped, change all write
+	call sites to use type::set_is_prototyped.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_TARGET_STUB): Remove, replace all
+	uses with type::target_is_stub.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <target_is_stub, set_target_is_stub>:
+	New methods.
+	(TYPE_TARGET_STUB): Use type::is_stub, change all write call
+	sites to use type::set_target_is_stub.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_STUB): Remove, replace all
+	uses with type::is_stub.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <is_stub, set_is_stub>: New methods.
+	(TYPE_STUB): Use type::is_stub, change all write call sites to
+	use type::set_is_stub.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_NOSIGN): Remove, replace all uses with
+	type::has_no_signedness.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <has_no_signedness,
+	set_has_no_signedness>: New methods.
+	(TYPE_NOSIGN): Use type::has_no_signedness, change all write
+	call sites to use type::set_has_no_signedness.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (TYPE_UNSIGNED): Remove, replace all uses with
+	type::is_unsigned.
+
+2020-09-14  Simon Marchi  <simon.marchi@efficios.com>
+
+	* gdbtypes.h (struct type) <is_unsigned, set_is_unsigned>: New
+	methods.
+	(TYPE_UNSIGNED): Use type::is_unsigned.  Change all write call
+	sites to use type::set_is_unsigned.
+
 2020-09-14  Fredrik Hederstierna  <fredrik.hederstierna@verisure.com>
             Adam Renquinha <arenquinha@cimeq.qc.ca>
 
