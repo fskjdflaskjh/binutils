@@ -1,3 +1,36 @@
+2020-09-16  John Baldwin  <jhb@FreeBSD.org>
+
+	* fbsd-nat.c (fbsd_nat_target::wait): Always check for
+	PL_FLAG_EXEC.
+	(fbsd_nat_target::insert_exec_catchpoint)
+	(fbsd_nat_target::remove_exec_catchpoint): Always define.
+	* fbsd-nat.h (fbsd_nat_target::insert_exec_catchpoint)
+	(fbsd_nat_target::remove_exec_catchpoint): Always declare.
+
+2020-09-16  John Baldwin  <jhb@FreeBSD.org>
+
+	* configure.ac: Remove check for kinfo_getvmmap().
+	* configure, config.in: Regenerate.
+	* fbsd-nat.c (fbsd_read_mapping): Remove
+	(fbsd_nat_target::find_memory_regions): Remove the procfs version.
+	(fbsd_nat_target::info_proc): Assume kinfo_getfile() and
+	kinfo_get_vmmap() are always present.
+
+2020-09-16  John Baldwin  <jhb@FreeBSD.org>
+
+	* fbsd-nat.c: Always include support for
+	TARGET_OBJECT_SIGNAL_INFO.
+
+2020-09-16  John Baldwin  <jhb@FreeBSD.org>
+
+	* fbsd-nat.c (fbsd_nat_target::pid_to_exec_file): Always use
+	sysctl and remove procfs fallback.
+
+2020-09-16  John Baldwin  <jhb@FreeBSD.org>
+
+	* fbsd-nat.c: Assume PT_LWPINFO is always defined.
+	* fbsd-nat.h: Likewise.
+
 2020-09-16  Tankut Baris Aktemur  <tankut.baris.aktemur@intel.com>
 
 	* breakpoint.c (commands_command_1): Make a copy of the 'arg'
