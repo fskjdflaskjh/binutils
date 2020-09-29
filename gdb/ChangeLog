@@ -1,3 +1,140 @@
+2020-09-28  Tom Tromey  <tom@tromey.com>
+
+	* infrun.c (displaced_step_fixup, thread_still_needs_step_over)
+	(handle_signal_stop): Update.
+	* procfs.c (procfs_target::insert_watchpoint): Update.
+	* target.h (target_have_steppable_watchpoint): Now a function.
+
+2020-09-28  Tom Tromey  <tom@tromey.com>
+
+	* infrun.c (set_schedlock_func): Update.
+	* target.h (target_can_lock_scheduler): Now a function.
+
+2020-09-28  Tom Tromey  <tom@tromey.com>
+
+	* inferior.h (class inferior) <has_execution>: Update.
+	* windows-tdep.c (windows_solib_create_inferior_hook): Update.
+	* valops.c (find_function_in_inferior)
+	(value_allocate_space_in_inferior): Update.
+	* top.c (kill_or_detach): Update.
+	* target.c (target_preopen, set_target_permissions): Update.
+	(target_has_execution_current): Remove.
+	* sparc64-tdep.c (adi_examine_command, adi_assign_command):
+	Update.
+	* solib.c (update_solib_list, reload_shared_libraries): Update.
+	* solib-svr4.c (svr4_solib_create_inferior_hook): Update.
+	* solib-dsbt.c (enable_break): Update.
+	* score-tdep.c (score7_fetch_inst): Update.
+	* rs6000-nat.c (rs6000_nat_target::xfer_shared_libraries):
+	Update.
+	* remote.c (remote_target::start_remote)
+	(remote_target::remote_check_symbols, remote_target::open_1)
+	(remote_target::remote_detach_1, remote_target::verify_memory)
+	(remote_target::xfer_partial, remote_target::read_description)
+	(remote_target::get_min_fast_tracepoint_insn_len): Update.
+	* record-full.c (record_full_open_1): Update.
+	* record-btrace.c (record_btrace_target_open): Update.
+	* objc-lang.c (lookup_objc_class, lookup_child_selector)
+	(value_nsstring): Update.
+	* linux-thread-db.c (add_thread_db_info)
+	(thread_db_find_new_threads_silently, check_thread_db_callback)
+	(try_thread_db_load_1, record_thread): Update.
+	* linux-tdep.c (linux_info_proc, linux_vsyscall_range_raw):
+	Update.
+	* linux-fork.c (checkpoint_command): Update.
+	* infrun.c (set_non_stop, set_observer_mode)
+	(check_multi_target_resumption, for_each_just_stopped_thread)
+	(maybe_remove_breakpoints, normal_stop)
+	(class infcall_suspend_state): Update.
+	* infcmd.c (ERROR_NO_INFERIOR, kill_if_already_running)
+	(info_program_command, attach_command): Update.
+	* infcall.c (call_function_by_hand_dummy): Update.
+	* inf-loop.c (inferior_event_handler): Update.
+	* gcore.c (gcore_command, derive_heap_segment): Update.
+	* exec.c (exec_file_command): Update.
+	* eval.c (evaluate_subexp): Update.
+	* compile/compile.c (compile_to_object): Update.
+	* cli/cli-dump.c (restore_command): Update.
+	* breakpoint.c (update_watchpoint)
+	(update_inserted_breakpoint_locations)
+	(insert_breakpoint_locations, get_bpstat_thread): Update.
+	* target.h (target_has_execution): Remove macro.
+	(target_has_execution_current): Don't declare.
+	(target_has_execution): Rename from target_has_execution_1.  Add
+	argument default.
+
+2020-09-28  Tom Tromey  <tom@tromey.com>
+
+	* mi/mi-main.c (exec_reverse_continue)
+	(mi_cmd_list_target_features): Update.
+	* infrun.c (set_exec_direction_func): Update.
+	* target.c (default_execution_direction): Update.
+	* reverse.c (exec_reverse_once): Update.
+	* target.h (target_can_execute_reverse): Now a function.
+
+2020-09-28  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_get_register)
+	(tui_data_window::show_registers): Update.
+	* thread.c (scoped_restore_current_thread::restore)
+	(scoped_restore_current_thread::scoped_restore_current_thread):
+	Update.
+	* regcache-dump.c (regcache_print): Update.
+	* python/py-finishbreakpoint.c (bpfinishpy_detect_out_scope_cb):
+	Update.
+	* mi/mi-main.c (mi_cmd_data_write_register_values): Update.
+	* mep-tdep.c (current_me_module, current_options): Update.
+	* linux-thread-db.c (thread_db_load): Update.
+	* infcmd.c (registers_info, info_vector_command)
+	(info_float_command): Update.
+	* ia64-tdep.c (ia64_frame_prev_register)
+	(ia64_sigtramp_frame_prev_register): Update.
+	* ia64-libunwind-tdep.c (libunwind_frame_prev_register): Update.
+	* gcore.c (derive_stack_segment): Update.
+	* frame.c (get_current_frame, has_stack_frames): Update.
+	* findvar.c (language_defn::read_var_value): Update.
+	* arm-tdep.c (arm_pc_is_thumb): Update.
+	* target.c (target_has_registers): Rename from
+	target_has_registers_1.
+	* target.h (target_has_registers): Remove macro.
+	(target_has_registers): Rename from target_has_registers_1.
+
+2020-09-28  Tom Tromey  <tom@tromey.com>
+
+	* windows-tdep.c (tlb_make_value): Update.
+	* tui/tui-regs.c (tui_data_window::show_registers): Update.
+	* thread.c (scoped_restore_current_thread::restore)
+	(scoped_restore_current_thread::scoped_restore_current_thread)
+	(thread_command): Update.
+	* stack.c (backtrace_command_1, frame_apply_level_command)
+	(frame_apply_all_command, frame_apply_command): Update.
+	* infrun.c (siginfo_make_value, restore_infcall_control_state):
+	Update.
+	* gcore.c (derive_stack_segment): Update.
+	* frame.c (get_current_frame, has_stack_frames): Update.
+	* auxv.c (info_auxv_command): Update.
+	* ada-tasks.c (ada_build_task_list): Update.
+	* target.c (target_has_stack): Rename from target_has_stack_1.
+	* target.h (target_has_stack): Remove macro.
+	(target_has_stack): Rename from target_has_stack_1.
+
+2020-09-28  Tom Tromey  <tom@tromey.com>
+
+	* target.c (target_has_memory): Rename from target_has_memory_1.
+	* tui/tui-regs.c (tui_data_window::show_registers): Update.
+	* thread.c (scoped_restore_current_thread::restore)
+	(scoped_restore_current_thread::scoped_restore_current_thread):
+	Update.
+	* frame.c (get_current_frame, has_stack_frames): Update.
+	* target.h (target_has_memory): Remove macro.
+	(target_has_memory): Rename from target_has_memory_1.
+
+2020-09-28  Tom Tromey  <tom@tromey.com>
+
+	* target.c (target_has_all_memory_1): Remove.
+	* target.h (target_has_all_memory): Remove define.
+	(target_has_all_memory_1): Don't declare.
+
 2020-09-28  Simon Marchi  <simon.marchi@polymtl.ca>
 
 	* ser-base.c: Adjust comments formatting.
