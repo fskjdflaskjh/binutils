@@ -1,3 +1,22 @@
+2020-10-07  Tom Tromey  <tromey@adacore.com>
+
+	* unittests/search-memory-selftests.c: New file.
+	* Makefile.in (SELFTESTS_SRCS): Add
+	unittests/search-memory-selftests.c.
+
+2020-10-07  Tom Tromey  <tromey@adacore.com>
+
+	PR gdb/16930:
+	* findcmd.c (_initialize_mem_search): Mention that the range is
+	inclusive.
+
+2020-10-07  Tom Tromey  <tromey@adacore.com>
+
+	* target.h (simple_search_memory): Don't declare.
+	* target.c (simple_search_memory): Move to gdbsupport.
+	(default_search_memory): Update.
+	* remote.c (remote_target::search_memory): Update.
+
 2020-10-07  Simon Marchi  <simon.marchi@efficios.com>
 
 	* Makefile.in (COMPILE): Add CXXFLAGS.
