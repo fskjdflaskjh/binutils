@@ -1,3 +1,28 @@
+2020-10-13  Alan Modra  <amodra@gmail.com>
+
+	* gdb.arch/powerpc-altivec.s,
+	* gdb.arch/powerpc-power7.s,
+	* gdb.arch/powerpc-power8.s,
+	* gdb.arch/powerpc-power9.s,
+	* gdb.arch/powerpc-vsx.s,
+	* gdb.arch/powerpc-vsx2.s: Remove duplicate instructions.
+	* gdb.arch/powerpc-altivec.exp,
+	* gdb.arch/powerpc-power7.exp,
+	* gdb.arch/powerpc-power8.exp,
+	* gdb.arch/powerpc-power9.exp,
+	* gdb.arch/powerpc-vsx.exp,
+	* gdb.arch/powerpc-vsx2.exp: Likewise, and update expected
+	disassembly of mfvsrd/mtvsrd.
+
+2020-10-13  Alan Modra  <amodra@gmail.com>
+
+	* gdb.arch/arm-disassembler-options.exp: Adjust expected
+	"target architecture" output.
+	* gdb.arch/powerpc-d128-regs.exp: Likewise.
+	* gdb.arch/powerpc-disassembler-options.exp: Likewise.
+	* gdb.arch/ppc64-symtab-cordic.exp: Likewise.
+	* gdb.arch/s390-disassembler-options.exp: Likewise.
+
 2020-10-12  Pedro Alves  <pedro@palves.net>
 
 	PR exp/26602
