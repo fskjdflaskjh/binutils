@@ -1,3 +1,22 @@
+2020-10-28  Tom de Vries  <tdevries@suse.de>
+
+	* lib/gdb.exp (gdb_file_cmd): Set gdb_file_cmd_msg.
+	* gdb.cp/nsalias.exp: Set complaints limit before file cmd.  Expect
+	complaint during file command for -readnow.
+
+2020-10-28  Tom de Vries  <tdevries@suse.de>
+
+	* gdb.cp/nsalias.exp: Fix typo in test name.
+
+2020-10-28  Tom de Vries  <tdevries@suse.de>
+
+	* gdb.dwarf2/dw2-filename.exp: Update regexp for -readnow.
+
+2020-10-28  Tom de Vries  <tdevries@suse.de>
+
+	* gdb.dwarf2/dw2-stack-boundary.exp: KFAILing the complaints for
+	-readnow.
+
 2020-10-27  Tom de Vries  <tdevries@suse.de>
 
 	* gdb.base/multi-forks.exp: Use exp_continue to fix timeout.
