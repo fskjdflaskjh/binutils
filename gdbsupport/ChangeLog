@@ -1,3 +1,42 @@
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* common.m4: Replace AC_TRY_COMPILE with AC_COMPILE_IFELSE +
+	AC_LANG_PROGRAM.
+	* configure: Re-generate.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* common.m4: Replace AC_FUNC_VFORK with AC_FUNC_FORK.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure: Re-generate.
+	* warning.m4: Replace AC_TRY_COMPILE with AC_COMPILE_IFELSE +
+	AC_LANG_PROGRAM.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure: Re-generate.
+	* ptrace.m4: Replace AC_TRY_COMPILE with AC_COMPILE_IFELSE +
+	AC_LANG_PROGRAM.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure: Re-generate.
+	* ptrace.m4: Re-indent.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* aclocal.m4: Re-generate.
+	* configure: Re-generate.
+	* configure.ac: Remove AM_PROG_CC_STDC.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure.ac: Use AC_CANONICAL_{BUILD,HOST,TARGET} instead of
+	AC_CANONICAL_SYSTEM.
+	* configure: Re-generate.
+
 2020-10-26  Pedro Alves  <pedro@palves.net>
 
 	* eintr.h (handle_eintr): Replace Ret template parameter with

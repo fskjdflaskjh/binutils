@@ -1,3 +1,47 @@
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure: Re-generate.
+	* sanitize.m4: Replace AC_TRY_LINK with AC_LINK_IFELSE +
+	AC_LANG_PROGRAM.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure: Re-generate.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure: Re-generate.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure: Re-generate.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure: Re-generate.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* acinclude.m4: Modernize.
+	* configure: Re-generate.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure.ac: Modernize.
+	* configure: Re-generate.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* acinclude.m4 (AM_PROG_CC_STDC): Remove.
+	* configure: Re-generate.
+	* configure.ac: Remove AM_PROG_CC_STDC.
+
+2020-10-31  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* configure.ac: Use AC_CANONICAL_{BUILD,HOST,TARGET} instead of
+	AC_CANONICAL_SYSTEM.
+	* configure: Re-generate.
+
 2020-10-30  Simon Marchi  <simon.marchi@efficios.com>
 
 	* infrun.h (displaced_debug_printf): New macro.  Replace
