@@ -9172,7 +9172,8 @@ unwrap_value (struct value *val)
 static struct value *
 cast_from_gnat_encoded_fixed_point_type (struct type *type, struct value *arg)
 {
-  struct value *scale = gnat_encoded_fixed_point_scaling_factor (value_type (arg));
+  struct value *scale
+    = gnat_encoded_fixed_point_scaling_factor (value_type (arg));
   arg = value_cast (value_type (scale), arg);
 
   arg = value_binop (arg, scale, BINOP_MUL);
@@ -11119,7 +11120,7 @@ nosideret:
    Otherwise, return NULL.  */
 
 static const char *
-gnat_encoded_fixed_type_info (struct type *type)
+gnat_encoded_fixed_point_type_info (struct type *type)
 {
   const char *name = ada_type_name (type);
   enum type_code code = (type == NULL) ? TYPE_CODE_UNDEF : type->code ();
@@ -11134,7 +11135,7 @@ gnat_encoded_fixed_type_info (struct type *type)
         return tail + 5;
     }
   else if (code == TYPE_CODE_RANGE && TYPE_TARGET_TYPE (type) != type)
-    return gnat_encoded_fixed_type_info (TYPE_TARGET_TYPE (type));
+    return gnat_encoded_fixed_point_type_info (TYPE_TARGET_TYPE (type));
   else
     return NULL;
 }
@@ -11144,7 +11145,7 @@ gnat_encoded_fixed_type_info (struct type *type)
 int
 ada_is_gnat_encoded_fixed_point_type (struct type *type)
 {
-  return gnat_encoded_fixed_type_info (type) != NULL;
+  return gnat_encoded_fixed_point_type_info (type) != NULL;
 }
 
 /* Return non-zero iff TYPE represents a System.Address type.  */
@@ -11172,7 +11173,7 @@ ada_scaling_type (struct type *type)
 struct value *
 gnat_encoded_fixed_point_delta (struct type *type)
 {
-  const char *encoding = gnat_encoded_fixed_type_info (type);
+  const char *encoding = gnat_encoded_fixed_point_type_info (type);
   struct type *scale_type = ada_scaling_type (type);
 
   long long num, den;
@@ -11190,7 +11191,7 @@ gnat_encoded_fixed_point_delta (struct type *type)
 struct value *
 gnat_encoded_fixed_point_scaling_factor (struct type *type)
 {
-  const char *encoding = gnat_encoded_fixed_type_info (type);
+  const char *encoding = gnat_encoded_fixed_point_type_info (type);
   struct type *scale_type = ada_scaling_type (type);
 
   long long num0, den0, num1, den1;

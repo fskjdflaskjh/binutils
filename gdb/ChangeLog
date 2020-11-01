@@ -1,5 +1,15 @@
 2020-11-01  Joel Brobecker  <brobecker@adacore.com>
 
+	* ada-lang.c (gnat_encoded_fixed_point_type_info): Renames
+	gnat_encoded_fixed_type_info.  Update all callers.
+
+2020-11-01  Joel Brobecker  <brobecker@adacore.com>
+
+	* ada-lang.c (cast_from_gnat_encoded_fixed_point_type): Split
+	line too long.
+
+2020-11-01  Joel Brobecker  <brobecker@adacore.com>
+
 	* ada-lang.c (cast_from_gnat_encoded_fixed_point_type): Renames
 	cast_from_fixed.  Update all callers.
 	(cast_to_gnat_encoded_fixed_point_type): Renames cast_to_fixed.
