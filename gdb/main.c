@@ -301,8 +301,6 @@ get_init_files (std::vector<std::string> *system_gdbinit,
 	  }
 	}
 
-      const char *homedir = getenv ("HOME");
-
       /* If the .gdbinit file in the current directory is the same as
 	 the $HOME/.gdbinit file, it should not be sourced.  homebuf
 	 and cwdbuf are used in that purpose.  Make sure that the stats
@@ -312,14 +310,7 @@ get_init_files (std::vector<std::string> *system_gdbinit,
       memset (&homebuf, 0, sizeof (struct stat));
       memset (&cwdbuf, 0, sizeof (struct stat));
 
-      if (homedir)
-	{
-	  homeinit = std::string (homedir) + SLASH_STRING + GDBINIT;
-	  if (stat (homeinit.c_str (), &homebuf) != 0)
-	    {
-	      homeinit = "";
-	    }
-	}
+      homeinit = find_gdb_home_config_file (GDBINIT, &homebuf);
 
       if (stat (GDBINIT, &cwdbuf) == 0)
 	{
@@ -328,7 +319,7 @@ get_init_files (std::vector<std::string> *system_gdbinit,
 			 sizeof (struct stat)))
 	    localinit = GDBINIT;
 	}
-      
+
       initialized = 1;
     }
 
@@ -523,6 +514,26 @@ struct cmdarg
      is not owned by this structure despite it is 'const'.  */
   char *string;
 };
+
+/* From CMDARG_VEC execute command files (matching FILE_TYPE) or commands
+   (matching CMD_TYPE).  Update the value in *RET if and scripts or
+   commands are executed.  */
+
+static void
+execute_cmdargs (const std::vector<struct cmdarg> *cmdarg_vec,
+		 cmdarg_kind file_type, cmdarg_kind cmd_type,
+		 int *ret)
+{
+  for (const auto &cmdarg_p : *cmdarg_vec)
+    {
+      if (cmdarg_p.type == file_type)
+	*ret = catch_command_errors (source_script, cmdarg_p.string,
+				     !batch_flag);
+      else if (cmdarg_p.type == cmd_type)
+	*ret = catch_command_errors (execute_command, cmdarg_p.string,
+				     !batch_flag);
+    }
+}
 
 static void
 captured_main_1 (struct captured_main_args *context)
@@ -1078,22 +1089,7 @@ captured_main_1 (struct captured_main_args *context)
     ret = catch_command_errors (source_script, home_gdbinit.c_str (), 0);
 
   /* Process '-ix' and '-iex' options early.  */
-  for (i = 0; i < cmdarg_vec.size (); i++)
-    {
-      const struct cmdarg &cmdarg_p = cmdarg_vec[i];
-
-      switch (cmdarg_p.type)
-	{
-	case CMDARG_INIT_FILE:
-	  ret = catch_command_errors (source_script, cmdarg_p.string,
-				      !batch_flag);
-	  break;
-	case CMDARG_INIT_COMMAND:
-	  ret = catch_command_errors (execute_command, cmdarg_p.string,
-				      !batch_flag);
-	  break;
-	}
-    }
+  execute_cmdargs (&cmdarg_vec, CMDARG_INIT_FILE, CMDARG_INIT_COMMAND, &ret);
 
   /* Now perform all the actions indicated by the arguments.  */
   if (cdarg != NULL)
@@ -1204,22 +1200,7 @@ captured_main_1 (struct captured_main_args *context)
     load_auto_scripts_for_objfile (objfile);
 
   /* Process '-x' and '-ex' options.  */
-  for (i = 0; i < cmdarg_vec.size (); i++)
-    {
-      const struct cmdarg &cmdarg_p = cmdarg_vec[i];
-
-      switch (cmdarg_p.type)
-	{
-	case CMDARG_FILE:
-	  ret = catch_command_errors (source_script, cmdarg_p.string,
-				      !batch_flag);
-	  break;
-	case CMDARG_COMMAND:
-	  ret = catch_command_errors (execute_command, cmdarg_p.string,
-				      !batch_flag);
-	  break;
-	}
-    }
+  execute_cmdargs (&cmdarg_vec, CMDARG_FILE, CMDARG_COMMAND, &ret);
 
   /* Read in the old history after all the command files have been
      read.  */
