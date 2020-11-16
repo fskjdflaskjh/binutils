@@ -1,3 +1,109 @@
+2020-11-16  Mark Wielaard  <mark@klomp.org>
+
+	Backport from the mainline:
+	2020-10-29  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/26808
+	* dwarf.c (abbrev_list): Add abbrev_base.
+	(new_abbrev_list): Add an abbrev_base argument and record it.
+	(find_abbrev_list_by_abbrev_offset): Add an abbrev_base argument
+	and match it.
+	(process_debug_info): Pass abbrev_base to new_abbrev_list and
+	find_abbrev_list_by_abbrev_offset.
+	(display_debug_abbrev): Pass 0 abbrev_base to new_abbrev_list
+	and find_abbrev_list_by_abbrev_offset.
+	* testsuite/binutils-all/x86-64/pr26808.dump: New file.
+	* testsuite/binutils-all/x86-64/pr26808.dwp.bz2: Likewise.
+	* testsuite/binutils-all/x86-64/x86-64.exp: Run PR binutils/26808
+	test.
+
+2020-11-15  Mark Wielaard  <mark@klomp.org>
+
+	Backport from the mainline:
+	2020-11-10  Nick Clifton  <nickc@redhat.com>
+
+	* dwarf.c (skip_attr_bytes): Correctly handle DW_FORM_ref8.
+	(get_type_abbrev_from_form): Accept DW_FORM_ref8.
+
+2020-11-15  Mark Wielaard  <mark@klomp.org>
+
+	Backport from the mainline:
+	2020-10-27  Nick Clifton  <nickc@redhat.com>
+
+	* dwarf.c (struct abbrev_list): New structure.  Used to collect
+	lists of abbreviation sets.
+	(struct abbrev_map): New structure.  Used to map CU offsets to
+	abbreviation offsets.
+	(record_abbrev_list): New function.  A new entry to an
+	abbreviation list.
+	(free_all_abbrevs): Update to free abbreviation lists.
+	(new_abbrev_list): New function.  Start a new abbreviation
+	list.
+	(find_abbrev_list_by_abbrev_offset): New function.
+	(find_abbrev_map_by_offset): New function.
+	(add_abbrev): Add abbrev_list parameter.
+	(add_abbrev_attr): Likewise.
+	(process_abbrev_section): Rename to process_abbrev_set and add
+	list parameter.
+	(get_type_abbrev_from_form): New function.  Attempts to decode the
+	forms used by DW_AT_type attributes.
+	(get_type_signedness): Display type names if operating in wide
+	mode.  Use get_type_abbrev_from_form.
+	(read_and_display_attr_value): Use get_type_abbrev_from_form.
+	(process_debug_info): Pre-parse the CU headers to collate all the
+	abbrevs before starting the main scan.
+	(process_debug_abbrev): Do not free any loaded abbrevs.
+	(free_debug_memory): Free the abbrev maps.
+
+2020-11-15  Mark Wielaard  <mark@klomp.org>
+
+	Backport from the mainline:
+	2020-10-21  Nick Clifton  <nickc@redhat.com>
+
+	* dwarf.c (skip_attr_bytes): Accept DWARF versions higher than 4
+	when processing the DW_FORM_ref_addr form.
+	Skip bytes in DW_FORM_block and DW_FORM_exprloc forms.
+	Handle DW_FORM_indirect.
+	(get_type_signedness): Allow a limited amount of recursion.
+	Do not attempt to decode types that use the DW_FORM_ref_addr form.
+	(read_and_display_attr_value): 	Do not attempt to decode types
+	that use the DW_FORM_ref_addr form.
+
+2020-11-15  Mark Wielaard  <mark@klomp.org>
+
+	Backport from the mainline:
+	2020-11-11  Bernd Edlinger  <bernd.edlinger@hotmail.de>
+
+	* dwarf.c (display_debug_rnglists_list): Only bias the
+	DW_RLS_offset_pair with the base address.
+
+2020-11-15  Mark Wielaard  <mark@klomp.org>
+
+	Backport from the mainline:
+	2020-09-29  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.c (display_loclists_list): Handle DW_LLE_start_end and
+	DW_LLE_start_length. Only add base_address for DW_LLE_offset_pair.
+
+2020-11-15  Mark Wielaard  <mark@klomp.org>
+
+	Backport from the mainline:
+	2020-09-23  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.c (process_debug_info): Print Unit Type for DWARF5.
+	* testsuite/binutils-all/dw5.W: Adjust expected output.
+	* testsuite/binutils-all/dwarf-attributes.W: Likewise.
+
+2020-11-15  Mark Wielaard  <mark@klomp.org>
+
+	Backport from the mainline:
+	2020-09-23  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.c (read_and_display_attr_value): Handle DW_FORM_ref_addr
+	for dwarf_version 5 just as version 3 and 4 (only 2 is
+	different).
+	(process_debug_info): Allow DW_UT_partial.
+
 2020-09-19  Nick Clifton  <nickc@redhat.com>
 
 	This is the 2.35.1 point release.
